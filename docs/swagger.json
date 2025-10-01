@@ -1,0 +1,317 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Sales domain management API",
+        "title": "Sales API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8091",
+    "basePath": "/api",
+    "paths": {
+        "/domain": {
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Update domain information",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ドメイン"
+                ],
+                "summary": "Update domain",
+                "parameters": [
+                    {
+                        "description": "Update domain request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.UpdateDomainRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.Domain"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Delete domain by name",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ドメイン"
+                ],
+                "summary": "Delete domain",
+                "parameters": [
+                    {
+                        "description": "Delete domain request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.DeleteDomainRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/domains": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Get domain list",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ドメイン"
+                ],
+                "summary": "Get domains",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Domain name",
+                        "name": "name",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.Domain"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/fetch": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Fetch domain information from target",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ViewDNS"
+                ],
+                "summary": "Fetch domains",
+                "parameters": [
+                    {
+                        "description": "Fetch request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.PostFetchRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "domain.DeleteDomainRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.Domain": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "can_view": {
+                    "type": "boolean"
+                },
+                "create_at": {
+                    "type": "string"
+                },
+                "industry": {
+                    "description": "業種",
+                    "type": "string"
+                },
+                "is_send": {
+                    "type": "boolean"
+                },
+                "is_ssl": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "owner_id": {
+                    "type": "string"
+                },
+                "page_num": {
+                    "type": "integer"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "raw_page": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/domain.Status"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "update_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.PostFetchRequest": {
+            "type": "object",
+            "required": [
+                "target"
+            ],
+            "properties": {
+                "target": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.Status": {
+            "type": "string",
+            "enum": [
+                "unknown",
+                "initialize",
+                "check_view",
+                "crawl_comp_info",
+                "phone",
+                "done"
+            ],
+            "x-enum-varnames": [
+                "StatusUnknown",
+                "StatusInitialize",
+                "StatusCheckView",
+                "StatusCrawlCompInfo",
+                "StatusPhone",
+                "StatusDone"
+            ]
+        },
+        "domain.UpdateDomainRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "status"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "can_view": {
+                    "type": "boolean"
+                },
+                "industry": {
+                    "type": "string"
+                },
+                "is_send": {
+                    "type": "boolean"
+                },
+                "is_ssl": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "owner_id": {
+                    "type": "string"
+                },
+                "page_num": {
+                    "type": "integer"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "raw_page": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "Bearer": {
+            "description": "Type \"Bearer\" followed by a space and JWT token.",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

@@ -1,0 +1,207 @@
+basePath: /api
+definitions:
+  domain.DeleteDomainRequest:
+    properties:
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  domain.Domain:
+    properties:
+      address:
+        type: string
+      can_view:
+        type: boolean
+      create_at:
+        type: string
+      industry:
+        description: 業種
+        type: string
+      is_send:
+        type: boolean
+      is_ssl:
+        type: boolean
+      name:
+        type: string
+      owner_id:
+        type: string
+      page_num:
+        type: integer
+      phone:
+        type: string
+      raw_page:
+        type: string
+      status:
+        $ref: '#/definitions/domain.Status'
+      title:
+        type: string
+      update_at:
+        type: string
+    type: object
+  domain.PostFetchRequest:
+    properties:
+      target:
+        type: string
+    required:
+    - target
+    type: object
+  domain.Status:
+    enum:
+    - unknown
+    - initialize
+    - check_view
+    - crawl_comp_info
+    - phone
+    - done
+    type: string
+    x-enum-varnames:
+    - StatusUnknown
+    - StatusInitialize
+    - StatusCheckView
+    - StatusCrawlCompInfo
+    - StatusPhone
+    - StatusDone
+  domain.UpdateDomainRequest:
+    properties:
+      address:
+        type: string
+      can_view:
+        type: boolean
+      industry:
+        type: string
+      is_send:
+        type: boolean
+      is_ssl:
+        type: boolean
+      name:
+        type: string
+      owner_id:
+        type: string
+      page_num:
+        type: integer
+      phone:
+        type: string
+      raw_page:
+        type: string
+      status:
+        type: string
+      title:
+        type: string
+    required:
+    - name
+    - status
+    type: object
+host: localhost:8091
+info:
+  contact: {}
+  description: Sales domain management API
+  title: Sales API
+  version: "1.0"
+paths:
+  /domain:
+    delete:
+      consumes:
+      - application/json
+      description: Delete domain by name
+      parameters:
+      - description: Delete domain request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.DeleteDomainRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      security:
+      - Bearer: []
+      summary: Delete domain
+      tags:
+      - ドメイン
+    put:
+      consumes:
+      - application/json
+      description: Update domain information
+      parameters:
+      - description: Update domain request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateDomainRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Domain'
+      security:
+      - Bearer: []
+      summary: Update domain
+      tags:
+      - ドメイン
+  /domains:
+    get:
+      consumes:
+      - application/json
+      description: Get domain list
+      parameters:
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      - description: Domain name
+        in: query
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Domain'
+            type: array
+      security:
+      - Bearer: []
+      summary: Get domains
+      tags:
+      - ドメイン
+  /fetch:
+    post:
+      consumes:
+      - application/json
+      description: Fetch domain information from target
+      parameters:
+      - description: Fetch request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.PostFetchRequest'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+      security:
+      - Bearer: []
+      summary: Fetch domains
+      tags:
+      - ViewDNS
+securityDefinitions:
+  Bearer:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

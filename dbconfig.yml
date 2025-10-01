@@ -1,0 +1,17 @@
+development:
+  dialect: mysql
+  datasource: ${DB_USER}:${DB_PASSWORD}@tcp(${DB_HOST}:${DB_PORT})/${DB_NAME}?charset=utf8mb4&parseTime=True&loc=Local
+  dir: migrations
+  table: schema_migrations
+
+production:
+  dialect: mysql
+  datasource: ${DB_USER}:${DB_PASSWORD}@tcp(${DB_HOST}:${DB_PORT})/${DB_NAME}?charset=utf8mb4&parseTime=True&loc=Local
+  dir: migrations
+  table: schema_migrations
+
+test:
+  dialect: mysql
+  datasource: ${DB_USER}:${DB_PASSWORD}@tcp(${DB_HOST}:${DB_PORT})/${DB_NAME}?charset=utf8mb4&parseTime=True&loc=Local
+  dir: migrations
+  table: schema_migrations
