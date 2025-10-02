@@ -18,6 +18,7 @@ type Environment struct {
 	Address       string `envconfig:"ADDRESS" default:"localhost"`
 	Password      string `envconfig:"PASSWORD"`
 	JWTSecret     string `envconfig:"JWT_SECRET"`
+	SwaggerHost   string `envconfig:"SWAGGER_HOST" default:"localhost:8091"`
 }
 
 var Env Environment

@@ -15,7 +15,7 @@ import (
 	"syscall"
 	"time"
 
-	_ "github.com/zuxt268/sales/docs"
+	"github.com/zuxt268/sales/docs"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -25,7 +25,6 @@ import (
 // @title Sales API
 // @version 1.0
 // @description Sales domain management API
-// @host localhost:8091
 // @BasePath /api
 // @securityDefinitions.apikey Bearer
 // @in header
@@ -45,6 +44,9 @@ func main() {
 
 	// 依存性注入
 	handler := di.Initialize(db)
+
+	// Swagger hostを環境変数から設定
+	docs.SwaggerInfo.Host = config.Env.SwaggerHost
 
 	e := echo.New()
 

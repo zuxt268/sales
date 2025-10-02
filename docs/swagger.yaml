@@ -92,7 +92,6 @@ definitions:
     - name
     - status
     type: object
-host: localhost:8091
 info:
   contact: {}
   description: Sales domain management API
