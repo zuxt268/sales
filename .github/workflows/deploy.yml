@@ -24,6 +24,7 @@ jobs:
           key: ${{ secrets.DEPLOY_KEY }}
           script: |
             cd /var/www/sales
-            git pull
+            git fetch --all
+            git reset --hard origin/main
             sudo systemctl daemon-reload
             sudo systemctl restart sales-api
