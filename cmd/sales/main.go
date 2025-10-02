@@ -24,7 +24,7 @@ import (
 
 // @title Sales API
 // @version 1.0
-// @description Sales domain management API
+// @description ドメイン管理API
 // @BasePath /api
 // @securityDefinitions.apikey Bearer
 // @in header

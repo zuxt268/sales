@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "Sales domain management API",
+        "description": "ドメイン管理API",
         "title": "Sales API",
         "contact": {},
         "version": "1.0"

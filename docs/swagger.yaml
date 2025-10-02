@@ -94,7 +94,7 @@ definitions:
     type: object
 info:
   contact: {}
-  description: Sales domain management API
+  description: ドメイン管理API
   title: Sales API
   version: "1.0"
 paths:
