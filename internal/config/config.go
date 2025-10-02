@@ -16,8 +16,8 @@ type Environment struct {
 	DBUsername    string `envconfig:"DB_USER"`
 	DBPassword    string `envconfig:"DB_PASSWORD"`
 	Address       string `envconfig:"ADDRESS" default:"localhost"`
-	Password      string `envconfig:"PASSWORD" required:"true"`
-	JWTSecret     string `envconfig:"JWT_SECRET" required:"true"`
+	Password      string `envconfig:"PASSWORD"`
+	JWTSecret     string `envconfig:"JWT_SECRET"`
 }
 
 var Env Environment
