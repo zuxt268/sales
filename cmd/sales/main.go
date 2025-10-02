@@ -55,6 +55,10 @@ func main() {
 	// Swagger UI
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
+	e.GET("/", func(c echo.Context) error {
+		return c.String(http.StatusOK, "Hello, World!")
+	})
+
 	// API ルート設定
 	api := e.Group("/api")
 	// JWT認証が必要なエンドポイント
