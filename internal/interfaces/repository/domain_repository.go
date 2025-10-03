@@ -11,6 +11,7 @@ import (
 )
 
 type DomainRepository interface {
+	Exists(ctx context.Context, f DomainFilter) (bool, error)
 	Get(ctx context.Context, f DomainFilter) (domain.Domain, error)
 	GetForUpdate(ctx context.Context, f DomainFilter) (domain.Domain, error)
 	FindAll(ctx context.Context, f DomainFilter) ([]domain.Domain, error)
@@ -27,6 +28,15 @@ func NewDomainRepository(db *gorm.DB) DomainRepository {
 	return &domainRepository{
 		db: db,
 	}
+}
+
+func (r *domainRepository) Exists(ctx context.Context, f DomainFilter) (bool, error) {
+	var domains []domain.Domain
+	err := f.Apply(r.getDb(ctx).WithContext(ctx)).Find(&domains).Error
+	if err != nil {
+		return false, domain.WrapDatabase("failed to get domain", err)
+	}
+	return len(domains) > 0, nil
 }
 
 func (r *domainRepository) Get(ctx context.Context, f DomainFilter) (domain.Domain, error) {
@@ -94,18 +104,46 @@ func (r *domainRepository) getDb(ctx context.Context) *gorm.DB {
 }
 
 type DomainFilter struct {
+	ID          *int
 	PartialName *string
 	Name        *string
+	CanView     *bool
+	IsSend      *bool
+	OwnerID     *string
+	Industry    *string
+	IsSSL       *bool
+	Status      *domain.Status
 	Limit       *int
 	Offset      *int
 }
 
 func (d *DomainFilter) Apply(db *gorm.DB) *gorm.DB {
+	if d.ID != nil {
+		db = db.Where("id = ?", *d.ID)
+	}
 	if d.PartialName != nil {
 		db = db.Where("name like ?", "%"+*d.PartialName+"%")
 	}
 	if d.Name != nil {
 		db = db.Where("name = ?", *d.Name)
+	}
+	if d.CanView != nil {
+		db = db.Where("can_view = ?", *d.CanView)
+	}
+	if d.OwnerID != nil {
+		db = db.Where("owner_id = ?", *d.OwnerID)
+	}
+	if d.Industry != nil {
+		db = db.Where("industry = ?", *d.Industry)
+	}
+	if d.IsSend != nil {
+		db = db.Where("is_send = ?", *d.IsSend)
+	}
+	if d.IsSSL != nil {
+		db = db.Where("is_ssl = ?", *d.IsSSL)
+	}
+	if d.Status != nil {
+		db = db.Where("status = ?", *d.Status)
 	}
 	if d.Limit != nil {
 		db = db.Limit(*d.Limit)

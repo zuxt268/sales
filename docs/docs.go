@@ -15,7 +15,88 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/domain": {
+        "/domains": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Get domain list",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ドメイン"
+                ],
+                "summary": "Get domains",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "ドメイン名",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "閲覧可能か",
+                        "name": "can_view",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "mapsで問い合わせページを開いたか",
+                        "name": "is_send",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "owner_id",
+                        "name": "owner_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "業種",
+                        "name": "industry",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "SSL対応可否",
+                        "name": "is_ssl",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.Domain"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/domains/{id}": {
             "put": {
                 "security": [
                     {
@@ -35,7 +116,7 @@ const docTemplate = `{
                 "summary": "Update domain",
                 "parameters": [
                     {
-                        "description": "Update domain request",
+                        "description": "更新ドメイン情報",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -70,71 +151,9 @@ const docTemplate = `{
                     "ドメイン"
                 ],
                 "summary": "Delete domain",
-                "parameters": [
-                    {
-                        "description": "Delete domain request",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/domain.DeleteDomainRequest"
-                        }
-                    }
-                ],
                 "responses": {
                     "204": {
                         "description": "No Content"
-                    }
-                }
-            }
-        },
-        "/domains": {
-            "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "Get domain list",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ドメイン"
-                ],
-                "summary": "Get domains",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Limit",
-                        "name": "limit",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Offset",
-                        "name": "offset",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Domain name",
-                        "name": "name",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/domain.Domain"
-                            }
-                        }
                     }
                 }
             }
@@ -177,17 +196,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "domain.DeleteDomainRequest": {
-            "type": "object",
-            "required": [
-                "name"
-            ],
-            "properties": {
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
         "domain.Domain": {
             "type": "object",
             "properties": {
@@ -199,6 +207,9 @@ const docTemplate = `{
                 },
                 "create_at": {
                     "type": "string"
+                },
+                "id": {
+                    "type": "integer"
                 },
                 "industry": {
                     "description": "業種",

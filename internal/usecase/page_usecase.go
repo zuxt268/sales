@@ -2,14 +2,15 @@ package usecase
 
 import (
 	"context"
+
 	"github.com/zuxt268/sales/internal/domain"
 	"github.com/zuxt268/sales/internal/interfaces/repository"
 )
 
 type PageUsecase interface {
 	GetDomains(ctx context.Context, req domain.GetDomainsRequest) ([]domain.Domain, error)
-	UpdateDomains(ctx context.Context, req domain.UpdateDomainRequest) (*domain.Domain, error)
-	DeleteDomains(ctx context.Context, req domain.DeleteDomainRequest) error
+	UpdateDomain(ctx context.Context, id int, req domain.UpdateDomainRequest) (*domain.Domain, error)
+	DeleteDomain(ctx context.Context, id int) error
 }
 
 type pageUsecase struct {
@@ -30,17 +31,23 @@ func NewPageUsecase(
 func (p *pageUsecase) GetDomains(ctx context.Context, req domain.GetDomainsRequest) ([]domain.Domain, error) {
 	return p.domainRepo.FindAll(ctx, repository.DomainFilter{
 		PartialName: req.Name,
+		CanView:     req.CanView,
+		IsSend:      req.IsSend,
+		OwnerID:     req.OwnerID,
+		Industry:    req.Industry,
+		IsSSL:       req.IsSSL,
+		Status:      req.Status,
 		Limit:       req.Limit,
 		Offset:      req.Offset,
 	})
 }
 
-func (p *pageUsecase) UpdateDomains(ctx context.Context, req domain.UpdateDomainRequest) (*domain.Domain, error) {
+func (p *pageUsecase) UpdateDomain(ctx context.Context, id int, req domain.UpdateDomainRequest) (*domain.Domain, error) {
 	var target domain.Domain
 	err := p.baseRepo.WithTransaction(ctx, func(ctx context.Context) error {
 		var err error
 		target, err = p.domainRepo.GetForUpdate(ctx, repository.DomainFilter{
-			Name: &req.Name,
+			ID: &id,
 		})
 		if err != nil {
 			return err
@@ -88,8 +95,8 @@ func (p *pageUsecase) UpdateDomains(ctx context.Context, req domain.UpdateDomain
 	return &target, nil
 }
 
-func (p *pageUsecase) DeleteDomains(ctx context.Context, req domain.DeleteDomainRequest) error {
+func (p *pageUsecase) DeleteDomain(ctx context.Context, id int) error {
 	return p.domainRepo.Delete(ctx, repository.DomainFilter{
-		Name: &req.Name,
+		ID: &id,
 	})
 }

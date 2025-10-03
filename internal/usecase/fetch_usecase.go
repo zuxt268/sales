@@ -2,11 +2,12 @@ package usecase
 
 import (
 	"context"
+	"strconv"
+
 	"github.com/zuxt268/sales/internal/config"
 	"github.com/zuxt268/sales/internal/domain"
 	"github.com/zuxt268/sales/internal/external"
 	"github.com/zuxt268/sales/internal/interfaces/repository"
-	"strconv"
 )
 
 type FetchUsecase interface {
@@ -29,6 +30,14 @@ func NewFetchUsecase(
 }
 
 func (u *fetchUsecase) Fetch(ctx context.Context, req domain.PostFetchRequest) error {
+	exist, err := u.domainRepo.Exists(ctx, repository.DomainFilter{Name: &req.Target})
+	if err != nil {
+		return err
+	}
+	if exist {
+		return nil
+	}
+
 	page := 1
 	maxPage := 0
 	for {

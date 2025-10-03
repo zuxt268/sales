@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+
 	"github.com/zuxt268/sales/internal/config"
 	"github.com/zuxt268/sales/internal/di"
 	"github.com/zuxt268/sales/internal/infrastructure"
@@ -58,7 +59,7 @@ func main() {
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Hello, World!")
+		return c.String(http.StatusOK, "Hello, World!!")
 	})
 
 	// API ルート設定
@@ -68,8 +69,8 @@ func main() {
 	api.Use(middleware2.SlogMiddleware())
 
 	api.GET("/domains", handler.GetDomains)
-	api.PUT("/domain", handler.UpdateDomain)
-	api.DELETE("/domain", handler.DeleteDomain)
+	api.PUT("/domains/:id", handler.UpdateDomain)
+	api.DELETE("/domains/:id", handler.DeleteDomain)
 	api.POST("/fetch", handler.FetchDomains)
 
 	srv := &http.Server{

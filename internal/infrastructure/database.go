@@ -3,12 +3,13 @@ package infrastructure
 import (
 	"context"
 	"fmt"
-	"github.com/zuxt268/sales/internal/config"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"runtime"
 	"time"
+
+	"github.com/zuxt268/sales/internal/config"
 
 	"github.com/docker/go-connections/nat"
 	migrate "github.com/rubenv/sql-migrate"

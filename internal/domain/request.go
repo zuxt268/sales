@@ -3,9 +3,15 @@ package domain
 import "strings"
 
 type GetDomainsRequest struct {
-	Limit  *int    `query:"limit"`
-	Offset *int    `query:"offset"`
-	Name   *string `query:"name"`
+	Limit    *int    `query:"limit"`
+	Offset   *int    `query:"offset"`
+	CanView  *bool   `query:"can_view"`
+	IsSend   *bool   `query:"is_send"`
+	OwnerID  *string `query:"owner_id"`
+	Industry *string `query:"industry"`
+	IsSSL    *bool   `query:"is_ssl"`
+	Status   *Status `query:"status"`
+	Name     *string `query:"name"`
 }
 
 type UpdateDomainRequest struct {
@@ -37,17 +43,6 @@ func (r *UpdateDomainRequest) Validate() error {
 		return WrapValidation("invalid status value: must be one of [unknown, initialize, check_view, crawl_comp_info, phone, done]", nil)
 	}
 
-	return nil
-}
-
-type DeleteDomainRequest struct {
-	Name string `json:"name" binding:"required"`
-}
-
-func (r *DeleteDomainRequest) Validate() error {
-	if strings.TrimSpace(r.Name) == "" {
-		return WrapValidation("name is required and cannot be empty or whitespace", nil)
-	}
 	return nil
 }
 

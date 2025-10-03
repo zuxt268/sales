@@ -1,12 +1,5 @@
 basePath: /api
 definitions:
-  domain.DeleteDomainRequest:
-    properties:
-      name:
-        type: string
-    required:
-    - name
-    type: object
   domain.Domain:
     properties:
       address:
@@ -15,6 +8,8 @@ definitions:
         type: boolean
       create_at:
         type: string
+      id:
+        type: integer
       industry:
         description: 業種
         type: string
@@ -98,18 +93,63 @@ info:
   title: Sales API
   version: "1.0"
 paths:
-  /domain:
+  /domains:
+    get:
+      consumes:
+      - application/json
+      description: Get domain list
+      parameters:
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      - description: ドメイン名
+        in: query
+        name: name
+        type: string
+      - description: 閲覧可能か
+        in: query
+        name: can_view
+        type: boolean
+      - description: mapsで問い合わせページを開いたか
+        in: query
+        name: is_send
+        type: boolean
+      - description: owner_id
+        in: query
+        name: owner_id
+        type: string
+      - description: 業種
+        in: query
+        name: industry
+        type: string
+      - description: SSL対応可否
+        in: query
+        name: is_ssl
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Domain'
+            type: array
+      security:
+      - Bearer: []
+      summary: Get domains
+      tags:
+      - ドメイン
+  /domains/{id}:
     delete:
       consumes:
       - application/json
       description: Delete domain by name
-      parameters:
-      - description: Delete domain request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/domain.DeleteDomainRequest'
       produces:
       - application/json
       responses:
@@ -125,7 +165,7 @@ paths:
       - application/json
       description: Update domain information
       parameters:
-      - description: Update domain request
+      - description: 更新ドメイン情報
         in: body
         name: request
         required: true
@@ -141,38 +181,6 @@ paths:
       security:
       - Bearer: []
       summary: Update domain
-      tags:
-      - ドメイン
-  /domains:
-    get:
-      consumes:
-      - application/json
-      description: Get domain list
-      parameters:
-      - description: Limit
-        in: query
-        name: limit
-        type: integer
-      - description: Offset
-        in: query
-        name: offset
-        type: integer
-      - description: Domain name
-        in: query
-        name: name
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/domain.Domain'
-            type: array
-      security:
-      - Bearer: []
-      summary: Get domains
       tags:
       - ドメイン
   /fetch:

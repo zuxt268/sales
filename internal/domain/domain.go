@@ -3,7 +3,8 @@ package domain
 import "time"
 
 type Domain struct {
-	Name     string    `gorm:"column:name;primaryKey" json:"name"`
+	ID       int       `gorm:"column:id;primaryKey" json:"id"`
+	Name     string    `gorm:"column:name;unique" json:"name"`
 	CanView  bool      `gorm:"column:can_view" json:"can_view"`
 	IsSend   bool      `gorm:"column:is_send" json:"is_send"`
 	Title    string    `gorm:"column:title" json:"title"`

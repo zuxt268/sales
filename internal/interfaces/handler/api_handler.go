@@ -2,10 +2,12 @@ package handler
 
 import (
 	"errors"
-	"github.com/zuxt268/sales/internal/domain"
-	"github.com/zuxt268/sales/internal/usecase"
 	"log/slog"
 	"net/http"
+	"strconv"
+
+	"github.com/zuxt268/sales/internal/domain"
+	"github.com/zuxt268/sales/internal/usecase"
 
 	"github.com/labstack/echo/v4"
 )
@@ -37,7 +39,12 @@ func NewApiHandler(fetchUsecase usecase.FetchUsecase, pageUsecase usecase.PageUs
 // @Produce json
 // @Param limit query int false "Limit"
 // @Param offset query int false "Offset"
-// @Param name query string false "Domain name"
+// @Param name query string false "ドメイン名"
+// @Param can_view query boolean false "閲覧可能か"
+// @Param is_send query boolean false "mapsで問い合わせページを開いたか"
+// @Param owner_id query string false "owner_id"
+// @Param industry query string false "業種"
+// @Param is_ssl query boolean false "SSL対応可否"
 // @Success 200 {array} domain.Domain
 // @Security Bearer
 // @Router /domains [get]
@@ -59,10 +66,10 @@ func (h *apiHandler) GetDomains(c echo.Context) error {
 // @Tags ドメイン
 // @Accept json
 // @Produce json
-// @Param request body domain.UpdateDomainRequest true "Update domain request"
+// @Param request body domain.UpdateDomainRequest true "更新ドメイン情報"
 // @Success 200 {object} domain.Domain
 // @Security Bearer
-// @Router /domain [put]
+// @Router /domains/{id} [put]
 func (h *apiHandler) UpdateDomain(c echo.Context) error {
 	var req domain.UpdateDomainRequest
 	if err := c.Bind(&req); err != nil {
@@ -71,7 +78,12 @@ func (h *apiHandler) UpdateDomain(c echo.Context) error {
 	if err := req.Validate(); err != nil {
 		return handleError(c, err)
 	}
-	resp, err := h.pageUsecase.UpdateDomains(c.Request().Context(), req)
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	resp, err := h.pageUsecase.UpdateDomain(c.Request().Context(), id, req)
 	if err != nil {
 		return handleError(c, err)
 	}
@@ -84,19 +96,16 @@ func (h *apiHandler) UpdateDomain(c echo.Context) error {
 // @Tags ドメイン
 // @Accept json
 // @Produce json
-// @Param request body domain.DeleteDomainRequest true "Delete domain request"
 // @Success 204
 // @Security Bearer
-// @Router /domain [delete]
+// @Router /domains/{id} [delete]
 func (h *apiHandler) DeleteDomain(c echo.Context) error {
-	var req domain.DeleteDomainRequest
-	if err := c.Bind(&req); err != nil {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
-	if err := req.Validate(); err != nil {
-		return handleError(c, err)
-	}
-	err := h.pageUsecase.DeleteDomains(c.Request().Context(), req)
+	err = h.pageUsecase.DeleteDomain(c.Request().Context(), id)
 	if err != nil {
 		return handleError(c, err)
 	}

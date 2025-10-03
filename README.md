@@ -58,6 +58,11 @@ DB_NAME=sales
 # サーバー設定
 ADDRESS=:8091
 
+# Swagger設定
+# 開発環境: localhost:8091
+# 本番環境: sales.hp-standard.com
+SWAGGER_HOST=localhost:8091
+
 # ViewDNS API設定
 VIEW_DNS_API_URL=https://api.viewdns.info
 API_KEY=your_viewdns_api_key
@@ -133,8 +138,8 @@ curl -H "Authorization: Bearer <your_token>" http://localhost:8091/api/domains
 ### ドメイン管理
 
 - `GET /api/domains` - ドメイン一覧取得（ページネーション・フィルタリング対応）
-- `PUT /api/domain` - ドメイン情報更新
-- `DELETE /api/domain` - ドメイン削除
+- `PUT /api/domains/:id` - ドメイン情報更新
+- `DELETE /api/domains/:id` - ドメイン削除
 - `POST /api/fetch` - ViewDNS逆引きIPからドメイン情報取得
 
 ### ドキュメント
