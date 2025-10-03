@@ -6,6 +6,7 @@ type GetDomainsRequest struct {
 	Limit    *int    `query:"limit"`
 	Offset   *int    `query:"offset"`
 	CanView  *bool   `query:"can_view"`
+	IsJapan  *bool   `query:"is_japan"`
 	IsSend   *bool   `query:"is_send"`
 	OwnerID  *string `query:"owner_id"`
 	Industry *string `query:"industry"`
@@ -19,6 +20,7 @@ type UpdateDomainRequest struct {
 	Status   string  `json:"status" binding:"required"`
 	IsSend   *bool   `json:"is_send"`
 	CanView  *bool   `json:"can_view"`
+	IsJapan  *bool   `json:"is_japan"`
 	Title    *string `json:"title"`
 	OwnerID  *string `json:"owner_id"`
 	Address  *string `json:"address"`

@@ -43,6 +43,7 @@ func NewApiHandler(fetchUsecase usecase.FetchUsecase, pageUsecase usecase.PageUs
 // @Param can_view query boolean false "閲覧可能か"
 // @Param is_send query boolean false "mapsで問い合わせページを開いたか"
 // @Param owner_id query string false "owner_id"
+// @Param status query string false "ステータス"
 // @Param industry query string false "業種"
 // @Param is_ssl query boolean false "SSL対応可否"
 // @Success 200 {array} domain.Domain
@@ -66,6 +67,7 @@ func (h *apiHandler) GetDomains(c echo.Context) error {
 // @Tags ドメイン
 // @Accept json
 // @Produce json
+// @Param id path string true "ID"
 // @Param request body domain.UpdateDomainRequest true "更新ドメイン情報"
 // @Success 200 {object} domain.Domain
 // @Security Bearer
@@ -96,6 +98,7 @@ func (h *apiHandler) UpdateDomain(c echo.Context) error {
 // @Tags ドメイン
 // @Accept json
 // @Produce json
+// @Param id path string true "ID"
 // @Success 204
 // @Security Bearer
 // @Router /domains/{id} [delete]

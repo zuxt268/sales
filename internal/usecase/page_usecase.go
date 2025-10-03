@@ -32,6 +32,7 @@ func (p *pageUsecase) GetDomains(ctx context.Context, req domain.GetDomainsReque
 	return p.domainRepo.FindAll(ctx, repository.DomainFilter{
 		PartialName: req.Name,
 		CanView:     req.CanView,
+		IsJapan:     req.IsJapan,
 		IsSend:      req.IsSend,
 		OwnerID:     req.OwnerID,
 		Industry:    req.Industry,
@@ -58,6 +59,9 @@ func (p *pageUsecase) UpdateDomain(ctx context.Context, id int, req domain.Updat
 		}
 		if req.CanView != nil {
 			target.CanView = *req.CanView
+		}
+		if req.IsJapan != nil {
+			target.IsJapan = *req.IsJapan
 		}
 		if req.Title != nil {
 			target.Title = *req.Title

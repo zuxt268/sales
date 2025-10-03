@@ -3,9 +3,10 @@ package domain
 import "time"
 
 type Domain struct {
-	ID       int       `gorm:"column:id;primaryKey" json:"id"`
+	ID       int       `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	Name     string    `gorm:"column:name;unique" json:"name"`
 	CanView  bool      `gorm:"column:can_view" json:"can_view"`
+	IsJapan  bool      `gorm:"column:is_japan" json:"is_japan"`
 	IsSend   bool      `gorm:"column:is_send" json:"is_send"`
 	Title    string    `gorm:"column:title" json:"title"`
 	OwnerID  string    `gorm:"column:owner_id" json:"owner_id"`
@@ -26,6 +27,7 @@ const (
 	StatusUnknown       Status = "unknown"
 	StatusInitialize    Status = "initialize"
 	StatusCheckView     Status = "check_view"
+	StatusCheckJapan    Status = "check_japan"
 	StatusCrawlCompInfo Status = "crawl_comp_info"
 	StatusPhone         Status = "phone"
 	StatusDone          Status = "done"
@@ -36,6 +38,7 @@ var ValidStatuses = []Status{
 	StatusUnknown,
 	StatusInitialize,
 	StatusCheckView,
+	StatusCheckJapan,
 	StatusCrawlCompInfo,
 	StatusPhone,
 	StatusDone,

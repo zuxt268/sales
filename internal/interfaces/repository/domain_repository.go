@@ -81,7 +81,15 @@ func (r *domainRepository) Save(ctx context.Context, d *domain.Domain) error {
 }
 
 func (r *domainRepository) BulkInsert(ctx context.Context, domains []*domain.Domain) error {
-	err := r.getDb(ctx).Clauses(clause.OnConflict{DoNothing: true}).WithContext(ctx).Create(domains).Error
+	// IDをクリアしてAUTO_INCREMENTに任せる
+	for _, d := range domains {
+		d.ID = 0
+	}
+	// OnConflict with UpdateAll: false を使用してUPDATEを防ぐ
+	err := r.getDb(ctx).Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "name"}},
+		DoNothing: true,
+	}).WithContext(ctx).CreateInBatches(domains, 100).Error
 	if err != nil {
 		return domain.WrapDatabase("failed to bulk insert domains", err)
 	}
@@ -108,6 +116,7 @@ type DomainFilter struct {
 	PartialName *string
 	Name        *string
 	CanView     *bool
+	IsJapan     *bool
 	IsSend      *bool
 	OwnerID     *string
 	Industry    *string
@@ -129,6 +138,9 @@ func (d *DomainFilter) Apply(db *gorm.DB) *gorm.DB {
 	}
 	if d.CanView != nil {
 		db = db.Where("can_view = ?", *d.CanView)
+	}
+	if d.IsJapan != nil {
+		db = db.Where("is_japan = ?", *d.IsJapan)
 	}
 	if d.OwnerID != nil {
 		db = db.Where("owner_id = ?", *d.OwnerID)

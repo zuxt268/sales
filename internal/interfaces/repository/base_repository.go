@@ -32,9 +32,8 @@ func (b *baseRepository) WithTransaction(ctx context.Context, f func(ctx context
 		} else if err != nil {
 			tx.Rollback()
 		} else {
-			if commitErr := tx.Commit(); commitErr != nil {
-				tx.Rollback()
-				err = fmt.Errorf("failed to commit transaction: %s", commitErr.Error)
+			if commitErr := tx.Commit().Error; commitErr != nil {
+				err = fmt.Errorf("failed to commit transaction: %s", commitErr.Error())
 			}
 		}
 	}()

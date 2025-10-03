@@ -65,6 +65,12 @@
                     },
                     {
                         "type": "string",
+                        "description": "ステータス",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "業種",
                         "name": "industry",
                         "in": "query"
@@ -109,6 +115,13 @@
                 "summary": "Update domain",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "description": "更新ドメイン情報",
                         "name": "request",
                         "in": "body",
@@ -144,6 +157,15 @@
                     "ドメイン"
                 ],
                 "summary": "Delete domain",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "204": {
                         "description": "No Content"
@@ -208,6 +230,9 @@
                     "description": "業種",
                     "type": "string"
                 },
+                "is_japan": {
+                    "type": "boolean"
+                },
                 "is_send": {
                     "type": "boolean"
                 },
@@ -257,6 +282,7 @@
                 "unknown",
                 "initialize",
                 "check_view",
+                "check_japan",
                 "crawl_comp_info",
                 "phone",
                 "done"
@@ -265,6 +291,7 @@
                 "StatusUnknown",
                 "StatusInitialize",
                 "StatusCheckView",
+                "StatusCheckJapan",
                 "StatusCrawlCompInfo",
                 "StatusPhone",
                 "StatusDone"
@@ -285,6 +312,9 @@
                 },
                 "industry": {
                     "type": "string"
+                },
+                "is_japan": {
+                    "type": "boolean"
                 },
                 "is_send": {
                     "type": "boolean"

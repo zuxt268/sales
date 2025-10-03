@@ -72,6 +72,12 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "description": "ステータス",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "業種",
                         "name": "industry",
                         "in": "query"
@@ -116,6 +122,13 @@ const docTemplate = `{
                 "summary": "Update domain",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "description": "更新ドメイン情報",
                         "name": "request",
                         "in": "body",
@@ -151,6 +164,15 @@ const docTemplate = `{
                     "ドメイン"
                 ],
                 "summary": "Delete domain",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "204": {
                         "description": "No Content"
@@ -215,6 +237,9 @@ const docTemplate = `{
                     "description": "業種",
                     "type": "string"
                 },
+                "is_japan": {
+                    "type": "boolean"
+                },
                 "is_send": {
                     "type": "boolean"
                 },
@@ -264,6 +289,7 @@ const docTemplate = `{
                 "unknown",
                 "initialize",
                 "check_view",
+                "check_japan",
                 "crawl_comp_info",
                 "phone",
                 "done"
@@ -272,6 +298,7 @@ const docTemplate = `{
                 "StatusUnknown",
                 "StatusInitialize",
                 "StatusCheckView",
+                "StatusCheckJapan",
                 "StatusCrawlCompInfo",
                 "StatusPhone",
                 "StatusDone"
@@ -292,6 +319,9 @@ const docTemplate = `{
                 },
                 "industry": {
                     "type": "string"
+                },
+                "is_japan": {
+                    "type": "boolean"
                 },
                 "is_send": {
                     "type": "boolean"
