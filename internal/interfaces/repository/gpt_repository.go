@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/sashabaranov/go-openai"
 	"github.com/zuxt268/sales/internal/config"
@@ -10,7 +11,7 @@ import (
 )
 
 type GptRepository interface {
-	Industry(ctx context.Context, domain *domain.Domain) error
+	Analyze(ctx context.Context, domain *domain.Domain) error
 }
 
 type gptRepository struct {
@@ -25,8 +26,8 @@ func NewGptRepository() GptRepository {
 	}
 }
 
-const promptTemplate = `"""%s"""
-この情報からこの企業は次のうちどれに当てはまりますか。当てはまるものを一個選んでください。単語で答えてください
+const systemPrompt = `
+業種リストです。この中から業種を選らんでください。
 農業
 林業
 漁業（水産養殖業を除く）
@@ -128,13 +129,24 @@ const promptTemplate = `"""%s"""
 分類不能の産業
 `
 
-func (r *gptRepository) Industry(ctx context.Context, d *domain.Domain) error {
+const promptTemplate = `"""%s"""
+以上の情報から、業種、代表者名、会社名を答えてください。単語で答えてください。見つからない場合は、「なし」と表示してください。
+3つをカンマ区切りで一行で出力してください。
+順番は守ってください。
+例）自動車整備業,山田太郎,株式会社タロウ
+`
+
+func (r *gptRepository) Analyze(ctx context.Context, d *domain.Domain) error {
 	prompt := fmt.Sprintf(promptTemplate, d.RawPage)
 	resp, err := r.client.CreateChatCompletion(
 		ctx,
 		openai.ChatCompletionRequest{
 			Model: "gpt-5-nano",
 			Messages: []openai.ChatCompletionMessage{
+				{
+					Role:    openai.ChatMessageRoleSystem,
+					Content: systemPrompt,
+				},
 				{
 					Role:    openai.ChatMessageRoleUser,
 					Content: prompt,
@@ -146,9 +158,17 @@ func (r *gptRepository) Industry(ctx context.Context, d *domain.Domain) error {
 		return fmt.Errorf("ChatCompletion error: %w", err)
 	}
 
-	if len(resp.Choices) > 0 {
-		d.Industry = resp.Choices[0].Message.Content
+	if len(resp.Choices) == 0 {
+		return nil
 	}
+	contents := strings.Split(resp.Choices[0].Message.Content, ",")
+	if len(contents) != 3 {
+		return nil
+	}
+	fmt.Println(contents)
+	d.Industry = contents[0]
+	d.President = contents[1]
+	d.Company = contents[2]
 
 	return nil
 }

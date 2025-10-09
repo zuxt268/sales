@@ -102,6 +102,30 @@ const docTemplate = `{
                 }
             }
         },
+        "/domains/analyze": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ドメイン"
+                ],
+                "summary": "サイトの情報を解析する",
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
         "/domains/{id}": {
             "put": {
                 "security": [
@@ -227,6 +251,9 @@ const docTemplate = `{
                 "can_view": {
                     "type": "boolean"
                 },
+                "company": {
+                    "type": "string"
+                },
                 "create_at": {
                     "type": "string"
                 },
@@ -234,7 +261,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "industry": {
-                    "description": "業種",
                     "type": "string"
                 },
                 "is_japan": {
@@ -256,6 +282,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "phone": {
+                    "type": "string"
+                },
+                "president": {
                     "type": "string"
                 },
                 "raw_page": {
@@ -291,7 +320,6 @@ const docTemplate = `{
                 "check_view",
                 "check_japan",
                 "crawl_comp_info",
-                "phone",
                 "done"
             ],
             "x-enum-varnames": [
@@ -300,7 +328,6 @@ const docTemplate = `{
                 "StatusCheckView",
                 "StatusCheckJapan",
                 "StatusCrawlCompInfo",
-                "StatusPhone",
                 "StatusDone"
             ]
         },

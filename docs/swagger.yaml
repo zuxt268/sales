@@ -6,12 +6,13 @@ definitions:
         type: string
       can_view:
         type: boolean
+      company:
+        type: string
       create_at:
         type: string
       id:
         type: integer
       industry:
-        description: 業種
         type: string
       is_japan:
         type: boolean
@@ -26,6 +27,8 @@ definitions:
       page_num:
         type: integer
       phone:
+        type: string
+      president:
         type: string
       raw_page:
         type: string
@@ -50,7 +53,6 @@ definitions:
     - check_view
     - check_japan
     - crawl_comp_info
-    - phone
     - done
     type: string
     x-enum-varnames:
@@ -59,7 +61,6 @@ definitions:
     - StatusCheckView
     - StatusCheckJapan
     - StatusCrawlCompInfo
-    - StatusPhone
     - StatusDone
   domain.UpdateDomainRequest:
     properties:
@@ -202,6 +203,20 @@ paths:
       security:
       - Bearer: []
       summary: Update domain
+      tags:
+      - ドメイン
+  /domains/analyze:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      security:
+      - Bearer: []
+      summary: サイトの情報を解析する
       tags:
       - ドメイン
   /fetch:

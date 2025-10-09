@@ -19,3 +19,9 @@ func Initialize(db *gorm.DB) handler.ApiHandler {
 	gptUsecase := usecase.NewGptUsecase(domainRepo, gptRepo)
 	return handler.NewApiHandler(fetchUsecase, pageUsecase, gptUsecase)
 }
+
+func GetGptUsecase(db *gorm.DB) usecase.GptUsecase {
+	gptRepo := repository.NewGptRepository()
+	domainRepo := repository.NewDomainRepository(db)
+	return usecase.NewGptUsecase(domainRepo, gptRepo)
+}

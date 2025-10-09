@@ -9,7 +9,7 @@ import (
 )
 
 type GptUsecase interface {
-	DetermineIndustry(ctx context.Context) error
+	AnalyzeDomains(ctx context.Context) error
 }
 
 type gptUsecase struct {
@@ -27,7 +27,7 @@ func NewGptUsecase(
 	}
 }
 
-func (u *gptUsecase) DetermineIndustry(ctx context.Context) error {
+func (u *gptUsecase) AnalyzeDomains(ctx context.Context) error {
 	domains, err := u.domainRepo.FindAll(ctx, repository.DomainFilter{
 		Status: util.Pointer(domain.StatusCrawlCompInfo),
 	})
@@ -35,10 +35,9 @@ func (u *gptUsecase) DetermineIndustry(ctx context.Context) error {
 		return err
 	}
 	for _, d := range domains {
-		if err := u.gptRepo.Industry(ctx, &d); err != nil {
+		if err := u.gptRepo.Analyze(ctx, &d); err != nil {
 			return err
 		}
-		d.Status = domain.StatusDone
 		if err := u.domainRepo.Save(ctx, &d); err != nil {
 			return err
 		}

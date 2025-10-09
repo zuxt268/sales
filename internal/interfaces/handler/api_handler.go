@@ -17,7 +17,7 @@ type ApiHandler interface {
 	UpdateDomain(c echo.Context) error
 	DeleteDomain(c echo.Context) error
 	FetchDomains(c echo.Context) error
-	DetermineIndustry(c echo.Context) error
+	AnalyzeDomains(c echo.Context) error
 }
 
 type apiHandler struct {
@@ -122,18 +122,16 @@ func (h *apiHandler) DeleteDomain(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-// DetermineIndustry godoc
-// @Summary Delete domain
-// @Description Delete domain by name
+// AnalyzeDomains godoc
+// @Summary サイトの情報を解析する
 // @Tags ドメイン
 // @Accept json
 // @Produce json
-// @Param id path string true "ID"
 // @Success 204
 // @Security Bearer
-// @Router /domains/industry [post]
-func (h *apiHandler) DetermineIndustry(c echo.Context) error {
-	err := h.gptUsecase.DetermineIndustry(c.Request().Context())
+// @Router /domains/analyze [post]
+func (h *apiHandler) AnalyzeDomains(c echo.Context) error {
+	err := h.gptUsecase.AnalyzeDomains(c.Request().Context())
 	if err != nil {
 		return handleError(c, err)
 	}

@@ -20,6 +20,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
@@ -51,20 +52,22 @@ func main() {
 
 	e := echo.New()
 
-	// ミドルウェア設定
 	e.Use(middleware.CORS())
 	e.Use(middleware.Recover())
 
-	// Swagger UI
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
+
+	e.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
+
+	e.GET("/health", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, map[string]string{"status": "ok"})
+	})
 
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello, World!!")
 	})
 
-	// API ルート設定
 	api := e.Group("/api")
-	// JWT認証が必要なエンドポイント
 	api.Use(middleware2.JWTMiddleware())
 	api.Use(middleware2.SlogMiddleware())
 
@@ -72,7 +75,7 @@ func main() {
 	api.PUT("/domains/:id", handler.UpdateDomain)
 	api.DELETE("/domains/:id", handler.DeleteDomain)
 	api.POST("/fetch", handler.FetchDomains)
-	api.POST("/domains/industry", handler.DeleteDomain)
+	api.POST("/domains/analyze", handler.AnalyzeDomains)
 
 	srv := &http.Server{
 		Addr:    config.Env.Address,
@@ -88,6 +91,7 @@ func main() {
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
 	<-quit
 
 	slog.Info("Shutting down server...")
