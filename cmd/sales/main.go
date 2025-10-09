@@ -72,6 +72,7 @@ func main() {
 	api.PUT("/domains/:id", handler.UpdateDomain)
 	api.DELETE("/domains/:id", handler.DeleteDomain)
 	api.POST("/fetch", handler.FetchDomains)
+	api.POST("/domains/industry", handler.DeleteDomain)
 
 	srv := &http.Server{
 		Addr:    config.Env.Address,

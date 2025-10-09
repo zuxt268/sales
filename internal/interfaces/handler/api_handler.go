@@ -17,17 +17,24 @@ type ApiHandler interface {
 	UpdateDomain(c echo.Context) error
 	DeleteDomain(c echo.Context) error
 	FetchDomains(c echo.Context) error
+	DetermineIndustry(c echo.Context) error
 }
 
 type apiHandler struct {
 	fetchUsecase usecase.FetchUsecase
 	pageUsecase  usecase.PageUsecase
+	gptUsecase   usecase.GptUsecase
 }
 
-func NewApiHandler(fetchUsecase usecase.FetchUsecase, pageUsecase usecase.PageUsecase) ApiHandler {
+func NewApiHandler(
+	fetchUsecase usecase.FetchUsecase,
+	pageUsecase usecase.PageUsecase,
+	gptUsecase usecase.GptUsecase,
+) ApiHandler {
 	return &apiHandler{
 		fetchUsecase: fetchUsecase,
 		pageUsecase:  pageUsecase,
+		gptUsecase:   gptUsecase,
 	}
 }
 
@@ -109,6 +116,24 @@ func (h *apiHandler) DeleteDomain(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 	err = h.pageUsecase.DeleteDomain(c.Request().Context(), id)
+	if err != nil {
+		return handleError(c, err)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+// DetermineIndustry godoc
+// @Summary Delete domain
+// @Description Delete domain by name
+// @Tags ドメイン
+// @Accept json
+// @Produce json
+// @Param id path string true "ID"
+// @Success 204
+// @Security Bearer
+// @Router /domains/industry [post]
+func (h *apiHandler) DetermineIndustry(c echo.Context) error {
+	err := h.gptUsecase.DetermineIndustry(c.Request().Context())
 	if err != nil {
 		return handleError(c, err)
 	}

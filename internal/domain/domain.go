@@ -29,7 +29,6 @@ const (
 	StatusCheckView     Status = "check_view"
 	StatusCheckJapan    Status = "check_japan"
 	StatusCrawlCompInfo Status = "crawl_comp_info"
-	StatusPhone         Status = "phone"
 	StatusDone          Status = "done"
 )
 
@@ -40,7 +39,6 @@ var ValidStatuses = []Status{
 	StatusCheckView,
 	StatusCheckJapan,
 	StatusCrawlCompInfo,
-	StatusPhone,
 	StatusDone,
 }
 

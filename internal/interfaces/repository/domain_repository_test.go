@@ -489,7 +489,6 @@ func TestDomainRepository_Filters(t *testing.T) {
 	testDomains := []*domain.Domain{
 		{Name: "filter1.com", CanView: true, IsSend: false, OwnerID: "owner1", Industry: "Tech", IsSSL: true, Status: domain.StatusInitialize},
 		{Name: "filter2.com", CanView: false, IsSend: true, OwnerID: "owner2", Industry: "Finance", IsSSL: false, Status: domain.StatusDone},
-		{Name: "filter3.com", CanView: true, IsSend: true, OwnerID: "owner1", Industry: "Tech", IsSSL: true, Status: domain.StatusPhone},
 	}
 
 	for _, d := range testDomains {
@@ -518,8 +517,8 @@ func TestDomainRepository_Filters(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to find domains: %v", err)
 		}
-		if len(results) != 2 {
-			t.Errorf("Expected 2 domains with CanView=true, got %d", len(results))
+		if len(results) != 1 {
+			t.Errorf("Expected 1 domain with CanView=true, got %d", len(results))
 		}
 		for _, r := range results {
 			if !r.CanView {
@@ -537,8 +536,8 @@ func TestDomainRepository_Filters(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to find domains: %v", err)
 		}
-		if len(results) != 2 {
-			t.Errorf("Expected 2 domains with IsSend=true, got %d", len(results))
+		if len(results) != 1 {
+			t.Errorf("Expected 1 domain with IsSend=true, got %d", len(results))
 		}
 	})
 
@@ -551,8 +550,8 @@ func TestDomainRepository_Filters(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to find domains: %v", err)
 		}
-		if len(results) != 2 {
-			t.Errorf("Expected 2 domains with OwnerID=owner1, got %d", len(results))
+		if len(results) != 1 {
+			t.Errorf("Expected 1 domain with OwnerID=owner1, got %d", len(results))
 		}
 	})
 
@@ -565,8 +564,8 @@ func TestDomainRepository_Filters(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to find domains: %v", err)
 		}
-		if len(results) != 2 {
-			t.Errorf("Expected 2 domains with Industry=Tech, got %d", len(results))
+		if len(results) != 1 {
+			t.Errorf("Expected 1 domain with Industry=Tech, got %d", len(results))
 		}
 	})
 
@@ -579,8 +578,8 @@ func TestDomainRepository_Filters(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to find domains: %v", err)
 		}
-		if len(results) != 2 {
-			t.Errorf("Expected 2 domains with IsSSL=true, got %d", len(results))
+		if len(results) != 1 {
+			t.Errorf("Expected 1 domain with IsSSL=true, got %d", len(results))
 		}
 	})
 
@@ -609,8 +608,8 @@ func TestDomainRepository_Filters(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to find domains: %v", err)
 		}
-		if len(results) != 2 {
-			t.Errorf("Expected 2 domains, got %d", len(results))
+		if len(results) != 1 {
+			t.Errorf("Expected 1 domain with CanView=true AND Industry=Tech, got %d", len(results))
 		}
 	})
 }

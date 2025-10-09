@@ -7,6 +7,7 @@
 - ドメイン管理（CRUD操作）
 - JWT認証によるBearer token認証
 - ViewDNS APIを使用した逆引きIP検索
+- GPT-5-nanoを使用した業種自動判定
 - slogによる構造化ログ
 - Swagger/OpenAPI ドキュメント
 - Air によるホットリロード（開発環境）
@@ -17,6 +18,7 @@
 - **フレームワーク**: Echo v4
 - **データベース**: MySQL + GORM
 - **認証**: JWT (golang-jwt/jwt)
+- **AI**: OpenAI GPT-5-nano (業種判定)
 - **APIドキュメント**: Swagger (swaggo)
 - **ログ**: slog (構造化JSONログ)
 - **テスト**: testcontainers-go
@@ -73,6 +75,9 @@ PASSWORD=your_sha256_password_hash
 
 # JWTシークレットキーを生成: openssl rand -base64 48
 JWT_SECRET=your_jwt_secret_key
+
+# OpenAI API設定
+OPENAI_API_KEY=your_openai_api_key
 ```
 
 ### 4. データベースマイグレーションの実行
@@ -212,9 +217,21 @@ swag init -g cmd/sales/main.go
 1. `unknown` - 初期状態
 2. `initialize` - 初期化済み
 3. `check_view` - 閲覧可否チェック中
-4. `crawl_comp_info` - 企業情報クローリング中
-5. `phone` - 電話番号処理中
+4. `check_japan` - 日本語サイトかチェック中
+5. `crawl_comp_info` - 企業情報クローリング中（GPT-5-nanoによる業種判定を含む）
 6. `done` - 完了
+
+### 業種判定機能
+
+`crawl_comp_info` ステータスのドメインに対して、GPT-5-nanoを使用して自動的に業種を判定します。
+
+使用方法:
+```bash
+# GptUsecaseを使用して業種判定を実行
+go run cmd/gpt/main.go
+```
+
+業種判定は日本標準産業分類に基づいて128の業種から最適なものを選択します。
 
 ## エラーハンドリング
 

@@ -13,7 +13,9 @@ func Initialize(db *gorm.DB) handler.ApiHandler {
 	domainRepo := repository.NewDomainRepository(db)
 	viewDnsRepo := repository.NewViewDNSRepository(config.Env.ViewDnsApiUrl)
 	baseRepo := repository.NewBaseRepository(db)
+	gptRepo := repository.NewGptRepository()
 	fetchUsecase := usecase.NewFetchUsecase(viewDnsRepo, domainRepo)
 	pageUsecase := usecase.NewPageUsecase(baseRepo, domainRepo)
-	return handler.NewApiHandler(fetchUsecase, pageUsecase)
+	gptUsecase := usecase.NewGptUsecase(domainRepo, gptRepo)
+	return handler.NewApiHandler(fetchUsecase, pageUsecase, gptUsecase)
 }
