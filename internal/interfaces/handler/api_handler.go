@@ -48,6 +48,7 @@ func NewApiHandler(
 // @Param offset query int false "Offset"
 // @Param name query string false "ドメイン名"
 // @Param can_view query boolean false "閲覧可能か"
+// @Param is_japan query boolean false "日本のサイトか"
 // @Param is_send query boolean false "mapsで問い合わせページを開いたか"
 // @Param owner_id query string false "owner_id"
 // @Param status query string false "ステータス"

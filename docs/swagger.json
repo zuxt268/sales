@@ -53,6 +53,12 @@
                     },
                     {
                         "type": "boolean",
+                        "description": "日本のサイトか",
+                        "name": "is_japan",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
                         "description": "mapsで問い合わせページを開いたか",
                         "name": "is_send",
                         "in": "query"

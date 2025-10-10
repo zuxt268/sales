@@ -122,6 +122,10 @@ paths:
         in: query
         name: can_view
         type: boolean
+      - description: 日本のサイトか
+        in: query
+        name: is_japan
+        type: boolean
       - description: mapsで問い合わせページを開いたか
         in: query
         name: is_send
