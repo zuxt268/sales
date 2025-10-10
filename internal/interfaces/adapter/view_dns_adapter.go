@@ -1,29 +1,30 @@
-package repository
+package adapter
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
+
 	"github.com/zuxt268/sales/internal/domain"
 	"github.com/zuxt268/sales/internal/external"
-	"net/http"
 )
 
-type ViewDNSRepository interface {
+type ViewDNSAdapter interface {
 	GetReverseIP(ctx context.Context, req *external.ReverseIpRequest) (*external.ReverseIpResponse, error)
 }
 
-type viewDNSRepository struct {
+type viewDNSAdapter struct {
 	baseURL string
 }
 
-func NewViewDNSRepository(baseURL string) ViewDNSRepository {
-	return &viewDNSRepository{
+func NewViewDNSAdapter(baseURL string) ViewDNSAdapter {
+	return &viewDNSAdapter{
 		baseURL: baseURL,
 	}
 }
 
-func (r *viewDNSRepository) GetReverseIP(ctx context.Context, params *external.ReverseIpRequest) (*external.ReverseIpResponse, error) {
+func (r *viewDNSAdapter) GetReverseIP(ctx context.Context, params *external.ReverseIpRequest) (*external.ReverseIpResponse, error) {
 	url := fmt.Sprintf("%s/reverseip/?host=%s&apikey=%s", r.baseURL, params.Host, params.ApiKey)
 
 	if params.Page != 0 {

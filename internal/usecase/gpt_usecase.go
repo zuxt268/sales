@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/zuxt268/sales/internal/domain"
+	"github.com/zuxt268/sales/internal/interfaces/adapter"
 	"github.com/zuxt268/sales/internal/interfaces/repository"
 	"github.com/zuxt268/sales/internal/util"
 )
@@ -13,21 +14,25 @@ type GptUsecase interface {
 }
 
 type gptUsecase struct {
-	domainRepo repository.DomainRepository
-	gptRepo    repository.GptRepository
+	slackAdapter adapter.SlackAdapter
+	domainRepo   repository.DomainRepository
+	gptRepo      repository.GptRepository
 }
 
 func NewGptUsecase(
+	slackAdapter adapter.SlackAdapter,
 	domainRepo repository.DomainRepository,
 	gptRepo repository.GptRepository,
 ) GptUsecase {
 	return &gptUsecase{
-		domainRepo: domainRepo,
-		gptRepo:    gptRepo,
+		slackAdapter: slackAdapter,
+		domainRepo:   domainRepo,
+		gptRepo:      gptRepo,
 	}
 }
 
 func (u *gptUsecase) AnalyzeDomains(ctx context.Context) error {
+	_ = u.slackAdapter.Send(ctx, "analyze 開始")
 	domains, err := u.domainRepo.FindAll(ctx, repository.DomainFilter{
 		Status: util.Pointer(domain.StatusCrawlCompInfo),
 	})
@@ -42,5 +47,6 @@ func (u *gptUsecase) AnalyzeDomains(ctx context.Context) error {
 			return err
 		}
 	}
+	_ = u.slackAdapter.Send(ctx, "analyze 終了")
 	return nil
 }
