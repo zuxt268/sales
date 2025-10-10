@@ -28,3 +28,10 @@ func GetGptUsecase(db *gorm.DB) usecase.GptUsecase {
 	slackAdapter := adapter.NewSlackAdapter()
 	return usecase.NewGptUsecase(slackAdapter, domainRepo, gptRepo)
 }
+
+func GetFetchUsecase(db *gorm.DB) usecase.FetchUsecase {
+	domainRepo := repository.NewDomainRepository(db)
+	viewDnsAdapter := adapter.NewViewDNSAdapter(config.Env.ViewDnsApiUrl)
+	slackAdapter := adapter.NewSlackAdapter()
+	return usecase.NewFetchUsecase(viewDnsAdapter, slackAdapter, domainRepo)
+}

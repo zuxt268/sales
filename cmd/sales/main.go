@@ -59,12 +59,12 @@ func main() {
 
 	e.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
 
-	e.GET("/health", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, map[string]string{"status": "ok"})
-	})
-
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello, World!!")
+	})
+
+	e.GET("/api/healthcheck", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, map[string]string{"status": "ok"})
 	})
 
 	api := e.Group("/api")
