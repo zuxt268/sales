@@ -81,14 +81,9 @@ func (r *domainRepository) Save(ctx context.Context, d *domain.Domain) error {
 }
 
 func (r *domainRepository) BulkInsert(ctx context.Context, domains []*domain.Domain) error {
-	// IDをクリアしてAUTO_INCREMENTに任せる
-	for _, d := range domains {
-		d.ID = 0
-	}
-	// OnConflict with UpdateAll: false を使用してUPDATEを防ぐ
 	err := r.getDb(ctx).Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "name"}},
-		DoNothing: true,
+		DoUpdates: clause.AssignmentColumns([]string{"can_view", "is_japan", "is_send", "title", "owner_id", "address", "phone", "industry", "president", "company", "is_ssl", "raw_page", "page_num", "status"}),
 	}).WithContext(ctx).CreateInBatches(domains, 100).Error
 	if err != nil {
 		return domain.WrapDatabase("failed to bulk insert domains", err)
