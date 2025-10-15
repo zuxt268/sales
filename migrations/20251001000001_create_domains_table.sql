@@ -12,6 +12,7 @@ CREATE TABLE domains (
     industry VARCHAR(255) NOT NULL DEFAULT '' COMMENT '業種',
     president VARCHAR(255) NOT NULL DEFAULT '' COMMENT '代表者名',
     company VARCHAR(255) NOT NULL DEFAULT '' COMMENT '会社名',
+    prefecture VARCHAR(255) NOT NULL DEFAULT '' COMMENT '都道府県',
     is_ssl BOOLEAN NOT NULL DEFAULT false COMMENT 'SSL有効',
     raw_page TEXT NOT NULL COMMENT 'ページ生データ',
     page_num INT NOT NULL DEFAULT 0 COMMENT 'ページ数',
@@ -25,6 +26,7 @@ CREATE TABLE domains (
     INDEX idx_domains_owner_id (owner_id),
     INDEX idx_domains_is_ssl (is_ssl),
     INDEX idx_domains_can_view (can_view),
+    INDEX idx_domains_prefecture (prefecture),
     INDEX idx_domains_is_send (is_send),
     INDEX idx_domains_is_japan (is_japan)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ドメイン情報テーブル';

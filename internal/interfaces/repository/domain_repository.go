@@ -83,7 +83,7 @@ func (r *domainRepository) Save(ctx context.Context, d *domain.Domain) error {
 func (r *domainRepository) BulkInsert(ctx context.Context, domains []*domain.Domain) error {
 	err := r.getDb(ctx).Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "name"}},
-		DoUpdates: clause.AssignmentColumns([]string{"can_view", "is_japan", "is_send", "title", "owner_id", "address", "phone", "industry", "president", "company", "is_ssl", "raw_page", "page_num", "status"}),
+		DoNothing: true,
 	}).WithContext(ctx).CreateInBatches(domains, 100).Error
 	if err != nil {
 		return domain.WrapDatabase("failed to bulk insert domains", err)

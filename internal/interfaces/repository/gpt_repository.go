@@ -130,10 +130,10 @@ const systemPrompt = `
 `
 
 const promptTemplate = `"""%s"""
-以上の情報から、業種、代表者名、会社名を答えてください。単語で答えてください。見つからない場合は、「なし」と表示してください。
-3つをカンマ区切りで一行で出力してください。
+以上の情報から、業種、代表者名、会社名、都道府県を答えてください。単語で答えてください。見つからない場合は、「なし」と表示してください。
+４つをカンマ区切りで一行で出力してください。
 順番は守ってください。
-例）自動車整備業,山田太郎,株式会社タロウ
+例）自動車整備業,山田太郎,株式会社タロウ,東京都
 `
 
 func (r *gptRepository) Analyze(ctx context.Context, d *domain.Domain) error {
@@ -162,13 +162,21 @@ func (r *gptRepository) Analyze(ctx context.Context, d *domain.Domain) error {
 		return nil
 	}
 	contents := strings.Split(resp.Choices[0].Message.Content, ",")
-	if len(contents) != 3 {
+	if len(contents) != 4 {
 		return nil
 	}
 	fmt.Println(contents)
-	d.Industry = contents[0]
-	d.President = contents[1]
-	d.Company = contents[2]
-
+	if contents[0] != "なし" {
+		d.Industry = contents[0]
+	}
+	if contents[1] != "なし" {
+		d.President = contents[1]
+	}
+	if contents[2] != "なし" {
+		d.Company = contents[2]
+	}
+	if contents[3] != "なし" {
+		d.Prefecture = contents[3]
+	}
 	return nil
 }

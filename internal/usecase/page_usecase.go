@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"unicode/utf8"
 
 	"github.com/zuxt268/sales/internal/domain"
 	"github.com/zuxt268/sales/internal/interfaces/repository"
@@ -82,7 +83,12 @@ func (p *pageUsecase) UpdateDomain(ctx context.Context, id int, req domain.Updat
 			target.IsSSL = *req.IsSSL
 		}
 		if req.RawPage != nil {
-			target.RawPage = *req.RawPage
+			rawPage := *req.RawPage
+			if utf8.RuneCountInString(rawPage) > 8000 {
+				runes := []rune(rawPage)
+				rawPage = string(runes[:8000])
+			}
+			target.RawPage = rawPage
 		}
 		if req.PageNum != nil {
 			target.PageNum = *req.PageNum

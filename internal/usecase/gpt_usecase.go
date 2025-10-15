@@ -2,6 +2,8 @@ package usecase
 
 import (
 	"context"
+	"fmt"
+	"sync"
 
 	"github.com/zuxt268/sales/internal/domain"
 	"github.com/zuxt268/sales/internal/interfaces/adapter"
@@ -39,14 +41,31 @@ func (u *gptUsecase) AnalyzeDomains(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
+	semaphore := make(chan struct{}, 20)
+	var wg sync.WaitGroup
+
 	for _, d := range domains {
-		if err := u.gptRepo.Analyze(ctx, &d); err != nil {
-			return err
-		}
-		if err := u.domainRepo.Save(ctx, &d); err != nil {
-			return err
-		}
+		wg.Add(1)
+		semaphore <- struct{}{}
+
+		go func(d domain.Domain) {
+			defer wg.Done()
+			defer func() { <-semaphore }()
+
+			if err := u.gptRepo.Analyze(ctx, &d); err != nil {
+				fmt.Println(err)
+				return
+			}
+			d.Status = domain.StatusDone
+			if err := u.domainRepo.Save(ctx, &d); err != nil {
+				fmt.Println(err)
+				return
+			}
+		}(d)
 	}
+
+	wg.Wait()
 	_ = u.slackAdapter.Send(ctx, "analyze 終了")
 	return nil
 }
