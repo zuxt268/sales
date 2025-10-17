@@ -1,9 +1,9 @@
-version: '3.8'
-
 services:
   db:
     image: mysql:8.0
     container_name: sales-mysql
+    env_file:
+      - .env
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
       MYSQL_DATABASE: ${DB_NAME:-sales}
@@ -24,22 +24,25 @@ services:
   app:
     build:
       context: .
-      dockerfile: dockerfiles/Dockerfile
     container_name: sales-app
+    env_file:
+      - .env
     environment:
       DB_USER: ${DB_USER:-root}
       DB_PASSWORD: ${DB_PASSWORD:-root}
       DB_HOST: db
       DB_PORT: 3306
       DB_NAME: ${DB_NAME:-sales}
-      ADDRESS: ${ADDRESS:-:8091}
+      ADDRESS: ${ADDRESS:-:8050}
       VIEW_DNS_API_URL: ${VIEW_DNS_API_URL}
       API_KEY: ${API_KEY}
       PASSWORD: ${PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
+      SWAGGER_HOST: ${SWAGGER_HOST:-localhost:8050}
+      NOTICE_WEB_APP_CHANNEL_URL: ${NOTICE_WEB_APP_CHANNEL_URL}
     ports:
-      - "${ADDRESS:-8091}:8091"
+      - "8050:8050"
     depends_on:
       db:
         condition: service_healthy
@@ -47,49 +50,11 @@ services:
       - sales-network
     restart: unless-stopped
 
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: sales-prometheus
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
-      - '--web.console.templates=/usr/share/prometheus/consoles'
-    ports:
-      - "9090:9090"
-    networks:
-      - sales-network
-    restart: unless-stopped
-
-  grafana:
-    image: grafana/grafana:latest
-    container_name: sales-grafana
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-      - GF_USERS_ALLOW_SIGN_UP=false
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./grafana/provisioning:/etc/grafana/provisioning
-    ports:
-      - "3000:3000"
-    depends_on:
-      - prometheus
-    networks:
-      - sales-network
-    restart: unless-stopped
 
 volumes:
   mysql_data:
     driver: local
-  prometheus_data:
-    driver: local
-  grafana_data:
-    driver: local
 
 networks:
   sales-network:
-    driver: bridge
+    external: true

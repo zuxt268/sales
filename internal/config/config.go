@@ -1,9 +1,6 @@
 package config
 
 import (
-	"fmt"
-
-	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 )
 
@@ -26,12 +23,7 @@ type Environment struct {
 var Env Environment
 
 func init() {
-	err := godotenv.Load()
-	if err != nil {
-		fmt.Println("Error loading .env file")
-	}
-
-	err = envconfig.Process("", &Env)
+	err := envconfig.Process("", &Env)
 	if err != nil {
 		panic(err)
 	}

@@ -13,6 +13,12 @@ RUN go mod download
 # Copy source code
 COPY . .
 
+# Install swag for generating swagger docs
+RUN go install github.com/swaggo/swag/cmd/swag@latest
+
+# Generate swagger documentation
+RUN swag init -g cmd/sales/main.go -o docs
+
 # Build the application
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o sales cmd/sales/main.go
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o token cmd/token/main.go
@@ -46,11 +52,11 @@ RUN chown -R appuser:appuser /app
 USER appuser
 
 # Expose port
-EXPOSE 8091
+EXPOSE 8050
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:8091/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8050/health || exit 1
 
 # Run the application
 CMD ["./sales"]

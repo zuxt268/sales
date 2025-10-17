@@ -58,3 +58,7 @@ func (r *PostFetchRequest) Validate() error {
 	}
 	return nil
 }
+
+type User struct {
+	Email string `json:"email" binding:"required"`
+}

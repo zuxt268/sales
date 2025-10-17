@@ -1,14 +1,14 @@
 package middleware
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
-	"github.com/zuxt268/sales/internal/config"
-	"github.com/zuxt268/sales/internal/domain"
 )
 
 // JWTMiddleware はBearerトークンを検証するミドルウェア
@@ -37,25 +37,8 @@ func JWTMiddleware() echo.MiddlewareFunc {
 			tokenString := parts[1]
 
 			// トークンの検証
-			token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-				// 署名アルゴリズムの検証
-				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-					slog.Warn("Unexpected signing method", "method", token.Header["alg"])
-					return nil, domain.WrapUnauthorized("unexpected signing method")
-				}
-				return []byte(config.Env.JWTSecret), nil
-			})
-
+			token, err := verifyNextAuthToken(tokenString)
 			if err != nil {
-				slog.Warn("Failed to parse token", "error", err.Error())
-				return c.JSON(http.StatusUnauthorized, map[string]string{
-					"error":   "unauthorized",
-					"message": "invalid or expired token",
-				})
-			}
-
-			if !token.Valid {
-				slog.Warn("Invalid token")
 				return c.JSON(http.StatusUnauthorized, map[string]string{
 					"error":   "unauthorized",
 					"message": "invalid token",
@@ -70,4 +53,22 @@ func JWTMiddleware() echo.MiddlewareFunc {
 			return next(c)
 		}
 	}
+}
+
+func verifyNextAuthToken(tokenString string) (*jwt.Token, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		// NEXTAUTH_SECRETで検証
+		return []byte(os.Getenv("NEXTAUTH_SECRET")), nil
+	})
+	if err != nil || !token.Valid {
+		return nil, err
+	}
+
+	// emailを取得
+	claims := token.Claims.(jwt.MapClaims)
+	email := claims["email"].(string)
+
+	fmt.Println("email:", email)
+
+	return token, nil
 }

@@ -64,6 +64,7 @@ func main() {
 	})
 
 	e.GET("/api/healthcheck", func(c echo.Context) error {
+		slog.Info("Healthcheck")
 		return c.JSON(http.StatusOK, map[string]string{"status": "ok"})
 	})
 
