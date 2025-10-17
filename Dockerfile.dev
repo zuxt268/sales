@@ -1,0 +1,32 @@
+# Development Dockerfile with hot-reload using Air
+FROM golang:1.25-alpine
+
+WORKDIR /app
+
+# Install development dependencies
+RUN apk add --no-cache git ca-certificates
+
+# Install Air for hot-reload
+RUN go install github.com/air-verse/air@latest
+
+# Install swag for generating swagger docs
+RUN go install github.com/swaggo/swag/cmd/swag@latest
+
+# Copy go mod files
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copy source code
+COPY . .
+
+# Generate swagger documentation
+RUN swag init -g cmd/sales/main.go -o docs
+
+# Build token utility
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o token cmd/token/main.go
+
+# Expose port
+EXPOSE 8050
+
+# Run Air for hot-reload
+CMD ["air", "-c", ".air.toml"]
