@@ -5,10 +5,10 @@ swag:
 	swag init -g cmd/sales/main.go
 
 
-run:
+rebuild:
 	docker compose down
-	docker compose build app --no-cache
-	docker compose up --build -d
+	docker compose build --no-cache
+	docker compose up -d
 	docker compose ps
 
 
