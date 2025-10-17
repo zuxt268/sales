@@ -19,11 +19,11 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /var/www/sales
-            docker-compose down
+            docker compose down
             git pull
             docker image prune -f
-            docker-compose build --no-cache
-            docker-compose up -d
+            docker compose build --no-cache
+            docker compose up -d
       - name: Notify Slack
         uses: 8398a7/action-slack@v3
         with:
