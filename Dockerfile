@@ -16,6 +16,9 @@ COPY . .
 # Install swag for generating swagger docs
 RUN go install github.com/swaggo/swag/cmd/swag@latest
 
+# Install sql-migrate for database migrations
+RUN go install github.com/rubenv/sql-migrate/...@latest
+
 # Generate swagger documentation
 RUN swag init -g cmd/sales/main.go -o docs
 
@@ -38,9 +41,11 @@ RUN addgroup -g 1000 appuser && \
 # Copy binaries from builder
 COPY --from=builder /app/sales .
 COPY --from=builder /app/token .
+COPY --from=builder /go/bin/sql-migrate .
 
-# Copy migrations
+# Copy migrations and dbconfig
 COPY --from=builder /app/migrations ./migrations
+COPY --from=builder /app/dbconfig.yml .
 
 # Set timezone
 ENV TZ=Asia/Tokyo
