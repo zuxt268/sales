@@ -69,7 +69,7 @@ func main() {
 	})
 
 	api := e.Group("/api")
-	api.Use(middleware2.JWTMiddleware())
+	//api.Use(middleware2.JWTMiddleware())
 	api.Use(middleware2.SlogMiddleware())
 
 	api.GET("/domains", handler.GetDomains)
