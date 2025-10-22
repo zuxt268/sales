@@ -82,6 +82,9 @@ func main() {
 	api.PUT("/targets/:id", handler.UpdateTarget)
 	api.DELETE("/targets/:id", handler.DeleteTarget)
 
+	api.GET("/logs", handler.GetLogs)
+	api.POST("/logs", handler.CreateLog)
+
 	srv := &http.Server{
 		Addr:    config.Env.Address,
 		Handler: e,

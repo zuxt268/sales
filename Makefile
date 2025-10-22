@@ -41,6 +41,12 @@ prod-migrate-up:
 dev-migrate-up:
 	docker compose -f docker-compose.dev.yml exec app sql-migrate up -config=dbconfig.yml -env=development
 
+prod-migrate-down:
+	docker compose -f docker-compose.prod.yml exec app ./sql-migrate down -config=dbconfig.yml -env=production
+
+dev-migrate-down:
+	docker compose -f docker-compose.dev.yml exec app sql-migrate down -config=dbconfig.yml -env=development
+
 token:
 ifndef password
 	@echo "Error: password is required. Usage: make token password=your_password"

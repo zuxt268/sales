@@ -15,10 +15,11 @@ func Initialize(db *gorm.DB) handler.ApiHandler {
 	viewDnsAdapter := adapter.NewViewDNSAdapter(config.Env.ViewDnsApiUrl)
 	baseRepo := repository.NewBaseRepository(db)
 	targetRepo := repository.NewTargetRepository(db)
+	logRepo := repository.NewLogRepository(db)
 	gptRepo := repository.NewGptRepository()
 	slackAdapter := adapter.NewSlackAdapter()
 	fetchUsecase := usecase.NewFetchUsecase(targetRepo, viewDnsAdapter, slackAdapter, domainRepo)
-	pageUsecase := usecase.NewPageUsecase(baseRepo, domainRepo, targetRepo)
+	pageUsecase := usecase.NewPageUsecase(baseRepo, domainRepo, targetRepo, logRepo)
 	gptUsecase := usecase.NewGptUsecase(slackAdapter, domainRepo, gptRepo)
 	return handler.NewApiHandler(fetchUsecase, pageUsecase, gptUsecase)
 }

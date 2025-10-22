@@ -25,8 +25,8 @@ type Domain struct {
 	RawPage       string    `gorm:"column:raw_page" json:"raw_page"`
 	PageNum       int       `gorm:"column:page_num" json:"page_num"`
 	Status        Status    `gorm:"column:status" json:"status"`
-	UpdateAt      time.Time `gorm:"column:update_at;autoUpdateTime" json:"update_at"`
-	CreateAt      time.Time `gorm:"column:create_at;autoCreateTime" json:"create_at"`
+	UpdatedAt     time.Time `gorm:"column:updated_at;autoUpdateTime" json:"updated_at"`
+	CreatedAt     time.Time `gorm:"column:created_at;autoCreateTime" json:"created_at"`
 }
 
 func (u *Domain) SetPhone() {

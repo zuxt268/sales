@@ -16,24 +16,28 @@ type PageUsecase interface {
 	CreateTarget(ctx context.Context, req domain.CreateTargetRequest) (*domain.Target, error)
 	UpdateTarget(ctx context.Context, req domain.UpdateTargetRequest) (*domain.Target, error)
 	DeleteTarget(ctx context.Context, id int) error
+	GetLogs(ctx context.Context, req domain.GetLogsRequest) ([]domain.Log, error)
+	CreateLogs(ctx context.Context, req domain.CreateLogRequest) (*domain.Log, error)
 }
 
 type pageUsecase struct {
-	targetRep  repository.TargetRepository
 	baseRepo   repository.BaseRepository
 	domainRepo repository.DomainRepository
 	targetRepo repository.TargetRepository
+	logRepo    repository.LogRepository
 }
 
 func NewPageUsecase(
 	baseRepo repository.BaseRepository,
 	domainRepo repository.DomainRepository,
 	targetRepo repository.TargetRepository,
+	logRepo repository.LogRepository,
 ) PageUsecase {
 	return &pageUsecase{
 		baseRepo:   baseRepo,
 		domainRepo: domainRepo,
 		targetRepo: targetRepo,
+		logRepo:    logRepo,
 	}
 }
 
@@ -177,4 +181,27 @@ func (p *pageUsecase) DeleteTarget(ctx context.Context, id int) error {
 	return p.targetRepo.Delete(ctx, repository.TargetFilter{
 		ID: &id,
 	})
+}
+
+func (p *pageUsecase) GetLogs(ctx context.Context, req domain.GetLogsRequest) ([]domain.Log, error) {
+	return p.logRepo.FindAll(ctx, repository.LogFilter{
+		Category: req.Category,
+		Limit:    req.Limit,
+		Offset:   req.Offset,
+	})
+}
+
+func (p *pageUsecase) CreateLogs(ctx context.Context, req domain.CreateLogRequest) (*domain.Log, error) {
+	log := &domain.Log{
+		Name:     req.Name,
+		Category: req.Category,
+		Message:  req.Message,
+	}
+
+	err := p.logRepo.Create(ctx, log)
+	if err != nil {
+		return nil, err
+	}
+
+	return log, nil
 }

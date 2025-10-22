@@ -79,3 +79,16 @@ type CreateTargetRequest struct {
 	IP   string `json:"ip"`
 	Name string `json:"name"`
 }
+
+type GetLogsRequest struct {
+	Name     *string `query:"name"`
+	Category *string `query:"category"`
+	Limit    *int    `query:"limit"`
+	Offset   *int    `query:"offset"`
+}
+
+type CreateLogRequest struct {
+	Name     string `json:"name"`
+	Category string `json:"category"`
+	Message  string `json:"message"`
+}

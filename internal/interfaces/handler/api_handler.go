@@ -22,6 +22,8 @@ type ApiHandler interface {
 	CreateTarget(c echo.Context) error
 	UpdateTarget(c echo.Context) error
 	DeleteTarget(c echo.Context) error
+	GetLogs(c echo.Context) error
+	CreateLog(c echo.Context) error
 }
 
 type apiHandler struct {
@@ -247,6 +249,51 @@ func (h *apiHandler) DeleteTarget(c echo.Context) error {
 		return handleError(c, err)
 	}
 	return c.NoContent(http.StatusNoContent)
+}
+
+// GetLogs godoc
+// @Summary Get logs
+// @Description Get log list
+// @Tags ログ
+// @Accept json
+// @Produce json
+// @Param name query string false "処理名"
+// @Param category query string false "カテゴリー"
+// @Param limit query int false "Limit"
+// @Param offset query int false "Offset"
+// @Success 200 {array} domain.Log
+// @Router /logs [get]
+func (h *apiHandler) GetLogs(c echo.Context) error {
+	var req domain.GetLogsRequest
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	resp, err := h.pageUsecase.GetLogs(c.Request().Context(), req)
+	if err != nil {
+		return handleError(c, err)
+	}
+	return c.JSON(http.StatusOK, resp)
+}
+
+// CreateLog godoc
+// @Summary Create log
+// @Description Create new log
+// @Tags ログ
+// @Accept json
+// @Produce json
+// @Param request body domain.CreateLogRequest true "作成ログ情報"
+// @Success 201 {object} domain.Log
+// @Router /logs [post]
+func (h *apiHandler) CreateLog(c echo.Context) error {
+	var req domain.CreateLogRequest
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	resp, err := h.pageUsecase.CreateLogs(c.Request().Context(), req)
+	if err != nil {
+		return handleError(c, err)
+	}
+	return c.JSON(http.StatusCreated, resp)
 }
 
 func handleError(c echo.Context, err error) error {

@@ -9,7 +9,6 @@ import (
 	"github.com/zuxt268/sales/internal/external"
 	"github.com/zuxt268/sales/internal/interfaces/adapter"
 	"github.com/zuxt268/sales/internal/interfaces/repository"
-	"github.com/zuxt268/sales/internal/util"
 )
 
 type FetchUsecase interface {
@@ -38,57 +37,45 @@ func NewFetchUsecase(
 }
 
 func (u *fetchUsecase) Fetch(ctx context.Context, req domain.PostFetchRequest) error {
-	_ = u.slackAdapter.Send(ctx, "fetch 開始")
 
-	targets, err := u.targetRepo.FindAll(ctx, repository.TargetFilter{
-		Status: util.Pointer(domain.TargetStatusInit),
-	})
-	if err != nil {
-		return err
-	}
-
-	for _, target := range targets {
-		page := 1
-		maxPage := 0
-		for {
-			resp, err := u.viewDnsAdapter.GetReverseIP(ctx, &external.ReverseIpRequest{
-				Host:   target.IP,
-				ApiKey: config.Env.ApiKey,
-				Page:   page,
-			})
-			if err != nil {
-				return err
-			}
-
-			domains := make([]*domain.Domain, 0, len(resp.Response.Domains))
-			for _, d := range resp.Response.Domains {
-				domains = append(domains, &domain.Domain{
-					Name:   d.Name,
-					Status: domain.StatusInitialize,
-				})
-			}
-
-			err = u.domainRepo.BulkInsert(ctx, domains)
-			if err != nil {
-				return err
-			}
-
-			if maxPage == 0 {
-				domainCount := resp.Response.DomainCount
-				count, err := strconv.Atoi(domainCount)
-				if err != nil {
-					return err
-				}
-				maxPage = (count + 9999) / 10000 // ceil 計算
-			}
-			if page >= maxPage {
-				break
-			}
-			page++
+	page := 1
+	maxPage := 0
+	for {
+		resp, err := u.viewDnsAdapter.GetReverseIP(ctx, &external.ReverseIpRequest{
+			Host:   req.Target,
+			ApiKey: config.Env.ApiKey,
+			Page:   page,
+		})
+		if err != nil {
+			return err
 		}
-	}
 
-	_ = u.slackAdapter.Send(ctx, "fetch 終了")
+		domains := make([]*domain.Domain, 0, len(resp.Response.Domains))
+		for _, d := range resp.Response.Domains {
+			domains = append(domains, &domain.Domain{
+				Name:   d.Name,
+				Status: domain.StatusInitialize,
+			})
+		}
+
+		err = u.domainRepo.BulkInsert(ctx, domains)
+		if err != nil {
+			return err
+		}
+
+		if maxPage == 0 {
+			domainCount := resp.Response.DomainCount
+			count, err := strconv.Atoi(domainCount)
+			if err != nil {
+				return err
+			}
+			maxPage = (count + 9999) / 10000 // ceil 計算
+		}
+		if page >= maxPage {
+			break
+		}
+		page++
+	}
 
 	return nil
 }

@@ -221,6 +221,90 @@ const docTemplate = `{
                 }
             }
         },
+        "/logs": {
+            "get": {
+                "description": "Get log list",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ログ"
+                ],
+                "summary": "Get logs",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "処理名",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "カテゴリー",
+                        "name": "category",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.Log"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create new log",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ログ"
+                ],
+                "summary": "Create log",
+                "parameters": [
+                    {
+                        "description": "作成ログ情報",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.CreateLogRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/domain.Log"
+                        }
+                    }
+                }
+            }
+        },
         "/targets": {
             "get": {
                 "description": "Get target list",
@@ -356,6 +440,20 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "domain.CreateLogRequest": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.CreateTargetRequest": {
             "type": "object",
             "properties": {
@@ -379,7 +477,7 @@ const docTemplate = `{
                 "company": {
                     "type": "string"
                 },
-                "create_at": {
+                "created_at": {
                     "type": "string"
                 },
                 "id": {
@@ -430,7 +528,27 @@ const docTemplate = `{
                 "title": {
                     "type": "string"
                 },
-                "update_at": {
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.Log": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 }
             }
@@ -468,7 +586,7 @@ const docTemplate = `{
         "domain.Target": {
             "type": "object",
             "properties": {
-                "create_at": {
+                "created_at": {
                     "type": "string"
                 },
                 "id": {
@@ -483,7 +601,7 @@ const docTemplate = `{
                 "status": {
                     "$ref": "#/definitions/domain.TargetStatus"
                 },
-                "update_at": {
+                "updated_at": {
                     "type": "string"
                 }
             }

@@ -3,12 +3,12 @@ package domain
 import "time"
 
 type Target struct {
-	ID       int          `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
-	IP       string       `gorm:"column:ip;unique" json:"ip"`
-	Name     string       `gorm:"column:name" json:"name"`
-	Status   TargetStatus `gorm:"column:status" json:"status"`
-	UpdateAt time.Time    `gorm:"column:update_at;autoUpdateTime" json:"update_at"`
-	CreateAt time.Time    `gorm:"column:create_at;autoCreateTime" json:"create_at"`
+	ID        int          `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
+	IP        string       `gorm:"column:ip;unique" json:"ip"`
+	Name      string       `gorm:"column:name" json:"name"`
+	Status    TargetStatus `gorm:"column:status" json:"status"`
+	UpdatedAt time.Time    `gorm:"column:updated_at;autoUpdateTime" json:"updated_at"`
+	CreatedAt time.Time    `gorm:"column:created_at;autoCreateTime" json:"created_at"`
 }
 
 type TargetStatus string
