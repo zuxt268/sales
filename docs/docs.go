@@ -17,11 +17,6 @@ const docTemplate = `{
     "paths": {
         "/domains": {
             "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Get domain list",
                 "consumes": [
                     "application/json"
@@ -110,11 +105,6 @@ const docTemplate = `{
         },
         "/domains/analyze": {
             "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -134,11 +124,6 @@ const docTemplate = `{
         },
         "/domains/{id}": {
             "put": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Update domain information",
                 "consumes": [
                     "application/json"
@@ -178,11 +163,6 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Delete domain by name",
                 "consumes": [
                     "application/json"
@@ -212,11 +192,6 @@ const docTemplate = `{
         },
         "/fetch": {
             "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Fetch domain information from target",
                 "consumes": [
                     "application/json"
@@ -248,11 +223,6 @@ const docTemplate = `{
         },
         "/targets": {
             "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Get target list",
                 "consumes": [
                     "application/json"
@@ -291,11 +261,6 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Update target information",
                 "consumes": [
                     "application/json"
@@ -328,11 +293,6 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Create new target",
                 "consumes": [
                     "application/json"
@@ -367,11 +327,6 @@ const docTemplate = `{
         },
         "/targets/{id}": {
             "delete": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Delete target by id",
                 "consumes": [
                     "application/json"
@@ -607,14 +562,6 @@ const docTemplate = `{
                 }
             }
         }
-    },
-    "securityDefinitions": {
-        "Bearer": {
-            "description": "Type \"Bearer\" followed by a space and JWT token.",
-            "type": "apiKey",
-            "name": "Authorization",
-            "in": "header"
-        }
     }
 }`
 
@@ -625,7 +572,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/api",
 	Schemes:          []string{},
 	Title:            "Sales API",
-	Description:      "ドメイン管理API",
+	Description:      "Type \"Bearer\" followed by a space and JWT token.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

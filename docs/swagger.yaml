@@ -141,7 +141,7 @@ definitions:
     type: object
 info:
   contact: {}
-  description: ドメイン管理API
+  description: Type "Bearer" followed by a space and JWT token.
   title: Sales API
   version: "1.0"
 paths:
@@ -200,8 +200,6 @@ paths:
             items:
               $ref: '#/definitions/domain.Domain'
             type: array
-      security:
-      - Bearer: []
       summary: Get domains
       tags:
       - ドメイン
@@ -221,8 +219,6 @@ paths:
       responses:
         "204":
           description: No Content
-      security:
-      - Bearer: []
       summary: Delete domain
       tags:
       - ドメイン
@@ -249,8 +245,6 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/domain.Domain'
-      security:
-      - Bearer: []
       summary: Update domain
       tags:
       - ドメイン
@@ -263,8 +257,6 @@ paths:
       responses:
         "204":
           description: No Content
-      security:
-      - Bearer: []
       summary: サイトの情報を解析する
       tags:
       - ドメイン
@@ -285,8 +277,6 @@ paths:
       responses:
         "202":
           description: Accepted
-      security:
-      - Bearer: []
       summary: Fetch domains
       tags:
       - ViewDNS
@@ -313,8 +303,6 @@ paths:
             items:
               $ref: '#/definitions/domain.Target'
             type: array
-      security:
-      - Bearer: []
       summary: Get targets
       tags:
       - ターゲット
@@ -336,8 +324,6 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/domain.Target'
-      security:
-      - Bearer: []
       summary: Create target
       tags:
       - ターゲット
@@ -359,8 +345,6 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/domain.Target'
-      security:
-      - Bearer: []
       summary: Update target
       tags:
       - ターゲット
@@ -380,15 +364,7 @@ paths:
       responses:
         "204":
           description: No Content
-      security:
-      - Bearer: []
       summary: Delete target
       tags:
       - ターゲット
-securityDefinitions:
-  Bearer:
-    description: Type "Bearer" followed by a space and JWT token.
-    in: header
-    name: Authorization
-    type: apiKey
 swagger: "2.0"

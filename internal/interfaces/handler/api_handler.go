@@ -18,6 +18,10 @@ type ApiHandler interface {
 	DeleteDomain(c echo.Context) error
 	FetchDomains(c echo.Context) error
 	AnalyzeDomains(c echo.Context) error
+	GetTargets(c echo.Context) error
+	CreateTarget(c echo.Context) error
+	UpdateTarget(c echo.Context) error
+	DeleteTarget(c echo.Context) error
 }
 
 type apiHandler struct {
@@ -55,7 +59,6 @@ func NewApiHandler(
 // @Param industry query string false "業種"
 // @Param is_ssl query boolean false "SSL対応可否"
 // @Success 200 {array} domain.Domain
-// @Security Bearer
 // @Router /domains [get]
 func (h *apiHandler) GetDomains(c echo.Context) error {
 	var req domain.GetDomainsRequest
@@ -78,7 +81,6 @@ func (h *apiHandler) GetDomains(c echo.Context) error {
 // @Param id path string true "ID"
 // @Param request body domain.UpdateDomainRequest true "更新ドメイン情報"
 // @Success 200 {object} domain.Domain
-// @Security Bearer
 // @Router /domains/{id} [put]
 func (h *apiHandler) UpdateDomain(c echo.Context) error {
 	var req domain.UpdateDomainRequest
@@ -108,7 +110,6 @@ func (h *apiHandler) UpdateDomain(c echo.Context) error {
 // @Produce json
 // @Param id path string true "ID"
 // @Success 204
-// @Security Bearer
 // @Router /domains/{id} [delete]
 func (h *apiHandler) DeleteDomain(c echo.Context) error {
 	idStr := c.Param("id")
@@ -129,7 +130,6 @@ func (h *apiHandler) DeleteDomain(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Success 204
-// @Security Bearer
 // @Router /domains/analyze [post]
 func (h *apiHandler) AnalyzeDomains(c echo.Context) error {
 	err := h.gptUsecase.AnalyzeDomains(c.Request().Context())
@@ -147,7 +147,6 @@ func (h *apiHandler) AnalyzeDomains(c echo.Context) error {
 // @Produce json
 // @Param request body domain.PostFetchRequest true "Fetch request"
 // @Success 202
-// @Security Bearer
 // @Router /fetch [post]
 func (h *apiHandler) FetchDomains(c echo.Context) error {
 	var req domain.PostFetchRequest
@@ -173,7 +172,6 @@ func (h *apiHandler) FetchDomains(c echo.Context) error {
 // @Param limit query int false "Limit"
 // @Param offset query int false "Offset"
 // @Success 200 {array} domain.Target
-// @Security Bearer
 // @Router /targets [get]
 func (h *apiHandler) GetTargets(c echo.Context) error {
 	var req domain.GetTargetsRequest
@@ -195,7 +193,6 @@ func (h *apiHandler) GetTargets(c echo.Context) error {
 // @Produce json
 // @Param request body domain.CreateTargetRequest true "作成ターゲット情報"
 // @Success 201 {object} domain.Target
-// @Security Bearer
 // @Router /targets [post]
 func (h *apiHandler) CreateTarget(c echo.Context) error {
 	var req domain.CreateTargetRequest
@@ -217,7 +214,6 @@ func (h *apiHandler) CreateTarget(c echo.Context) error {
 // @Produce json
 // @Param request body domain.UpdateTargetRequest true "更新ターゲット情報"
 // @Success 200 {object} domain.Target
-// @Security Bearer
 // @Router /targets [put]
 func (h *apiHandler) UpdateTarget(c echo.Context) error {
 	var req domain.UpdateTargetRequest
@@ -239,7 +235,6 @@ func (h *apiHandler) UpdateTarget(c echo.Context) error {
 // @Produce json
 // @Param id path string true "ID"
 // @Success 204
-// @Security Bearer
 // @Router /targets/{id} [delete]
 func (h *apiHandler) DeleteTarget(c echo.Context) error {
 	idStr := c.Param("id")

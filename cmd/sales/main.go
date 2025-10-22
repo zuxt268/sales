@@ -28,7 +28,6 @@ import (
 // @version 1.0
 // @description ドメイン管理API
 // @BasePath /api
-// @securityDefinitions.apikey Bearer
 // @in header
 // @name Authorization
 // @description Type "Bearer" followed by a space and JWT token.
@@ -77,6 +76,11 @@ func main() {
 	api.DELETE("/domains/:id", handler.DeleteDomain)
 	api.POST("/fetch", handler.FetchDomains)
 	api.POST("/domains/analyze", handler.AnalyzeDomains)
+
+	api.GET("/targets", handler.GetTargets)
+	api.POST("/targets", handler.CreateTarget)
+	api.PUT("/targets/:id", handler.UpdateTarget)
+	api.DELETE("/targets/:id", handler.DeleteTarget)
 
 	srv := &http.Server{
 		Addr:    config.Env.Address,

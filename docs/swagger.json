@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "ドメイン管理API",
+        "description": "Type \"Bearer\" followed by a space and JWT token.",
         "title": "Sales API",
         "contact": {},
         "version": "1.0"
@@ -10,11 +10,6 @@
     "paths": {
         "/domains": {
             "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Get domain list",
                 "consumes": [
                     "application/json"
@@ -103,11 +98,6 @@
         },
         "/domains/analyze": {
             "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -127,11 +117,6 @@
         },
         "/domains/{id}": {
             "put": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Update domain information",
                 "consumes": [
                     "application/json"
@@ -171,11 +156,6 @@
                 }
             },
             "delete": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Delete domain by name",
                 "consumes": [
                     "application/json"
@@ -205,11 +185,6 @@
         },
         "/fetch": {
             "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Fetch domain information from target",
                 "consumes": [
                     "application/json"
@@ -241,11 +216,6 @@
         },
         "/targets": {
             "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Get target list",
                 "consumes": [
                     "application/json"
@@ -284,11 +254,6 @@
                 }
             },
             "put": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Update target information",
                 "consumes": [
                     "application/json"
@@ -321,11 +286,6 @@
                 }
             },
             "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Create new target",
                 "consumes": [
                     "application/json"
@@ -360,11 +320,6 @@
         },
         "/targets/{id}": {
             "delete": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Delete target by id",
                 "consumes": [
                     "application/json"
@@ -599,14 +554,6 @@
                     "type": "string"
                 }
             }
-        }
-    },
-    "securityDefinitions": {
-        "Bearer": {
-            "description": "Type \"Bearer\" followed by a space and JWT token.",
-            "type": "apiKey",
-            "name": "Authorization",
-            "in": "header"
         }
     }
 }
