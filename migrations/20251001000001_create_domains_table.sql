@@ -9,6 +9,8 @@ CREATE TABLE domains (
     owner_id VARCHAR(255) NOT NULL DEFAULT '' COMMENT 'オーナーID',
     address VARCHAR(500) NOT NULL DEFAULT '' COMMENT '住所',
     phone VARCHAR(50) NOT NULL DEFAULT '' COMMENT '電話番号',
+    mobile_phone VARCHAR(50) NOT NULL DEFAULT '' COMMENT '携帯電話',
+    landline_phone VARCHAR(50) NOT NULL DEFAULT '' COMMENT '固定電話',
     industry VARCHAR(255) NOT NULL DEFAULT '' COMMENT '業種',
     president VARCHAR(255) NOT NULL DEFAULT '' COMMENT '代表者名',
     company VARCHAR(255) NOT NULL DEFAULT '' COMMENT '会社名',

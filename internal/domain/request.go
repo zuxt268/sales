@@ -24,8 +24,10 @@ type UpdateDomainRequest struct {
 	Title    *string `json:"title"`
 	OwnerID  *string `json:"owner_id"`
 	Address  *string `json:"address"`
-	Phone    *string `json:"phone"`
-	Industry *string `json:"industry"`
+	Phone         *string `json:"phone"`
+	MobilePhone   *string `json:"mobile_phone"`
+	LandlinePhone *string `json:"landline_phone"`
+	Industry      *string `json:"industry"`
 	IsSSL    *bool   `json:"is_ssl"`
 	RawPage  *string `json:"raw_page"`
 	PageNum  *int    `json:"page_num"`

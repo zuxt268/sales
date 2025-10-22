@@ -57,6 +57,7 @@ func (u *gptUsecase) AnalyzeDomains(ctx context.Context) error {
 				fmt.Println(err)
 				return
 			}
+			d.SetPhone()
 			d.Status = domain.StatusDone
 			if err := u.domainRepo.Save(ctx, &d); err != nil {
 				fmt.Println(err)

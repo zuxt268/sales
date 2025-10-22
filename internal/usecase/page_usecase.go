@@ -76,6 +76,12 @@ func (p *pageUsecase) UpdateDomain(ctx context.Context, id int, req domain.Updat
 		if req.Phone != nil {
 			target.Phone = *req.Phone
 		}
+		if req.MobilePhone != nil {
+			target.MobilePhone = *req.MobilePhone
+		}
+		if req.LandlinePhone != nil {
+			target.LandlinePhone = *req.LandlinePhone
+		}
 		if req.Industry != nil {
 			target.Industry = *req.Industry
 		}

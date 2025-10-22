@@ -254,6 +254,8 @@ func TestDomainRepository_Update(t *testing.T) {
 	// テスト: 更新
 	d.Title = "Updated Title"
 	d.Phone = "090-1234-5678"
+	d.MobilePhone = "080-9876-5432"
+	d.LandlinePhone = "03-1234-5678"
 	err = repo.Save(ctx, d)
 	if err != nil {
 		t.Fatalf("Failed to update domain: %v", err)
