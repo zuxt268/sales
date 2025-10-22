@@ -16,21 +16,21 @@ type GetDomainsRequest struct {
 }
 
 type UpdateDomainRequest struct {
-	Name     string  `json:"name" binding:"required"`
-	Status   string  `json:"status" binding:"required"`
-	IsSend   *bool   `json:"is_send"`
-	CanView  *bool   `json:"can_view"`
-	IsJapan  *bool   `json:"is_japan"`
-	Title    *string `json:"title"`
-	OwnerID  *string `json:"owner_id"`
-	Address  *string `json:"address"`
+	Name          string  `json:"name" binding:"required"`
+	Status        string  `json:"status" binding:"required"`
+	IsSend        *bool   `json:"is_send"`
+	CanView       *bool   `json:"can_view"`
+	IsJapan       *bool   `json:"is_japan"`
+	Title         *string `json:"title"`
+	OwnerID       *string `json:"owner_id"`
+	Address       *string `json:"address"`
 	Phone         *string `json:"phone"`
 	MobilePhone   *string `json:"mobile_phone"`
 	LandlinePhone *string `json:"landline_phone"`
 	Industry      *string `json:"industry"`
-	IsSSL    *bool   `json:"is_ssl"`
-	RawPage  *string `json:"raw_page"`
-	PageNum  *int    `json:"page_num"`
+	IsSSL         *bool   `json:"is_ssl"`
+	RawPage       *string `json:"raw_page"`
+	PageNum       *int    `json:"page_num"`
 }
 
 func (r *UpdateDomainRequest) Validate() error {
@@ -63,4 +63,19 @@ func (r *PostFetchRequest) Validate() error {
 
 type User struct {
 	Email string `json:"email" binding:"required"`
+}
+
+type GetTargetsRequest struct {
+	Limit  *int `query:"limit"`
+	Offset *int `query:"offset"`
+}
+
+type UpdateTargetRequest struct {
+	IP   string `json:"ip"`
+	Name string `json:"name"`
+}
+
+type CreateTargetRequest struct {
+	IP   string `json:"ip"`
+	Name string `json:"name"`
 }

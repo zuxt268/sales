@@ -164,6 +164,96 @@ func (h *apiHandler) FetchDomains(c echo.Context) error {
 	return c.NoContent(http.StatusAccepted)
 }
 
+// GetTargets godoc
+// @Summary Get targets
+// @Description Get target list
+// @Tags ターゲット
+// @Accept json
+// @Produce json
+// @Param limit query int false "Limit"
+// @Param offset query int false "Offset"
+// @Success 200 {array} domain.Target
+// @Security Bearer
+// @Router /targets [get]
+func (h *apiHandler) GetTargets(c echo.Context) error {
+	var req domain.GetTargetsRequest
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	resp, err := h.pageUsecase.GetTargets(c.Request().Context(), req)
+	if err != nil {
+		return handleError(c, err)
+	}
+	return c.JSON(http.StatusOK, resp)
+}
+
+// CreateTarget godoc
+// @Summary Create target
+// @Description Create new target
+// @Tags ターゲット
+// @Accept json
+// @Produce json
+// @Param request body domain.CreateTargetRequest true "作成ターゲット情報"
+// @Success 201 {object} domain.Target
+// @Security Bearer
+// @Router /targets [post]
+func (h *apiHandler) CreateTarget(c echo.Context) error {
+	var req domain.CreateTargetRequest
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	resp, err := h.pageUsecase.CreateTarget(c.Request().Context(), req)
+	if err != nil {
+		return handleError(c, err)
+	}
+	return c.JSON(http.StatusCreated, resp)
+}
+
+// UpdateTarget godoc
+// @Summary Update target
+// @Description Update target information
+// @Tags ターゲット
+// @Accept json
+// @Produce json
+// @Param request body domain.UpdateTargetRequest true "更新ターゲット情報"
+// @Success 200 {object} domain.Target
+// @Security Bearer
+// @Router /targets [put]
+func (h *apiHandler) UpdateTarget(c echo.Context) error {
+	var req domain.UpdateTargetRequest
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	resp, err := h.pageUsecase.UpdateTarget(c.Request().Context(), req)
+	if err != nil {
+		return handleError(c, err)
+	}
+	return c.JSON(http.StatusOK, resp)
+}
+
+// DeleteTarget godoc
+// @Summary Delete target
+// @Description Delete target by id
+// @Tags ターゲット
+// @Accept json
+// @Produce json
+// @Param id path string true "ID"
+// @Success 204
+// @Security Bearer
+// @Router /targets/{id} [delete]
+func (h *apiHandler) DeleteTarget(c echo.Context) error {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	err = h.pageUsecase.DeleteTarget(c.Request().Context(), id)
+	if err != nil {
+		return handleError(c, err)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
 func handleError(c echo.Context, err error) error {
 	// ログ出力
 	slog.Error("Handler error",

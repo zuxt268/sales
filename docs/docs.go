@@ -245,9 +245,173 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/targets": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Get target list",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ターゲット"
+                ],
+                "summary": "Get targets",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.Target"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Update target information",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ターゲット"
+                ],
+                "summary": "Update target",
+                "parameters": [
+                    {
+                        "description": "更新ターゲット情報",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.UpdateTargetRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.Target"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Create new target",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ターゲット"
+                ],
+                "summary": "Create target",
+                "parameters": [
+                    {
+                        "description": "作成ターゲット情報",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.CreateTargetRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/domain.Target"
+                        }
+                    }
+                }
+            }
+        },
+        "/targets/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Delete target by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ターゲット"
+                ],
+                "summary": "Delete target",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "domain.CreateTargetRequest": {
+            "type": "object",
+            "properties": {
+                "ip": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.Domain": {
             "type": "object",
             "properties": {
@@ -278,6 +442,12 @@ const docTemplate = `{
                 "is_ssl": {
                     "type": "boolean"
                 },
+                "landline_phone": {
+                    "type": "string"
+                },
+                "mobile_phone": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },
@@ -288,6 +458,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "phone": {
+                    "type": "string"
+                },
+                "prefecture": {
                     "type": "string"
                 },
                 "president": {
@@ -337,6 +510,38 @@ const docTemplate = `{
                 "StatusDone"
             ]
         },
+        "domain.Target": {
+            "type": "object",
+            "properties": {
+                "create_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "ip": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/domain.TargetStatus"
+                },
+                "update_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.TargetStatus": {
+            "type": "string",
+            "enum": [
+                "init"
+            ],
+            "x-enum-varnames": [
+                "TargetStatusInit"
+            ]
+        },
         "domain.UpdateDomainRequest": {
             "type": "object",
             "required": [
@@ -362,6 +567,12 @@ const docTemplate = `{
                 "is_ssl": {
                     "type": "boolean"
                 },
+                "landline_phone": {
+                    "type": "string"
+                },
+                "mobile_phone": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },
@@ -381,6 +592,17 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.UpdateTargetRequest": {
+            "type": "object",
+            "properties": {
+                "ip": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 }
             }

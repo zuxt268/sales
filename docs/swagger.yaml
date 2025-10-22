@@ -1,5 +1,12 @@
 basePath: /api
 definitions:
+  domain.CreateTargetRequest:
+    properties:
+      ip:
+        type: string
+      name:
+        type: string
+    type: object
   domain.Domain:
     properties:
       address:
@@ -20,6 +27,10 @@ definitions:
         type: boolean
       is_ssl:
         type: boolean
+      landline_phone:
+        type: string
+      mobile_phone:
+        type: string
       name:
         type: string
       owner_id:
@@ -27,6 +38,8 @@ definitions:
       page_num:
         type: integer
       phone:
+        type: string
+      prefecture:
         type: string
       president:
         type: string
@@ -62,6 +75,27 @@ definitions:
     - StatusCheckJapan
     - StatusCrawlCompInfo
     - StatusDone
+  domain.Target:
+    properties:
+      create_at:
+        type: string
+      id:
+        type: integer
+      ip:
+        type: string
+      name:
+        type: string
+      status:
+        $ref: '#/definitions/domain.TargetStatus'
+      update_at:
+        type: string
+    type: object
+  domain.TargetStatus:
+    enum:
+    - init
+    type: string
+    x-enum-varnames:
+    - TargetStatusInit
   domain.UpdateDomainRequest:
     properties:
       address:
@@ -76,6 +110,10 @@ definitions:
         type: boolean
       is_ssl:
         type: boolean
+      landline_phone:
+        type: string
+      mobile_phone:
+        type: string
       name:
         type: string
       owner_id:
@@ -93,6 +131,13 @@ definitions:
     required:
     - name
     - status
+    type: object
+  domain.UpdateTargetRequest:
+    properties:
+      ip:
+        type: string
+      name:
+        type: string
     type: object
 info:
   contact: {}
@@ -245,6 +290,101 @@ paths:
       summary: Fetch domains
       tags:
       - ViewDNS
+  /targets:
+    get:
+      consumes:
+      - application/json
+      description: Get target list
+      parameters:
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Target'
+            type: array
+      security:
+      - Bearer: []
+      summary: Get targets
+      tags:
+      - ターゲット
+    post:
+      consumes:
+      - application/json
+      description: Create new target
+      parameters:
+      - description: 作成ターゲット情報
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateTargetRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.Target'
+      security:
+      - Bearer: []
+      summary: Create target
+      tags:
+      - ターゲット
+    put:
+      consumes:
+      - application/json
+      description: Update target information
+      parameters:
+      - description: 更新ターゲット情報
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateTargetRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Target'
+      security:
+      - Bearer: []
+      summary: Update target
+      tags:
+      - ターゲット
+  /targets/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete target by id
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      security:
+      - Bearer: []
+      summary: Delete target
+      tags:
+      - ターゲット
 securityDefinitions:
   Bearer:
     description: Type "Bearer" followed by a space and JWT token.

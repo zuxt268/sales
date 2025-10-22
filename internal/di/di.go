@@ -14,10 +14,11 @@ func Initialize(db *gorm.DB) handler.ApiHandler {
 	domainRepo := repository.NewDomainRepository(db)
 	viewDnsAdapter := adapter.NewViewDNSAdapter(config.Env.ViewDnsApiUrl)
 	baseRepo := repository.NewBaseRepository(db)
+	targetRepo := repository.NewTargetRepository(db)
 	gptRepo := repository.NewGptRepository()
 	slackAdapter := adapter.NewSlackAdapter()
-	fetchUsecase := usecase.NewFetchUsecase(viewDnsAdapter, slackAdapter, domainRepo)
-	pageUsecase := usecase.NewPageUsecase(baseRepo, domainRepo)
+	fetchUsecase := usecase.NewFetchUsecase(targetRepo, viewDnsAdapter, slackAdapter, domainRepo)
+	pageUsecase := usecase.NewPageUsecase(baseRepo, domainRepo, targetRepo)
 	gptUsecase := usecase.NewGptUsecase(slackAdapter, domainRepo, gptRepo)
 	return handler.NewApiHandler(fetchUsecase, pageUsecase, gptUsecase)
 }
@@ -30,8 +31,9 @@ func GetGptUsecase(db *gorm.DB) usecase.GptUsecase {
 }
 
 func GetFetchUsecase(db *gorm.DB) usecase.FetchUsecase {
+	targetRepo := repository.NewTargetRepository(db)
 	domainRepo := repository.NewDomainRepository(db)
 	viewDnsAdapter := adapter.NewViewDNSAdapter(config.Env.ViewDnsApiUrl)
 	slackAdapter := adapter.NewSlackAdapter()
-	return usecase.NewFetchUsecase(viewDnsAdapter, slackAdapter, domainRepo)
+	return usecase.NewFetchUsecase(targetRepo, viewDnsAdapter, slackAdapter, domainRepo)
 }
