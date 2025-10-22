@@ -69,11 +69,11 @@ func TestDomainRepository_Save(t *testing.T) {
 	if saved.Title != d.Title {
 		t.Errorf("Expected title %s, got %s", d.Title, saved.Title)
 	}
-	if saved.CreateAt.IsZero() {
-		t.Error("CreateAt should be set automatically")
+	if saved.CreatedAt.IsZero() {
+		t.Error("CreatedAt should be set automatically")
 	}
-	if saved.UpdateAt.IsZero() {
-		t.Error("UpdateAt should be set automatically")
+	if saved.UpdatedAt.IsZero() {
+		t.Error("UpdatedAt should be set automatically")
 	}
 }
 
@@ -244,9 +244,9 @@ func TestDomainRepository_Update(t *testing.T) {
 		t.Fatalf("Failed to save test domain: %v", err)
 	}
 
-	// 最初のUpdateAt取得
+	// 最初のUpdatedAt取得
 	firstSave, _ := repo.Get(ctx, DomainFilter{Name: &d.Name})
-	firstUpdateAt := firstSave.UpdateAt
+	firstUpdatedAt := firstSave.UpdatedAt
 
 	// 少し待機
 	time.Sleep(1 * time.Second)
@@ -274,14 +274,14 @@ func TestDomainRepository_Update(t *testing.T) {
 		t.Errorf("Expected phone '090-1234-5678', got %s", updated.Phone)
 	}
 
-	// UpdateAtが更新されているか確認
-	if !updated.UpdateAt.After(firstUpdateAt) {
-		t.Errorf("UpdateAt should be updated automatically. First: %v, Updated: %v", firstUpdateAt, updated.UpdateAt)
+	// UpdatedAtが更新されているか確認
+	if !updated.UpdatedAt.After(firstUpdatedAt) {
+		t.Errorf("UpdatedAt should be updated automatically. First: %v, Updated: %v", firstUpdatedAt, updated.UpdatedAt)
 	}
 
-	// CreateAtは変わらないことを確認
-	if !updated.CreateAt.Equal(firstSave.CreateAt) {
-		t.Errorf("CreateAt should not change. First: %v, Updated: %v", firstSave.CreateAt, updated.CreateAt)
+	// CreatedAtは変わらないことを確認
+	if !updated.CreatedAt.Equal(firstSave.CreatedAt) {
+		t.Errorf("CreatedAt should not change. First: %v, Updated: %v", firstSave.CreatedAt, updated.CreatedAt)
 	}
 }
 
@@ -365,22 +365,22 @@ func TestDomainRepository_GormTags(t *testing.T) {
 		}
 
 		// CreateAtが自動設定されているか
-		if saved.CreateAt.IsZero() {
+		if saved.CreatedAt.IsZero() {
 			t.Error("CreateAt should be auto-set by autoCreateTime tag")
 		}
 
 		// UpdateAtが自動設定されているか
-		if saved.UpdateAt.IsZero() {
+		if saved.UpdatedAt.IsZero() {
 			t.Error("UpdateAt should be auto-set by autoUpdateTime tag")
 		}
 
 		// CreateAtとUpdateAtが同じタイミングで設定される（新規作成時）
-		if saved.CreateAt.Unix() != saved.UpdateAt.Unix() {
-			t.Errorf("CreateAt and UpdateAt should be the same on creation: CreateAt=%v, UpdateAt=%v", saved.CreateAt, saved.UpdateAt)
+		if saved.CreatedAt.Unix() != saved.UpdatedAt.Unix() {
+			t.Errorf("CreateAt and UpdateAt should be the same on creation: CreateAt=%v, UpdateAt=%v", saved.CreatedAt, saved.UpdatedAt)
 		}
 
-		firstCreateAt := saved.CreateAt
-		firstUpdateAt := saved.UpdateAt
+		firstCreateAt := saved.CreatedAt
+		firstUpdateAt := saved.UpdatedAt
 		time.Sleep(1 * time.Second)
 
 		// 更新時にUpdateAtが自動更新されるか
@@ -394,12 +394,12 @@ func TestDomainRepository_GormTags(t *testing.T) {
 			t.Fatalf("Failed to get updated domain: %v", err)
 		}
 
-		if !updated.UpdateAt.After(firstUpdateAt) {
-			t.Errorf("UpdateAt should be updated automatically: first=%v, updated=%v", firstUpdateAt, updated.UpdateAt)
+		if !updated.UpdatedAt.After(firstUpdateAt) {
+			t.Errorf("UpdateAt should be updated automatically: first=%v, updated=%v", firstUpdateAt, updated.UpdatedAt)
 		}
 		// CreateAtは変わらないことを確認（秒単位で比較）
-		if updated.CreateAt.Unix() != firstCreateAt.Unix() {
-			t.Errorf("CreateAt should not change on update: first=%v, updated=%v", firstCreateAt, updated.CreateAt)
+		if updated.CreatedAt.Unix() != firstCreateAt.Unix() {
+			t.Errorf("CreateAt should not change on update: first=%v, updated=%v", firstCreateAt, updated.CreatedAt)
 		}
 	})
 }
@@ -474,10 +474,10 @@ func TestDomainRepository_AllFields(t *testing.T) {
 	if saved.Status != original.Status {
 		t.Errorf("Status: expected %s, got %s", original.Status, saved.Status)
 	}
-	if saved.CreateAt.IsZero() {
+	if saved.CreatedAt.IsZero() {
 		t.Error("CreateAt should be set")
 	}
-	if saved.UpdateAt.IsZero() {
+	if saved.UpdatedAt.IsZero() {
 		t.Error("UpdateAt should be set")
 	}
 }
@@ -657,10 +657,10 @@ func TestDomainRepository_DefaultValues(t *testing.T) {
 	}
 
 	// タイムスタンプは自動設定される
-	if saved.CreateAt.IsZero() {
+	if saved.CreatedAt.IsZero() {
 		t.Error("CreateAt should be set even with minimal fields")
 	}
-	if saved.UpdateAt.IsZero() {
+	if saved.UpdatedAt.IsZero() {
 		t.Error("UpdateAt should be set even with minimal fields")
 	}
 }
