@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -27,20 +28,26 @@ type ApiHandler interface {
 }
 
 type apiHandler struct {
-	fetchUsecase usecase.FetchUsecase
-	pageUsecase  usecase.PageUsecase
-	gptUsecase   usecase.GptUsecase
+	fetchUsecase  usecase.FetchUsecase
+	domainUsecase usecase.DomainUsecase
+	targetUsecase usecase.TargetUsecase
+	logUsecase    usecase.LogUsecase
+	gptUsecase    usecase.GptUsecase
 }
 
 func NewApiHandler(
 	fetchUsecase usecase.FetchUsecase,
-	pageUsecase usecase.PageUsecase,
+	domainUsecase usecase.DomainUsecase,
+	targetUsecase usecase.TargetUsecase,
+	logUsecase usecase.LogUsecase,
 	gptUsecase usecase.GptUsecase,
 ) ApiHandler {
 	return &apiHandler{
-		fetchUsecase: fetchUsecase,
-		pageUsecase:  pageUsecase,
-		gptUsecase:   gptUsecase,
+		fetchUsecase:  fetchUsecase,
+		domainUsecase: domainUsecase,
+		targetUsecase: targetUsecase,
+		logUsecase:    logUsecase,
+		gptUsecase:    gptUsecase,
 	}
 }
 
@@ -67,7 +74,7 @@ func (h *apiHandler) GetDomains(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
-	resp, err := h.pageUsecase.GetDomains(c.Request().Context(), req)
+	resp, err := h.domainUsecase.GetDomains(c.Request().Context(), req)
 	if err != nil {
 		return handleError(c, err)
 	}
@@ -92,12 +99,11 @@ func (h *apiHandler) UpdateDomain(c echo.Context) error {
 	if err := req.Validate(); err != nil {
 		return handleError(c, err)
 	}
-	idStr := c.Param("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
+	var id int
+	if err := echo.PathParamsBinder(c).Int("id", &id).BindError(); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
-	resp, err := h.pageUsecase.UpdateDomain(c.Request().Context(), id, req)
+	resp, err := h.domainUsecase.UpdateDomain(c.Request().Context(), id, req)
 	if err != nil {
 		return handleError(c, err)
 	}
@@ -114,12 +120,11 @@ func (h *apiHandler) UpdateDomain(c echo.Context) error {
 // @Success 204
 // @Router /domains/{id} [delete]
 func (h *apiHandler) DeleteDomain(c echo.Context) error {
-	idStr := c.Param("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
+	var id int
+	if err := echo.PathParamsBinder(c).Int("id", &id).BindError(); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
-	err = h.pageUsecase.DeleteDomain(c.Request().Context(), id)
+	err := h.domainUsecase.DeleteDomain(c.Request().Context(), id)
 	if err != nil {
 		return handleError(c, err)
 	}
@@ -158,6 +163,7 @@ func (h *apiHandler) FetchDomains(c echo.Context) error {
 	if err := req.Validate(); err != nil {
 		return handleError(c, err)
 	}
+	fmt.Println(req)
 	err := h.fetchUsecase.Fetch(c.Request().Context(), req)
 	if err != nil {
 		return handleError(c, err)
@@ -180,7 +186,7 @@ func (h *apiHandler) GetTargets(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
-	resp, err := h.pageUsecase.GetTargets(c.Request().Context(), req)
+	resp, err := h.targetUsecase.GetTargets(c.Request().Context(), req)
 	if err != nil {
 		return handleError(c, err)
 	}
@@ -201,7 +207,7 @@ func (h *apiHandler) CreateTarget(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
-	resp, err := h.pageUsecase.CreateTarget(c.Request().Context(), req)
+	resp, err := h.targetUsecase.CreateTarget(c.Request().Context(), req)
 	if err != nil {
 		return handleError(c, err)
 	}
@@ -216,13 +222,18 @@ func (h *apiHandler) CreateTarget(c echo.Context) error {
 // @Produce json
 // @Param request body domain.UpdateTargetRequest true "更新ターゲット情報"
 // @Success 200 {object} domain.Target
-// @Router /targets [put]
+// @Router /targets/{id} [put]
 func (h *apiHandler) UpdateTarget(c echo.Context) error {
+	var id int
+	if err := echo.PathParamsBinder(c).Int("id", &id).BindError(); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+
 	var req domain.UpdateTargetRequest
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
-	resp, err := h.pageUsecase.UpdateTarget(c.Request().Context(), req)
+	resp, err := h.targetUsecase.UpdateTarget(c.Request().Context(), id, req)
 	if err != nil {
 		return handleError(c, err)
 	}
@@ -244,7 +255,7 @@ func (h *apiHandler) DeleteTarget(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
-	err = h.pageUsecase.DeleteTarget(c.Request().Context(), id)
+	err = h.targetUsecase.DeleteTarget(c.Request().Context(), id)
 	if err != nil {
 		return handleError(c, err)
 	}
@@ -268,7 +279,7 @@ func (h *apiHandler) GetLogs(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
-	resp, err := h.pageUsecase.GetLogs(c.Request().Context(), req)
+	resp, err := h.logUsecase.GetLogs(c.Request().Context(), req)
 	if err != nil {
 		return handleError(c, err)
 	}
@@ -289,7 +300,7 @@ func (h *apiHandler) CreateLog(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
-	resp, err := h.pageUsecase.CreateLogs(c.Request().Context(), req)
+	resp, err := h.logUsecase.CreateLogs(c.Request().Context(), req)
 	if err != nil {
 		return handleError(c, err)
 	}

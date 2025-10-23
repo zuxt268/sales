@@ -14,7 +14,8 @@ type Target struct {
 type TargetStatus string
 
 const (
-	TargetStatusInit TargetStatus = "init"
+	TargetStatusInit    TargetStatus = "init"
+	TargetStatusFetched TargetStatus = "fetched"
 )
 
 // ValidTargetStatuses は有効なステータスのリスト

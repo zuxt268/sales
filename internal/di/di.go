@@ -18,23 +18,11 @@ func Initialize(db *gorm.DB) handler.ApiHandler {
 	logRepo := repository.NewLogRepository(db)
 	gptRepo := repository.NewGptRepository()
 	slackAdapter := adapter.NewSlackAdapter()
-	fetchUsecase := usecase.NewFetchUsecase(targetRepo, viewDnsAdapter, slackAdapter, domainRepo)
-	pageUsecase := usecase.NewPageUsecase(baseRepo, domainRepo, targetRepo, logRepo)
+	fetchUsecase := usecase.NewFetchUsecase(viewDnsAdapter, slackAdapter, domainRepo, targetRepo)
+	domainUsecase := usecase.NewDomainUsecase(baseRepo, domainRepo)
+	targetUsecase := usecase.NewTargetUsecase(baseRepo, targetRepo)
+	logUsecase := usecase.NewLogUsecase(baseRepo, logRepo)
+
 	gptUsecase := usecase.NewGptUsecase(slackAdapter, domainRepo, gptRepo)
-	return handler.NewApiHandler(fetchUsecase, pageUsecase, gptUsecase)
-}
-
-func GetGptUsecase(db *gorm.DB) usecase.GptUsecase {
-	gptRepo := repository.NewGptRepository()
-	domainRepo := repository.NewDomainRepository(db)
-	slackAdapter := adapter.NewSlackAdapter()
-	return usecase.NewGptUsecase(slackAdapter, domainRepo, gptRepo)
-}
-
-func GetFetchUsecase(db *gorm.DB) usecase.FetchUsecase {
-	targetRepo := repository.NewTargetRepository(db)
-	domainRepo := repository.NewDomainRepository(db)
-	viewDnsAdapter := adapter.NewViewDNSAdapter(config.Env.ViewDnsApiUrl)
-	slackAdapter := adapter.NewSlackAdapter()
-	return usecase.NewFetchUsecase(targetRepo, viewDnsAdapter, slackAdapter, domainRepo)
+	return handler.NewApiHandler(fetchUsecase, domainUsecase, targetUsecase, logUsecase, gptUsecase)
 }

@@ -8,6 +8,7 @@ import (
 type Domain struct {
 	ID            int       `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	Name          string    `gorm:"column:name;unique" json:"name"`
+	Target        string    `gorm:"column:target" json:"target"`
 	CanView       bool      `gorm:"column:can_view" json:"can_view"`
 	IsJapan       bool      `gorm:"column:is_japan" json:"is_japan"`
 	IsSend        bool      `gorm:"column:is_send" json:"is_send"`

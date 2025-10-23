@@ -2,6 +2,7 @@
 CREATE TABLE domains (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE COMMENT 'ドメイン名',
+    target varchar(255) NOT NULL DEFAULT "" COMMENT 'どのターゲットで取得したか',
     can_view BOOLEAN NOT NULL DEFAULT false COMMENT '閲覧可能',
     is_japan BOOLEAN NOT NULL DEFAULT false COMMENT '日本語サイト',
     is_send BOOLEAN NOT NULL DEFAULT false COMMENT '送信済み',

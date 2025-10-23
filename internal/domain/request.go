@@ -5,6 +5,7 @@ import "strings"
 type GetDomainsRequest struct {
 	Limit    *int    `query:"limit"`
 	Offset   *int    `query:"offset"`
+	Target   *string `query:"target"`
 	CanView  *bool   `query:"can_view"`
 	IsJapan  *bool   `query:"is_japan"`
 	IsSend   *bool   `query:"is_send"`
@@ -18,6 +19,7 @@ type GetDomainsRequest struct {
 type UpdateDomainRequest struct {
 	Name          string  `json:"name" binding:"required"`
 	Status        string  `json:"status" binding:"required"`
+	Target        *string `json:"target"`
 	IsSend        *bool   `json:"is_send"`
 	CanView       *bool   `json:"can_view"`
 	IsJapan       *bool   `json:"is_japan"`
@@ -71,8 +73,8 @@ type GetTargetsRequest struct {
 }
 
 type UpdateTargetRequest struct {
-	IP   string `json:"ip"`
-	Name string `json:"name"`
+	IP   *string `json:"ip"`
+	Name *string `json:"name"`
 }
 
 type CreateTargetRequest struct {

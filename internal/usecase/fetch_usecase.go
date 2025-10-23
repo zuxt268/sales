@@ -16,33 +16,38 @@ type FetchUsecase interface {
 }
 
 type fetchUsecase struct {
-	targetRepo     repository.TargetRepository
 	viewDnsAdapter adapter.ViewDNSAdapter
 	slackAdapter   adapter.SlackAdapter
 	domainRepo     repository.DomainRepository
+	targetRepo     repository.TargetRepository
 }
 
 func NewFetchUsecase(
-	targetRepo repository.TargetRepository,
 	viewDnsAdapter adapter.ViewDNSAdapter,
 	slackAdapter adapter.SlackAdapter,
 	domainRepo repository.DomainRepository,
+	targetRepo repository.TargetRepository,
 ) FetchUsecase {
 	return &fetchUsecase{
-		targetRepo:     targetRepo,
 		viewDnsAdapter: viewDnsAdapter,
 		slackAdapter:   slackAdapter,
 		domainRepo:     domainRepo,
+		targetRepo:     targetRepo,
 	}
 }
 
 func (u *fetchUsecase) Fetch(ctx context.Context, req domain.PostFetchRequest) error {
 
+	target, err := u.targetRepo.GetForUpdate(ctx, repository.TargetFilter{IP: &req.Target})
+	if err != nil {
+		return err
+	}
+
 	page := 1
 	maxPage := 0
 	for {
 		resp, err := u.viewDnsAdapter.GetReverseIP(ctx, &external.ReverseIpRequest{
-			Host:   req.Target,
+			Host:   target.IP,
 			ApiKey: config.Env.ApiKey,
 			Page:   page,
 		})
@@ -54,6 +59,7 @@ func (u *fetchUsecase) Fetch(ctx context.Context, req domain.PostFetchRequest) e
 		for _, d := range resp.Response.Domains {
 			domains = append(domains, &domain.Domain{
 				Name:   d.Name,
+				Target: target.Name,
 				Status: domain.StatusInitialize,
 			})
 		}
@@ -75,6 +81,12 @@ func (u *fetchUsecase) Fetch(ctx context.Context, req domain.PostFetchRequest) e
 			break
 		}
 		page++
+	}
+
+	target.Status = domain.TargetStatusFetched
+	err = u.targetRepo.Save(ctx, &target)
+	if err != nil {
+		return err
 	}
 
 	return nil
