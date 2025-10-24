@@ -14,6 +14,7 @@ import (
 )
 
 type ApiHandler interface {
+	GetDomain(c echo.Context) error
 	GetDomains(c echo.Context) error
 	UpdateDomain(c echo.Context) error
 	DeleteDomain(c echo.Context) error
@@ -25,6 +26,12 @@ type ApiHandler interface {
 	DeleteTarget(c echo.Context) error
 	GetLogs(c echo.Context) error
 	CreateLog(c echo.Context) error
+	GetTasks(c echo.Context) error
+	CreateTask(c echo.Context) error
+	UpdateTask(c echo.Context) error
+	DeleteTask(c echo.Context) error
+	ExecuteTasks(c echo.Context) error
+	ExecuteTask(c echo.Context) error
 }
 
 type apiHandler struct {
@@ -33,6 +40,7 @@ type apiHandler struct {
 	targetUsecase usecase.TargetUsecase
 	logUsecase    usecase.LogUsecase
 	gptUsecase    usecase.GptUsecase
+	taskUsecase   usecase.TaskUsecase
 }
 
 func NewApiHandler(
@@ -41,6 +49,7 @@ func NewApiHandler(
 	targetUsecase usecase.TargetUsecase,
 	logUsecase usecase.LogUsecase,
 	gptUsecase usecase.GptUsecase,
+	taskUsecase usecase.TaskUsecase,
 ) ApiHandler {
 	return &apiHandler{
 		fetchUsecase:  fetchUsecase,
@@ -48,7 +57,29 @@ func NewApiHandler(
 		targetUsecase: targetUsecase,
 		logUsecase:    logUsecase,
 		gptUsecase:    gptUsecase,
+		taskUsecase:   taskUsecase,
 	}
+}
+
+// GetDomain godoc
+// @Summary Get domain
+// @Description Get domain
+// @Tags ドメイン
+// @Accept json
+// @Produce json
+// @Param id path string true "ID"
+// @Success 200 {array} domain.Domain
+// @Router /domains/{id} [get]
+func (h *apiHandler) GetDomain(c echo.Context) error {
+	var id int
+	if err := echo.PathParamsBinder(c).Int("id", &id).BindError(); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	resp, err := h.domainUsecase.GetDomain(c.Request().Context(), id)
+	if err != nil {
+		return handleError(c, err)
+	}
+	return c.JSON(http.StatusOK, resp)
 }
 
 // GetDomains godoc
@@ -67,7 +98,7 @@ func NewApiHandler(
 // @Param status query string false "ステータス"
 // @Param industry query string false "業種"
 // @Param is_ssl query boolean false "SSL対応可否"
-// @Success 200 {array} domain.Domain
+// @Success 200 {array} []domain.Domain
 // @Router /domains [get]
 func (h *apiHandler) GetDomains(c echo.Context) error {
 	var req domain.GetDomainsRequest
@@ -305,6 +336,128 @@ func (h *apiHandler) CreateLog(c echo.Context) error {
 		return handleError(c, err)
 	}
 	return c.JSON(http.StatusCreated, resp)
+}
+
+// GetTasks godoc
+// @Summary Get tasks
+// @Description Get task list
+// @Tags タスク
+// @Accept json
+// @Produce json
+// @Success 200 {array} domain.Task
+// @Router /tasks [get]
+func (h *apiHandler) GetTasks(c echo.Context) error {
+	resp, err := h.taskUsecase.GetTasks(c.Request().Context())
+	if err != nil {
+		return handleError(c, err)
+	}
+	return c.JSON(http.StatusOK, resp)
+}
+
+// CreateTask godoc
+// @Summary Create task
+// @Description Create new task
+// @Tags タスク
+// @Accept json
+// @Produce json
+// @Param request body domain.CreateTaskRequest true "作成タスク情報"
+// @Success 201 {object} domain.Task
+// @Router /tasks [post]
+func (h *apiHandler) CreateTask(c echo.Context) error {
+	var req domain.CreateTaskRequest
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	resp, err := h.taskUsecase.CreateTask(c.Request().Context(), &req)
+	if err != nil {
+		return handleError(c, err)
+	}
+	return c.JSON(http.StatusCreated, resp)
+}
+
+// UpdateTask godoc
+// @Summary Update task
+// @Description Update task information
+// @Tags タスク
+// @Accept json
+// @Produce json
+// @Param id path int true "Task ID"
+// @Param request body domain.UpdateTaskRequest true "更新タスク情報"
+// @Success 200 {object} domain.Task
+// @Router /tasks/{id} [put]
+func (h *apiHandler) UpdateTask(c echo.Context) error {
+	var id int
+	if err := echo.PathParamsBinder(c).Int("id", &id).BindError(); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+
+	var req domain.UpdateTaskRequest
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	resp, err := h.taskUsecase.UpdateTask(c.Request().Context(), id, &req)
+	if err != nil {
+		return handleError(c, err)
+	}
+	return c.JSON(http.StatusOK, resp)
+}
+
+// DeleteTask godoc
+// @Summary Delete task
+// @Description Delete task by id
+// @Tags タスク
+// @Accept json
+// @Produce json
+// @Param id path int true "Task ID"
+// @Success 204
+// @Router /tasks/{id} [delete]
+func (h *apiHandler) DeleteTask(c echo.Context) error {
+	var id int
+	if err := echo.PathParamsBinder(c).Int("id", &id).BindError(); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	err := h.taskUsecase.DeleteTask(c.Request().Context(), id)
+	if err != nil {
+		return handleError(c, err)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+// ExecuteTasks godoc
+// @Summary 全てのタスクを実行します
+// @Description
+// @Tags タスク
+// @Accept json
+// @Produce json
+// @Success 201
+// @Router /tasks/execute [post]
+func (h *apiHandler) ExecuteTasks(c echo.Context) error {
+	err := h.taskUsecase.ExecuteTasks(c.Request().Context())
+	if err != nil {
+		return handleError(c, err)
+	}
+	return c.NoContent(http.StatusAccepted)
+}
+
+// ExecuteTask godoc
+// @Summary タスクを実行します
+// @Description
+// @Tags タスク
+// @Accept json
+// @Produce json
+// @Param id path int true "Task ID"
+// @Success 201
+// @Router /tasks/{id}/execute [post]
+func (h *apiHandler) ExecuteTask(c echo.Context) error {
+	var id int
+	if err := echo.PathParamsBinder(c).Int("id", &id).BindError(); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	resp, err := h.taskUsecase.ExecuteTask(c.Request().Context(), id)
+	if err != nil {
+		return handleError(c, err)
+	}
+	return c.JSON(http.StatusOK, resp)
 }
 
 func handleError(c echo.Context, err error) error {

@@ -12,6 +12,8 @@ type Environment struct {
 	DBDatabase             string `envconfig:"DB_NAME"`
 	DBUsername             string `envconfig:"DB_USER"`
 	DBPassword             string `envconfig:"DB_PASSWORD"`
+	RedisHost              string `envconfig:"REDIS_HOST" default:"localhost"`
+	RedisPort              int    `envconfig:"REDIS_PORT" default:"6379"`
 	Address                string `envconfig:"ADDRESS" default:"localhost"`
 	Password               string `envconfig:"PASSWORD"`
 	JWTSecret              string `envconfig:"JWT_SECRET"`

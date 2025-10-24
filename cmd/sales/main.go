@@ -20,7 +20,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
@@ -56,8 +55,6 @@ func main() {
 
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
-	e.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
-
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello, World!!")
 	})
@@ -72,6 +69,7 @@ func main() {
 	api.Use(middleware2.SlogMiddleware())
 
 	api.GET("/domains", handler.GetDomains)
+	api.GET("/domains/:id", handler.GetDomain)
 	api.PUT("/domains/:id", handler.UpdateDomain)
 	api.DELETE("/domains/:id", handler.DeleteDomain)
 	api.POST("/fetch", handler.FetchDomains)
@@ -84,6 +82,13 @@ func main() {
 
 	api.GET("/logs", handler.GetLogs)
 	api.POST("/logs", handler.CreateLog)
+
+	api.GET("/tasks", handler.GetTasks)
+	api.POST("/tasks", handler.CreateTask)
+	api.PUT("/tasks/:id", handler.UpdateTask)
+	api.DELETE("/tasks/:id", handler.DeleteTask)
+	api.POST("/tasks/execute", handler.ExecuteTasks)
+	api.POST("/tasks/:id/execute", handler.ExecuteTask)
 
 	srv := &http.Server{
 		Addr:    config.Env.Address,

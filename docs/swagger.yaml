@@ -16,6 +16,15 @@ definitions:
       name:
         type: string
     type: object
+  domain.CreateTaskRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      status:
+        type: integer
+    type: object
   domain.Domain:
     properties:
       address:
@@ -56,6 +65,8 @@ definitions:
         type: string
       status:
         $ref: '#/definitions/domain.Status'
+      target:
+        type: string
       title:
         type: string
       updated_at:
@@ -115,9 +126,26 @@ definitions:
   domain.TargetStatus:
     enum:
     - init
+    - fetched
     type: string
     x-enum-varnames:
     - TargetStatusInit
+    - TargetStatusFetched
+  domain.Task:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      status:
+        type: integer
+      updated_at:
+        type: string
+    type: object
   domain.UpdateDomainRequest:
     properties:
       address:
@@ -148,6 +176,8 @@ definitions:
         type: string
       status:
         type: string
+      target:
+        type: string
       title:
         type: string
     required:
@@ -160,6 +190,15 @@ definitions:
         type: string
       name:
         type: string
+    type: object
+  domain.UpdateTaskRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      status:
+        type: integer
     type: object
 info:
   contact: {}
@@ -220,7 +259,9 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/domain.Domain'
+              items:
+                $ref: '#/definitions/domain.Domain'
+              type: array
             type: array
       summary: Get domains
       tags:
@@ -242,6 +283,28 @@ paths:
         "204":
           description: No Content
       summary: Delete domain
+      tags:
+      - ドメイン
+    get:
+      consumes:
+      - application/json
+      description: Get domain
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Domain'
+            type: array
+      summary: Get domain
       tags:
       - ドメイン
     put:
@@ -404,6 +467,25 @@ paths:
       summary: Create target
       tags:
       - ターゲット
+  /targets/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete target by id
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      summary: Delete target
+      tags:
+      - ターゲット
     put:
       consumes:
       - application/json
@@ -425,23 +507,117 @@ paths:
       summary: Update target
       tags:
       - ターゲット
-  /targets/{id}:
+  /tasks:
+    get:
+      consumes:
+      - application/json
+      description: Get task list
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Task'
+            type: array
+      summary: Get tasks
+      tags:
+      - タスク
+    post:
+      consumes:
+      - application/json
+      description: Create new task
+      parameters:
+      - description: 作成タスク情報
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.Task'
+      summary: Create task
+      tags:
+      - タスク
+  /tasks/{id}:
     delete:
       consumes:
       - application/json
-      description: Delete target by id
+      description: Delete task by id
       parameters:
-      - description: ID
+      - description: Task ID
         in: path
         name: id
         required: true
-        type: string
+        type: integer
       produces:
       - application/json
       responses:
         "204":
           description: No Content
-      summary: Delete target
+      summary: Delete task
       tags:
-      - ターゲット
+      - タスク
+    put:
+      consumes:
+      - application/json
+      description: Update task information
+      parameters:
+      - description: Task ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 更新タスク情報
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Task'
+      summary: Update task
+      tags:
+      - タスク
+  /tasks/{id}/execute:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Task ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+      summary: タスクを実行します
+      tags:
+      - タスク
+  /tasks/execute:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+      summary: 全てのタスクを実行します
+      tags:
+      - タスク
 swagger: "2.0"

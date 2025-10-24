@@ -1,0 +1,12 @@
+-- +migrate Up
+CREATE TABLE tasks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL COMMENT '処理名',
+    description TEXT NOT NULL COMMENT '説明',
+    status INT NOT NULL DEFAULT 0 COMMENT 'ステータス: 0->無効, 1->待機, 2->処理中',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='タスクテーブル';
+
+-- +migrate Down
+DROP TABLE IF EXISTS tasks;

@@ -10,6 +10,7 @@ import (
 
 type DomainUsecase interface {
 	GetDomains(ctx context.Context, req domain.GetDomainsRequest) ([]domain.Domain, error)
+	GetDomain(ctx context.Context, id int) (domain.Domain, error)
 	UpdateDomain(ctx context.Context, id int, req domain.UpdateDomainRequest) (*domain.Domain, error)
 	DeleteDomain(ctx context.Context, id int) error
 }
@@ -27,6 +28,10 @@ func NewDomainUsecase(
 		baseRepo:   baseRepo,
 		domainRepo: domainRepo,
 	}
+}
+
+func (u *domainUsecase) GetDomain(ctx context.Context, id int) (domain.Domain, error) {
+	return u.domainRepo.Get(ctx, repository.DomainFilter{ID: &id})
 }
 
 func (u *domainUsecase) GetDomains(ctx context.Context, req domain.GetDomainsRequest) ([]domain.Domain, error) {

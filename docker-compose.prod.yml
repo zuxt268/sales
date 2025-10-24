@@ -21,6 +21,23 @@ services:
     networks:
       - sales-network
 
+  redis:
+    image: redis:7-alpine
+    container_name: sales-redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sales-network
+    restart: unless-stopped
+
   app:
     build:
       context: .
@@ -33,6 +50,8 @@ services:
       DB_HOST: db
       DB_PORT: 3306
       DB_NAME: ${DB_NAME:-sales}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
       ADDRESS: ${ADDRESS:-:8050}
       VIEW_DNS_API_URL: ${VIEW_DNS_API_URL}
       API_KEY: ${API_KEY}
@@ -46,6 +65,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - sales-network
     restart: unless-stopped
@@ -53,6 +74,8 @@ services:
 
 volumes:
   mysql_data:
+    driver: local
+  redis_data:
     driver: local
 
 networks:

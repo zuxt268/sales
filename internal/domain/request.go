@@ -94,3 +94,15 @@ type CreateLogRequest struct {
 	Category string `json:"category"`
 	Message  string `json:"message"`
 }
+
+type CreateTaskRequest struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Status      int    `json:"status"`
+}
+
+type UpdateTaskRequest struct {
+	Name        *string `json:"name"`
+	Description *string `json:"description"`
+	Status      *int    `json:"status"`
+}

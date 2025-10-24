@@ -6,12 +6,14 @@ swag:
 
 prod:
 	docker compose -f docker-compose.prod.yml down
+	docker image prune -f
 	docker compose -f docker-compose.prod.yml build
 	docker compose -f docker-compose.prod.yml up -d
 	docker compose -f docker-compose.prod.yml ps
 
 dev:
 	docker compose -f docker-compose.dev.yml down
+	docker image prune -f
 	docker compose -f docker-compose.dev.yml build
 	docker compose -f docker-compose.dev.yml up -d
 	docker compose -f docker-compose.dev.yml ps
