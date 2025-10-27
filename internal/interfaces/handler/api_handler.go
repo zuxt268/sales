@@ -539,7 +539,7 @@ func handleError(c echo.Context, err error) error {
 	default:
 		return c.JSON(http.StatusInternalServerError, domain.ErrorResponse{
 			Error:   "internal_error",
-			Message: "An unexpected error occurred",
+			Message: err.Error(),
 		})
 	}
 }

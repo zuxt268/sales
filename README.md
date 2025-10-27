@@ -4,31 +4,37 @@
 
 ## 機能
 
-- ドメイン管理（CRUD操作）
-- JWT認証によるBearer token認証
-- ViewDNS APIを使用した逆引きIP検索
-- GPT-5-nanoを使用した業種自動判定
-- slogによる構造化ログ
-- Swagger/OpenAPI ドキュメント
-- Air によるホットリロード（開発環境）
-- sql-migrate によるデータベースマイグレーション
+- **ドメイン管理**: CRUD操作、逆引きIP検索、業種自動判定
+- **ターゲット管理**: IPベースのターゲット管理機能
+- **タスク管理**: タスクの作成、更新、実行機能
+- **ログ管理**: 操作ログの記録と取得
+- **JWT認証**: Bearer token認証によるセキュアなAPI
+- **AI連携**: OpenAI GPTを使用した業種自動判定
+- **構造化ログ**: slogによるJSON形式のログ出力
+- **APIドキュメント**: Swagger/OpenAPI による対話的なドキュメント
+- **開発環境**: Airによるホットリロード対応
+- **データベース**: sql-migrateによるマイグレーション管理
 
 ## 技術スタック
 
-- **フレームワーク**: Echo v4
-- **データベース**: MySQL + GORM
-- **認証**: JWT (golang-jwt/jwt)
-- **AI**: OpenAI GPT-5-nano (業種判定)
-- **APIドキュメント**: Swagger (swaggo)
-- **ログ**: slog (構造化JSONログ)
-- **テスト**: testcontainers-go
-- **マイグレーション**: sql-migrate
+- **言語**: Go 1.25
+- **Webフレームワーク**: Echo v4.13
+- **データベース**: MySQL + GORM v1.31
+- **キャッシュ**: Redis (go-redis v9)
+- **認証**: JWT (golang-jwt/jwt v5)
+- **AI**: OpenAI GPT (sashabaranov/go-openai)
+- **APIドキュメント**: Swagger/OpenAPI (swaggo)
+- **ログ**: slog (標準ライブラリ)
+- **テスト**: testcontainers-go v0.39
+- **マイグレーション**: sql-migrate v1.8
+- **開発ツール**: Air (ホットリロード)
 
 ## 必要な環境
 
 - Go 1.25+
 - MySQL 5.7+
-- Docker (testcontainers用)
+- Redis 6.0+ (キャッシュ用)
+- Docker (testcontainers用、開発環境オプション)
 
 ## セットアップ
 
@@ -57,13 +63,17 @@ DB_HOST=localhost
 DB_PORT=3306
 DB_NAME=sales
 
+# Redis設定
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
 # サーバー設定
-ADDRESS=:8091
+ADDRESS=:8080
 
 # Swagger設定
-# 開発環境: localhost:8091
+# 開発環境: localhost:8080
 # 本番環境: sales.hp-standard.com
-SWAGGER_HOST=localhost:8091
+SWAGGER_HOST=localhost:8080
 
 # ViewDNS API設定
 VIEW_DNS_API_URL=https://api.viewdns.info
@@ -138,18 +148,47 @@ curl -H "Authorization: Bearer <your_token>" http://localhost:8091/api/domains
 
 ## APIエンドポイント
 
-全てのエンドポイントはJWT認証が必要です。
+> **注意**: 現在JWT認証はコメントアウトされています (cmd/sales/main.go:68)。
+> 本番環境では認証を有効化してください。
+
+### ヘルスチェック
+
+- `GET /` - Hello World
+- `GET /api/healthcheck` - ヘルスチェック
 
 ### ドメイン管理
 
-- `GET /api/domains` - ドメイン一覧取得（ページネーション・フィルタリング対応）
+- `GET /api/domains` - ドメイン一覧取得
+- `GET /api/domains/:id` - ドメイン詳細取得
 - `PUT /api/domains/:id` - ドメイン情報更新
 - `DELETE /api/domains/:id` - ドメイン削除
 - `POST /api/fetch` - ViewDNS逆引きIPからドメイン情報取得
+- `POST /api/domains/analyze` - ドメイン業種分析
+
+### ターゲット管理
+
+- `GET /api/targets` - ターゲット一覧取得
+- `POST /api/targets` - ターゲット作成
+- `PUT /api/targets/:id` - ターゲット更新
+- `DELETE /api/targets/:id` - ターゲット削除
+
+### タスク管理
+
+- `GET /api/tasks` - タスク一覧取得
+- `POST /api/tasks` - タスク作成
+- `PUT /api/tasks/:id` - タスク更新
+- `DELETE /api/tasks/:id` - タスク削除
+- `POST /api/tasks/execute` - 全タスク実行
+- `POST /api/tasks/:id/execute` - 個別タスク実行
+
+### ログ管理
+
+- `GET /api/logs` - ログ一覧取得
+- `POST /api/logs` - ログ作成
 
 ### ドキュメント
 
-- `GET /swagger/index.html` - Swagger UI
+- `GET /swagger/*` - Swagger UI
 
 ## APIドキュメント（Swagger）
 
@@ -174,18 +213,22 @@ Swagger UIでの認証方法:
 ├── internal/
 │   ├── auth/           # JWT認証ロジック
 │   ├── config/         # 設定管理
-│   ├── di/             # 依存性注入
-│   ├── domain/         # ドメインモデル・ビジネスロジック
-│   ├── external/       # 外部APIクライアント
-│   ├── infrastructure/ # データベース・インフラ
+│   ├── di/             # 依存性注入コンテナ
+│   ├── domain/         # ドメインモデル (Domain, Target, Task, Log)
+│   ├── external/       # 外部APIクライアント (ViewDNS)
+│   ├── infrastructure/ # データベース・Redis接続
 │   ├── interfaces/
-│   │   ├── handler/    # HTTPハンドラー
-│   │   ├── middleware/ # カスタムミドルウェア（JWT認証、ログ）
-│   │   └── repository/ # データアクセス層
-│   └── usecase/        # ユースケース実装
-├── migrations/         # データベースマイグレーション
-├── docs/              # Swaggerドキュメント
-└── .air.toml          # Air設定ファイル
+│   │   ├── handler/    # HTTPハンドラー (API統合)
+│   │   ├── middleware/ # ミドルウェア (JWT認証、slogログ)
+│   │   └── repository/ # データアクセス層 (GORM, OpenAI)
+│   ├── usecase/        # ビジネスロジック (Domain, Target, Task, Log, GPT, Fetch)
+│   └── util/           # ユーティリティ
+├── migrations/         # データベースマイグレーション (sql-migrate)
+├── docs/              # Swagger生成ドキュメント
+├── .air.toml          # Air設定ファイル
+├── dbconfig.yml       # マイグレーション設定
+├── Dockerfile         # 本番環境用Dockerファイル
+└── docker-compose.*   # Docker Compose設定 (dev/prod)
 ```
 
 ## 開発
@@ -223,15 +266,14 @@ swag init -g cmd/sales/main.go
 
 ### 業種判定機能
 
-`crawl_comp_info` ステータスのドメインに対して、GPT-5-nanoを使用して自動的に業種を判定します。
+`crawl_comp_info` ステータスのドメインに対して、OpenAI GPTを使用して自動的に業種を判定します。
 
-使用方法:
+APIを使用して業種判定を実行:
 ```bash
-# GptUsecaseを使用して業種判定を実行
-go run cmd/gpt/main.go
+curl -X POST http://localhost:8080/api/domains/analyze
 ```
 
-業種判定は日本標準産業分類に基づいて128の業種から最適なものを選択します。
+業種判定は日本標準産業分類に基づいて業種を自動選択します。
 
 ## エラーハンドリング
 
@@ -268,10 +310,10 @@ APIは構造化されたエラーレスポンスを返します:
 
 ## セキュリティ
 
-- JWTトークンの有効期限は1年
-- パスワードはSHA256でハッシュ化
-- 全APIエンドポイントはBearer token認証が必要
-- CORSはデフォルトで有効
+- **JWT認証**: トークンの有効期限は1年
+- **パスワード**: SHA256ハッシュで保存
+- **CORS**: デフォルトで有効化済み
+- **注意**: 現在認証はコメントアウトされています。本番環境では `cmd/sales/main.go:68` の認証ミドルウェアを有効化してください
 
 ## トラブルシューティング
 

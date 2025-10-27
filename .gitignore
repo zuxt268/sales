@@ -42,3 +42,5 @@ dist/
 # OS
 .DS_Store
 Thumbs.db
+
+credentials
