@@ -76,7 +76,12 @@ func (u *domainUsecase) UpdateDomain(ctx context.Context, id int, req domain.Upd
 			target.OwnerID = *req.OwnerID
 		}
 		if req.Address != nil {
-			target.Address = *req.Address
+			address := *req.Address
+			if utf8.RuneCountInString(address) > 300 {
+				runes := []rune(address)
+				address = string(runes[:300])
+			}
+			target.Address = address
 		}
 		if req.Phone != nil {
 			target.Phone = *req.Phone

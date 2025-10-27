@@ -57,6 +57,7 @@ const (
 	StatusCheckJapan    Status = "check_japan"
 	StatusCrawlCompInfo Status = "crawl_comp_info"
 	StatusDone          Status = "done"
+	StatusTrash         Status = "trash"
 )
 
 // ValidStatuses は有効なステータスのリスト
@@ -67,6 +68,7 @@ var ValidStatuses = []Status{
 	StatusCheckJapan,
 	StatusCrawlCompInfo,
 	StatusDone,
+	StatusTrash,
 }
 
 // IsValidStatus は指定されたステータスが有効かどうかを判定
