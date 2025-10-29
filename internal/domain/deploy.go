@@ -22,7 +22,7 @@ func (d *Deploy) WordpressRootDirectory() string {
 			d.Domain,
 		)
 	}
-	return fmt.Sprintf("/home/%s/%s/public_html", d.ServerID, d.ServerID)
+	return fmt.Sprintf("/home/%s/%s/public_html", d.ServerID, d.Domain)
 }
 
 func (d *Deploy) SecretConfigPath() string {
@@ -35,7 +35,7 @@ func (d *Deploy) SecretConfigPath() string {
 			d.Domain,
 		)
 	}
-	return fmt.Sprintf("/home/%s/%s/public_html/wp-content/secret-config.php", d.ServerID, d.ServerID)
+	return fmt.Sprintf("/home/%s/%s/public_html/wp-content/secret-config.php", d.ServerID, d.Domain)
 }
 
 func (d *Deploy) MuPluginDirectory() string {
@@ -48,7 +48,7 @@ func (d *Deploy) MuPluginDirectory() string {
 			d.Domain,
 		)
 	}
-	return fmt.Sprintf("/home/%s/%s/public_html/wp-content/mu-plugins", d.ServerID, d.ServerID)
+	return fmt.Sprintf("/home/%s/%s/public_html/wp-content/mu-plugins", d.ServerID, d.Domain)
 }
 
 func (d *Deploy) GetDbName() string {
