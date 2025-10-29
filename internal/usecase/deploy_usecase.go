@@ -188,8 +188,8 @@ func (u *deployUsecase) Deploy(ctx context.Context, req domain.DeployRequest) {
 
 	sites := make([]string, len(req.Dst))
 	var mu sync.Mutex
-	var wg sync.WaitGroup          // 全goroutine待機
-	sem := make(chan struct{}, 20) // 並列最大20件
+	var wg sync.WaitGroup         // 全goroutine待機
+	sem := make(chan struct{}, 5) // 並列最大20件
 
 	for _, dst := range req.Dst {
 		dst := dst // ループ変数のキャプチャ
