@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -58,17 +57,17 @@ func JWTMiddleware() echo.MiddlewareFunc {
 func verifyNextAuthToken(tokenString string) (*jwt.Token, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		// NEXTAUTH_SECRETで検証
-		return []byte(os.Getenv("NEXTAUTH_SECRET")), nil
+		return []byte(os.Getenv("JWT_SECRET")), nil
 	})
 	if err != nil || !token.Valid {
 		return nil, err
 	}
 
 	// emailを取得
-	claims := token.Claims.(jwt.MapClaims)
-	email := claims["email"].(string)
-
-	fmt.Println("email:", email)
+	//claims := token.Claims.(jwt.MapClaims)
+	//email := claims["email"].(string)
+	//
+	//fmt.Println("email:", email)
 
 	return token, nil
 }
