@@ -12,5 +12,12 @@ if [ -d /root/.ssh ]; then
     echo "SSH keys copied successfully"
 fi
 
+# tmpディレクトリの権限を修正
+if [ -d /app/tmp ]; then
+    echo "Setting permissions for /app/tmp..."
+    chown -R appuser:appuser /app/tmp
+    chmod 755 /app/tmp
+fi
+
 # appuserとしてアプリケーションを実行
 exec su-exec appuser "$@"
