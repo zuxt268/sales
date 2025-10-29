@@ -257,6 +257,30 @@ func (u *deployUsecase) Deploy(ctx context.Context, req domain.DeployRequest) {
 			}
 			slog.Info("展開 & DB復元完了", "domain", dst.Domain)
 
+			slog.Info("Rootの.htaccess書き込み開始", "domain", dst.Domain)
+			defaultHtaccess := `# BEGIN WordPress
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
+</IfModule>
+# END WordPress
+`
+			htaccessPath := fmt.Sprintf("%s/.htaccess", dst.WordpressRootDirectory())
+			if err := u.sshAdapter.WriteFile(dstConfig, []byte(defaultHtaccess), htaccessPath); err != nil {
+				slog.Error("Rootの.htaccess書き込み失敗", "error", err)
+				_ = u.logRepo.Create(ctx, &domain.Log{
+					Name:     "deploy",
+					Category: "error",
+					Message:  fmt.Sprintf("Rootの.htaccess書き込み失敗, error=%v, domain=%s", err, dst.Domain),
+				})
+				return
+			}
+			slog.Info("Rootの.htaccess書き込み完了", "domain", dst.Domain)
+
 			// PHPファイルを配布
 			slog.Info("PHPファイル配布開始", "domain", dst.Domain)
 			if dst.IsSubDomain() {
