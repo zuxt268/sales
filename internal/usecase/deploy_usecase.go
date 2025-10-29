@@ -221,7 +221,7 @@ func (u *deployUsecase) Deploy(ctx context.Context, req domain.DeployRequest) {
 				_ = u.logRepo.Create(ctx, &domain.Log{
 					Name:     "deploy",
 					Category: "error",
-					Message:  fmt.Sprintf("Dstのconfigの取得に失敗, error=%v, domain=%s", err, dst.Domain),
+					Message:  fmt.Sprintf("クリーンアップコマンド失敗, error=%v, domain=%s", err, dst.Domain),
 				})
 				return
 			}
