@@ -17,7 +17,6 @@ import (
 	"github.com/zuxt268/sales/internal/domain"
 	"github.com/zuxt268/sales/internal/interfaces/adapter"
 	"github.com/zuxt268/sales/internal/interfaces/repository"
-	"golang.org/x/sync/errgroup"
 )
 
 type DeployUsecase interface {
@@ -187,14 +186,10 @@ func (u *deployUsecase) Deploy(ctx context.Context, req domain.DeployRequest) {
 	}
 	slog.Info("全サーバーへ/tmpアップロード完了", "server_count", len(serverMap))
 
-	// errgroup で並列処理 (最大5並列)
-	g, ctx := errgroup.WithContext(ctx)
-	g.SetLimit(5)
-
 	sites := make([]string, len(req.Dst))
 	var mu sync.Mutex
 	var wg sync.WaitGroup          // 全goroutine待機
-	sem := make(chan struct{}, 20) // 並列最大5件
+	sem := make(chan struct{}, 20) // 並列最大20件
 
 	for _, dst := range req.Dst {
 		dst := dst // ループ変数のキャプチャ
@@ -204,6 +199,8 @@ func (u *deployUsecase) Deploy(ctx context.Context, req domain.DeployRequest) {
 		go func() {
 			defer wg.Done()
 			defer func() { <-sem }()
+
+			slog.Info("デプロイ処理開始", "domain", dst.Domain)
 
 			dstConfig, err := config.GetSSHConfig(dst.ServerID)
 			if err != nil {

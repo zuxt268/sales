@@ -1,7 +1,9 @@
 package adapter
 
 import (
+	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -77,12 +79,31 @@ func (a *sshAdapter) Run(cfg domain.SSHConfig, command string) error {
 	}
 	defer session.Close()
 
-	session.Stdout = os.Stdout
-	session.Stderr = os.Stderr
+	var stdoutBuf, stderrBuf bytes.Buffer
+	session.Stdout = &stdoutBuf
+	session.Stderr = &stderrBuf
 
 	fmt.Printf("📡 Running on %s: %s\n", cfg.Host, command)
-	if err := session.Run(command); err != nil {
-		return fmt.Errorf("run: %w", err)
+	err = session.Run(command)
+
+	// 結果を整形して返す
+	stdout := stdoutBuf.String()
+	stderr := stderrBuf.String()
+
+	if stdout != "" {
+		fmt.Printf("---- STDOUT (%s) ----\n%s\n", cfg.Host, stdout)
+	}
+	if stderr != "" {
+		fmt.Printf("---- STDERR (%s) ----\n%s\n", cfg.Host, stderr)
+	}
+
+	if err != nil {
+		var exitErr *ssh.ExitError
+		if errors.As(err, &exitErr) {
+			return fmt.Errorf("run failed on %s: exit=%d, stderr=%s",
+				cfg.Host, exitErr.ExitStatus(), stderr)
+		}
+		return fmt.Errorf("run failed on %s: %w", cfg.Host, err)
 	}
 
 	return nil
