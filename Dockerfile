@@ -32,7 +32,7 @@ FROM alpine:latest
 WORKDIR /app
 
 # Install runtime dependencies
-RUN apk --no-cache add ca-certificates tzdata
+RUN apk --no-cache add ca-certificates tzdata su-exec
 
 # Create non-root user
 RUN addgroup -g 1000 appuser && \
@@ -50,11 +50,12 @@ COPY --from=builder /app/dbconfig.yml .
 # Set timezone
 ENV TZ=Asia/Tokyo
 
+# Copy entrypoint script
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
 # Change ownership
 RUN chown -R appuser:appuser /app
-
-# Use non-root user
-USER appuser
 
 # Expose port
 EXPOSE 8050
@@ -62,6 +63,9 @@ EXPOSE 8050
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:8050/health || exit 1
+
+# Use entrypoint to setup SSH keys and switch to appuser
+ENTRYPOINT ["/docker-entrypoint.sh"]
 
 # Run the application
 CMD ["./sales"]

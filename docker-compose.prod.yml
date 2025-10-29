@@ -63,7 +63,7 @@ services:
     ports:
       - "8050:8050"
     volumes:
-      - ${HOME}/.ssh:/home/appuser/.ssh:ro  # 読み取り専用でマウント
+      - ${HOME}/.ssh:/root/.ssh:ro  # rootにマウント（エントリーポイントでappuserにコピー）
       - ./tmp:/app/tmp        # 一時ファイル用
     depends_on:
       db:
