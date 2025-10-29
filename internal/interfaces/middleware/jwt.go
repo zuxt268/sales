@@ -64,10 +64,9 @@ func verifyNextAuthToken(tokenString string) (*jwt.Token, error) {
 	}
 
 	// emailを取得
-	//claims := token.Claims.(jwt.MapClaims)
-	//email := claims["email"].(string)
-	//
-	//fmt.Println("email:", email)
+	// claims := token.Claims.(jwt.MapClaims)
+	// email := claims["email"].(string)
+	// fmt.Println("email:", email)
 
 	return token, nil
 }

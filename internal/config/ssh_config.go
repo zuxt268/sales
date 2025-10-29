@@ -30,6 +30,9 @@ func init() {
 }
 
 func GetSSHConfig(serverID string) (domain.SSHConfig, error) {
+	if cfg == nil {
+		return domain.SSHConfig{}, fmt.Errorf("SSH config not loaded (config file not found)")
+	}
 	hostname, err := cfg.Get(serverID, "Hostname")
 	if err != nil {
 		return domain.SSHConfig{}, err
