@@ -48,7 +48,7 @@ func (u *deployUsecase) Deploy(ctx context.Context, req domain.DeployRequest) {
 	})
 
 	if err := os.MkdirAll("./tmp", 0755); err != nil {
-		slog.Error("ディレクトリ作成に失敗", err.Error())
+		slog.Error("ディレクトリ作成に失敗", "error", err.Error())
 		_ = u.logRepo.Create(ctx, &domain.Log{
 			Name:     "deploy",
 			Category: "error",
@@ -512,7 +512,6 @@ func (u *deployUsecase) rodut(dst domain.Deploy, dstConfig domain.SSHConfig) err
 
 	htaccessPath := fmt.Sprintf("%s/wp-content/.htaccess", dst.WordpressRootDirectory())
 	if err := u.sshAdapter.WriteFile(dstConfig, htaccess, htaccessPath); err != nil {
-		slog.Error(".htaccess書き込み失敗", "error", err.Error(), "domain", dst.Domain)
 		return errors.Wrap(err, ".htaccess書き込み失敗")
 	}
 	return nil
