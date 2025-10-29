@@ -18,7 +18,8 @@ func init() {
 
 	file, err := os.Open(configPath)
 	if err != nil {
-		panic(err)
+		fmt.Printf("Failed to open config file: %s\n", err)
+		return
 	}
 	defer file.Close()
 
