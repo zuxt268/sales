@@ -65,6 +65,8 @@ services:
       - .:/app
       - /app/tmp
       - go_mod_cache:/go/pkg/mod
+      - ${HOME}/.ssh:/root/.ssh:ro  # 読み取り専用でマウント
+      - ./tmp:/app/tmp        # 一時ファイル用
     depends_on:
       db:
         condition: service_healthy

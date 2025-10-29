@@ -29,6 +29,8 @@ func Initialize(db *gorm.DB) handler.ApiHandler {
 	logUsecase := usecase.NewLogUsecase(baseRepo, logRepo)
 	gptUsecase := usecase.NewGptUsecase(slackAdapter, domainRepo, gptRepo)
 	taskUsecase := usecase.NewTaskUsecase(baseRepo, taskRepo, taskQueueAdapter)
+	sshAdapter := adapter.NewSSHAdapter()
+	deployUsecase := usecase.NewDeployUsecase(sshAdapter, logRepo)
 
-	return handler.NewApiHandler(fetchUsecase, domainUsecase, targetUsecase, logUsecase, gptUsecase, taskUsecase)
+	return handler.NewApiHandler(fetchUsecase, domainUsecase, targetUsecase, logUsecase, gptUsecase, taskUsecase, deployUsecase)
 }

@@ -62,6 +62,9 @@ services:
       NOTICE_WEB_APP_CHANNEL_URL: ${NOTICE_WEB_APP_CHANNEL_URL}
     ports:
       - "8050:8050"
+    volumes:
+      - ${HOME}/.ssh:/root/.ssh:ro  # 読み取り専用でマウント
+      - ./tmp:/app/tmp        # 一時ファイル用
     depends_on:
       db:
         condition: service_healthy

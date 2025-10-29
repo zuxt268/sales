@@ -226,6 +226,36 @@ const docTemplate = `{
                 }
             }
         },
+        "/external/api/deploy": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Wordpress"
+                ],
+                "summary": "ワードプレスをデプロイします",
+                "parameters": [
+                    {
+                        "description": "デプロイ情報",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.DeployRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    }
+                }
+            }
+        },
         "/fetch": {
             "post": {
                 "description": "Fetch domain information from target",
@@ -688,6 +718,31 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.Deploy": {
+            "type": "object",
+            "properties": {
+                "domain": {
+                    "type": "string"
+                },
+                "server_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.DeployRequest": {
+            "type": "object",
+            "properties": {
+                "dst": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.Deploy"
+                    }
+                },
+                "src": {
+                    "$ref": "#/definitions/domain.Deploy"
+                }
+            }
+        },
         "domain.Domain": {
             "type": "object",
             "properties": {
@@ -798,7 +853,8 @@ const docTemplate = `{
                 "check_view",
                 "check_japan",
                 "crawl_comp_info",
-                "done"
+                "done",
+                "trash"
             ],
             "x-enum-varnames": [
                 "StatusUnknown",
@@ -806,7 +862,8 @@ const docTemplate = `{
                 "StatusCheckView",
                 "StatusCheckJapan",
                 "StatusCrawlCompInfo",
-                "StatusDone"
+                "StatusDone",
+                "StatusTrash"
             ]
         },
         "domain.Target": {

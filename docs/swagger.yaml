@@ -25,6 +25,22 @@ definitions:
       status:
         type: integer
     type: object
+  domain.Deploy:
+    properties:
+      domain:
+        type: string
+      server_id:
+        type: string
+    type: object
+  domain.DeployRequest:
+    properties:
+      dst:
+        items:
+          $ref: '#/definitions/domain.Deploy'
+        type: array
+      src:
+        $ref: '#/definitions/domain.Deploy'
+    type: object
   domain.Domain:
     properties:
       address:
@@ -100,6 +116,7 @@ definitions:
     - check_japan
     - crawl_comp_info
     - done
+    - trash
     type: string
     x-enum-varnames:
     - StatusUnknown
@@ -108,6 +125,7 @@ definitions:
     - StatusCheckJapan
     - StatusCrawlCompInfo
     - StatusDone
+    - StatusTrash
   domain.Target:
     properties:
       created_at:
@@ -345,6 +363,25 @@ paths:
       summary: サイトの情報を解析する
       tags:
       - ドメイン
+  /external/api/deploy:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: デプロイ情報
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.DeployRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+      summary: ワードプレスをデプロイします
+      tags:
+      - Wordpress
   /fetch:
     post:
       consumes:

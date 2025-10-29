@@ -90,6 +90,10 @@ func main() {
 	api.POST("/tasks/execute", handler.ExecuteTasks)
 	api.POST("/tasks/:id/execute", handler.ExecuteTask)
 
+	external := e.Group("/external/api")
+	external.Use(middleware2.JWTMiddleware())
+	external.POST("/deploy", handler.DeployWordpress)
+
 	srv := &http.Server{
 		Addr:    config.Env.Address,
 		Handler: e,

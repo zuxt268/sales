@@ -1,0 +1,49 @@
+.a-root-wordpress-instagram-slider {
+    margin-bottom: 30px;
+}
+.a-root-wordpress-instagram-slider .slick-prev,
+.a-root-wordpress-instagram-slider .slick-next {
+    z-index: 2;
+}
+.a-root-wordpress-instagram-slider .slick-prev:before,
+.a-root-wordpress-instagram-slider .slick-next:before {
+    color: var(--nv-text-color);
+}
+.a-root-wordpress-instagram-slider .slick-prev {
+    left: 0;
+}
+
+.a-root-wordpress-instagram-slider .slick-next {
+    right: 0;
+}
+.a-root-wordpress-instagram-slider .slick-prev:before {
+    content: "";
+    border-top: 1px solid #222;
+    border-left: 1px solid #222;
+    display: block;
+    width: 20px;
+    height: 20px;
+    transform: rotate(-45deg);
+}
+.a-root-wordpress-instagram-slider .slick-next:before {
+    content: "";
+    border-top: 1px solid #222;
+    border-right: 1px solid #222;
+    display: block;
+    width: 20px;
+    height: 20px;
+    transform: rotate(45deg);
+}
+
+.a-root-wordpress-instagram-slider .slick-dots li {
+    margin: 0 2px;
+}
+
+.a-root-wordpress-instagram-slider .slick-dots li button:before {
+    font-size: 14px;
+}
+
+#test-test{
+    color:red;
+    background-color: blue;
+}

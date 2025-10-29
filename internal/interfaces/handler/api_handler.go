@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -32,6 +33,7 @@ type ApiHandler interface {
 	DeleteTask(c echo.Context) error
 	ExecuteTasks(c echo.Context) error
 	ExecuteTask(c echo.Context) error
+	DeployWordpress(c echo.Context) error
 }
 
 type apiHandler struct {
@@ -41,6 +43,7 @@ type apiHandler struct {
 	logUsecase    usecase.LogUsecase
 	gptUsecase    usecase.GptUsecase
 	taskUsecase   usecase.TaskUsecase
+	deployUsecase usecase.DeployUsecase
 }
 
 func NewApiHandler(
@@ -50,6 +53,7 @@ func NewApiHandler(
 	logUsecase usecase.LogUsecase,
 	gptUsecase usecase.GptUsecase,
 	taskUsecase usecase.TaskUsecase,
+	deployUsecase usecase.DeployUsecase,
 ) ApiHandler {
 	return &apiHandler{
 		fetchUsecase:  fetchUsecase,
@@ -58,6 +62,7 @@ func NewApiHandler(
 		logUsecase:    logUsecase,
 		gptUsecase:    gptUsecase,
 		taskUsecase:   taskUsecase,
+		deployUsecase: deployUsecase,
 	}
 }
 
@@ -458,6 +463,30 @@ func (h *apiHandler) ExecuteTask(c echo.Context) error {
 		return handleError(c, err)
 	}
 	return c.JSON(http.StatusOK, resp)
+}
+
+// DeployWordpress godoc
+// @Summary ワードプレスをデプロイします
+// @Description
+// @Tags Wordpress
+// @Accept json
+// @Produce json
+// @Param request body domain.DeployRequest true "デプロイ情報"
+// @Success 201
+// @Router /external/api/deploy [post]
+func (h *apiHandler) DeployWordpress(c echo.Context) error {
+	var req domain.DeployRequest
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	if err := req.Validate(); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	go func() {
+		h.deployUsecase.Deploy(context.Background(), req)
+	}()
+
+	return c.NoContent(http.StatusOK)
 }
 
 func handleError(c echo.Context, err error) error {
