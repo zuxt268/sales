@@ -18,6 +18,7 @@ type DomainRepository interface {
 	Save(ctx context.Context, domain *domain.Domain) error
 	BulkInsert(ctx context.Context, domains []*domain.Domain) error
 	Delete(ctx context.Context, f DomainFilter) error
+	Count(ctx context.Context, f DomainFilter) (int64, error)
 }
 
 type domainRepository struct {
@@ -72,6 +73,17 @@ func (r *domainRepository) FindAll(ctx context.Context, f DomainFilter) ([]domai
 	return ds, nil
 }
 
+func (r *domainRepository) Count(ctx context.Context, f DomainFilter) (int64, error) {
+	var count int64
+	f.Limit = nil
+	f.Offset = nil
+	err := f.Apply(r.getDb(ctx).WithContext(ctx)).Model(&domain.Domain{}).Count(&count).Error
+	if err != nil {
+		return 0, domain.WrapDatabase("failed to count domains", err)
+	}
+	return count, nil
+}
+
 func (r *domainRepository) Save(ctx context.Context, d *domain.Domain) error {
 	err := r.getDb(ctx).Save(d).Error
 	if err != nil {
@@ -110,6 +122,7 @@ type DomainFilter struct {
 	ID          *int
 	PartialName *string
 	Name        *string
+	Target      *string
 	CanView     *bool
 	IsJapan     *bool
 	IsSend      *bool
@@ -130,6 +143,9 @@ func (d *DomainFilter) Apply(db *gorm.DB) *gorm.DB {
 	}
 	if d.Name != nil {
 		db = db.Where("name = ?", *d.Name)
+	}
+	if d.Target != nil {
+		db = db.Where("target = ?", *d.Target)
 	}
 	if d.CanView != nil {
 		db = db.Where("can_view = ?", *d.CanView)

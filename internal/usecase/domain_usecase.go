@@ -5,13 +5,15 @@ import (
 	"unicode/utf8"
 
 	"github.com/zuxt268/sales/internal/domain"
+	"github.com/zuxt268/sales/internal/interfaces/dto/request"
+	"github.com/zuxt268/sales/internal/interfaces/dto/response"
 	"github.com/zuxt268/sales/internal/interfaces/repository"
 )
 
 type DomainUsecase interface {
-	GetDomains(ctx context.Context, req domain.GetDomainsRequest) ([]domain.Domain, error)
-	GetDomain(ctx context.Context, id int) (domain.Domain, error)
-	UpdateDomain(ctx context.Context, id int, req domain.UpdateDomainRequest) (*domain.Domain, error)
+	GetDomains(ctx context.Context, req request.GetDomainsRequest) (*response.Domains, error)
+	GetDomain(ctx context.Context, id int) (*response.Domain, error)
+	UpdateDomain(ctx context.Context, id int, req request.UpdateDomainRequest) (*response.Domain, error)
 	DeleteDomain(ctx context.Context, id int) error
 }
 
@@ -30,13 +32,18 @@ func NewDomainUsecase(
 	}
 }
 
-func (u *domainUsecase) GetDomain(ctx context.Context, id int) (domain.Domain, error) {
-	return u.domainRepo.Get(ctx, repository.DomainFilter{ID: &id})
+func (u *domainUsecase) GetDomain(ctx context.Context, id int) (*response.Domain, error) {
+	d, err := u.domainRepo.Get(ctx, repository.DomainFilter{ID: &id})
+	if err != nil {
+		return nil, err
+	}
+	return response.GetDomain(d), nil
 }
 
-func (u *domainUsecase) GetDomains(ctx context.Context, req domain.GetDomainsRequest) ([]domain.Domain, error) {
-	return u.domainRepo.FindAll(ctx, repository.DomainFilter{
+func (u *domainUsecase) GetDomains(ctx context.Context, req request.GetDomainsRequest) (*response.Domains, error) {
+	filter := repository.DomainFilter{
 		PartialName: req.Name,
+		Target:      req.Target,
 		CanView:     req.CanView,
 		IsJapan:     req.IsJapan,
 		IsSend:      req.IsSend,
@@ -46,10 +53,19 @@ func (u *domainUsecase) GetDomains(ctx context.Context, req domain.GetDomainsReq
 		Status:      req.Status,
 		Limit:       req.Limit,
 		Offset:      req.Offset,
-	})
+	}
+	domains, err := u.domainRepo.FindAll(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	total, err := u.domainRepo.Count(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	return response.GetDomains(domains, total), nil
 }
 
-func (u *domainUsecase) UpdateDomain(ctx context.Context, id int, req domain.UpdateDomainRequest) (*domain.Domain, error) {
+func (u *domainUsecase) UpdateDomain(ctx context.Context, id int, req request.UpdateDomainRequest) (*response.Domain, error) {
 	var target domain.Domain
 	err := u.baseRepo.WithTransaction(ctx, func(ctx context.Context) error {
 		var err error
@@ -59,9 +75,14 @@ func (u *domainUsecase) UpdateDomain(ctx context.Context, id int, req domain.Upd
 		if err != nil {
 			return err
 		}
-		target.Status = domain.Status(req.Status)
+		if req.Status != nil {
+			target.Status = *req.Status
+		}
 		if req.IsSend != nil {
 			target.IsSend = *req.IsSend
+		}
+		if req.Target != nil {
+			target.Target = *req.Target
 		}
 		if req.CanView != nil {
 			target.CanView = *req.CanView
@@ -118,7 +139,7 @@ func (u *domainUsecase) UpdateDomain(ctx context.Context, id int, req domain.Upd
 		return nil, err
 	}
 
-	return &target, nil
+	return response.GetDomain(target), nil
 }
 
 func (u *domainUsecase) DeleteDomain(ctx context.Context, id int) error {

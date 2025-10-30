@@ -41,53 +41,6 @@ definitions:
       src:
         $ref: '#/definitions/domain.Deploy'
     type: object
-  domain.Domain:
-    properties:
-      address:
-        type: string
-      can_view:
-        type: boolean
-      company:
-        type: string
-      created_at:
-        type: string
-      id:
-        type: integer
-      industry:
-        type: string
-      is_japan:
-        type: boolean
-      is_send:
-        type: boolean
-      is_ssl:
-        type: boolean
-      landline_phone:
-        type: string
-      mobile_phone:
-        type: string
-      name:
-        type: string
-      owner_id:
-        type: string
-      page_num:
-        type: integer
-      phone:
-        type: string
-      prefecture:
-        type: string
-      president:
-        type: string
-      raw_page:
-        type: string
-      status:
-        $ref: '#/definitions/domain.Status'
-      target:
-        type: string
-      title:
-        type: string
-      updated_at:
-        type: string
-    type: object
   domain.Log:
     properties:
       category:
@@ -164,12 +117,30 @@ definitions:
       updated_at:
         type: string
     type: object
-  domain.UpdateDomainRequest:
+  domain.UpdateTargetRequest:
+    properties:
+      ip:
+        type: string
+      name:
+        type: string
+    type: object
+  domain.UpdateTaskRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      status:
+        type: integer
+    type: object
+  request.UpdateDomainRequest:
     properties:
       address:
         type: string
       can_view:
         type: boolean
+      company:
+        type: string
       industry:
         type: string
       is_japan:
@@ -190,32 +161,75 @@ definitions:
         type: integer
       phone:
         type: string
+      prefecture:
+        type: string
+      president:
+        type: string
       raw_page:
         type: string
       status:
-        type: string
+        $ref: '#/definitions/domain.Status'
       target:
         type: string
       title:
         type: string
-    required:
-    - name
-    - status
     type: object
-  domain.UpdateTargetRequest:
+  response.Domain:
     properties:
-      ip:
+      address:
+        type: string
+      can_view:
+        type: boolean
+      company:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      industry:
+        type: string
+      is_japan:
+        type: boolean
+      is_send:
+        type: boolean
+      is_ssl:
+        type: boolean
+      landline_phone:
+        type: string
+      mobile_phone:
         type: string
       name:
         type: string
-    type: object
-  domain.UpdateTaskRequest:
-    properties:
-      description:
+      owner_id:
         type: string
-      name:
+      page_num:
+        type: integer
+      phone:
+        type: string
+      prefecture:
+        type: string
+      president:
+        type: string
+      raw_page:
         type: string
       status:
+        $ref: '#/definitions/domain.Status'
+      target:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  response.Domains:
+    properties:
+      count:
+        type: integer
+      domains:
+        items:
+          $ref: '#/definitions/response.Domain'
+        type: array
+      total:
         type: integer
     type: object
 info:
@@ -277,9 +291,7 @@ paths:
           description: OK
           schema:
             items:
-              items:
-                $ref: '#/definitions/domain.Domain'
-              type: array
+              $ref: '#/definitions/response.Domains'
             type: array
       summary: Get domains
       tags:
@@ -319,9 +331,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/domain.Domain'
-            type: array
+            $ref: '#/definitions/response.Domain'
       summary: Get domain
       tags:
       - ドメイン
@@ -340,14 +350,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/domain.UpdateDomainRequest'
+          $ref: '#/definitions/request.UpdateDomainRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.Domain'
+            $ref: '#/definitions/response.Domain'
       summary: Update domain
       tags:
       - ドメイン

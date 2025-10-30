@@ -3,11 +3,14 @@ package handler
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"strconv"
 
 	"github.com/zuxt268/sales/internal/domain"
+	"github.com/zuxt268/sales/internal/interfaces/dto/request"
+	_ "github.com/zuxt268/sales/internal/interfaces/dto/response"
 	"github.com/zuxt268/sales/internal/usecase"
 
 	"github.com/labstack/echo/v4"
@@ -72,7 +75,7 @@ func NewApiHandler(
 // @Accept json
 // @Produce json
 // @Param id path string true "ID"
-// @Success 200 {array} domain.Domain
+// @Success 200 {object} response.Domain
 // @Router /domains/{id} [get]
 func (h *apiHandler) GetDomain(c echo.Context) error {
 	var id int
@@ -102,13 +105,14 @@ func (h *apiHandler) GetDomain(c echo.Context) error {
 // @Param status query string false "ステータス"
 // @Param industry query string false "業種"
 // @Param is_ssl query boolean false "SSL対応可否"
-// @Success 200 {array} []domain.Domain
+// @Success 200 {array} response.Domains
 // @Router /domains [get]
 func (h *apiHandler) GetDomains(c echo.Context) error {
-	var req domain.GetDomainsRequest
+	var req request.GetDomainsRequest
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
+	fmt.Println(req)
 	resp, err := h.domainUsecase.GetDomains(c.Request().Context(), req)
 	if err != nil {
 		return handleError(c, err)
@@ -123,16 +127,16 @@ func (h *apiHandler) GetDomains(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Param id path string true "ID"
-// @Param request body domain.UpdateDomainRequest true "更新ドメイン情報"
-// @Success 200 {object} domain.Domain
+// @Param request body request.UpdateDomainRequest true "更新ドメイン情報"
+// @Success 200 {object} response.Domain
 // @Router /domains/{id} [put]
 func (h *apiHandler) UpdateDomain(c echo.Context) error {
-	var req domain.UpdateDomainRequest
+	var req request.UpdateDomainRequest
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 	if err := req.Validate(); err != nil {
-		return handleError(c, err)
+		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 	var id int
 	if err := echo.PathParamsBinder(c).Int("id", &id).BindError(); err != nil {

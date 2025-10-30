@@ -6,28 +6,28 @@ import (
 )
 
 type Domain struct {
-	ID            int       `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
-	Name          string    `gorm:"column:name;unique" json:"name"`
-	Target        string    `gorm:"column:target" json:"target"`
-	CanView       bool      `gorm:"column:can_view" json:"can_view"`
-	IsJapan       bool      `gorm:"column:is_japan" json:"is_japan"`
-	IsSend        bool      `gorm:"column:is_send" json:"is_send"`
-	Title         string    `gorm:"column:title" json:"title"`
-	OwnerID       string    `gorm:"column:owner_id" json:"owner_id"`
-	Address       string    `gorm:"column:address" json:"address"`
-	Phone         string    `gorm:"column:phone" json:"phone"`
-	MobilePhone   string    `gorm:"column:mobile_phone" json:"mobile_phone"`
-	LandlinePhone string    `gorm:"column:landline_phone" json:"landline_phone"`
-	Industry      string    `gorm:"column:industry" json:"industry"`
-	President     string    `gorm:"column:president" json:"president"`
-	Company       string    `gorm:"column:company" json:"company"`
-	Prefecture    string    `gorm:"column:prefecture" json:"prefecture"`
-	IsSSL         bool      `gorm:"column:is_ssl" json:"is_ssl"`
-	RawPage       string    `gorm:"column:raw_page" json:"raw_page"`
-	PageNum       int       `gorm:"column:page_num" json:"page_num"`
-	Status        Status    `gorm:"column:status" json:"status"`
-	UpdatedAt     time.Time `gorm:"column:updated_at;autoUpdateTime" json:"updated_at"`
-	CreatedAt     time.Time `gorm:"column:created_at;autoCreateTime" json:"created_at"`
+	ID            int
+	Name          string
+	Target        string
+	CanView       bool
+	IsJapan       bool
+	IsSend        bool
+	Title         string
+	OwnerID       string
+	Address       string
+	Phone         string
+	MobilePhone   string
+	LandlinePhone string
+	Industry      string
+	President     string
+	Company       string
+	Prefecture    string
+	IsSSL         bool
+	RawPage       string
+	PageNum       int
+	Status        Status
+	UpdatedAt     time.Time
+	CreatedAt     time.Time
 }
 
 func (u *Domain) SetPhone() {
@@ -79,13 +79,4 @@ func IsValidStatus(s Status) bool {
 		}
 	}
 	return false
-}
-
-// ConvertToStatus は文字列をStatus型に変換し、バリデーション
-func ConvertToStatus(s string) (Status, error) {
-	status := Status(s)
-	if !IsValidStatus(status) {
-		return "", WrapValidation("invalid status value", nil)
-	}
-	return status, nil
 }

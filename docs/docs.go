@@ -96,10 +96,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/definitions/domain.Domain"
-                                }
+                                "$ref": "#/definitions/response.Domains"
                             }
                         }
                     }
@@ -151,10 +148,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/domain.Domain"
-                            }
+                            "$ref": "#/definitions/response.Domain"
                         }
                     }
                 }
@@ -185,7 +179,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.UpdateDomainRequest"
+                            "$ref": "#/definitions/request.UpdateDomainRequest"
                         }
                     }
                 ],
@@ -193,7 +187,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.Domain"
+                            "$ref": "#/definitions/response.Domain"
                         }
                     }
                 }
@@ -743,77 +737,6 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.Domain": {
-            "type": "object",
-            "properties": {
-                "address": {
-                    "type": "string"
-                },
-                "can_view": {
-                    "type": "boolean"
-                },
-                "company": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "industry": {
-                    "type": "string"
-                },
-                "is_japan": {
-                    "type": "boolean"
-                },
-                "is_send": {
-                    "type": "boolean"
-                },
-                "is_ssl": {
-                    "type": "boolean"
-                },
-                "landline_phone": {
-                    "type": "string"
-                },
-                "mobile_phone": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "owner_id": {
-                    "type": "string"
-                },
-                "page_num": {
-                    "type": "integer"
-                },
-                "phone": {
-                    "type": "string"
-                },
-                "prefecture": {
-                    "type": "string"
-                },
-                "president": {
-                    "type": "string"
-                },
-                "raw_page": {
-                    "type": "string"
-                },
-                "status": {
-                    "$ref": "#/definitions/domain.Status"
-                },
-                "target": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
         "domain.Log": {
             "type": "object",
             "properties": {
@@ -923,18 +846,42 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.UpdateDomainRequest": {
+        "domain.UpdateTargetRequest": {
             "type": "object",
-            "required": [
-                "name",
-                "status"
-            ],
+            "properties": {
+                "ip": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.UpdateTaskRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
+        "request.UpdateDomainRequest": {
+            "type": "object",
             "properties": {
                 "address": {
                     "type": "string"
                 },
                 "can_view": {
                     "type": "boolean"
+                },
+                "company": {
+                    "type": "string"
                 },
                 "industry": {
                     "type": "string"
@@ -966,11 +913,17 @@ const docTemplate = `{
                 "phone": {
                     "type": "string"
                 },
+                "prefecture": {
+                    "type": "string"
+                },
+                "president": {
+                    "type": "string"
+                },
                 "raw_page": {
                     "type": "string"
                 },
                 "status": {
-                    "type": "string"
+                    "$ref": "#/definitions/domain.Status"
                 },
                 "target": {
                     "type": "string"
@@ -980,27 +933,90 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.UpdateTargetRequest": {
+        "response.Domain": {
             "type": "object",
             "properties": {
-                "ip": {
+                "address": {
+                    "type": "string"
+                },
+                "can_view": {
+                    "type": "boolean"
+                },
+                "company": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "industry": {
+                    "type": "string"
+                },
+                "is_japan": {
+                    "type": "boolean"
+                },
+                "is_send": {
+                    "type": "boolean"
+                },
+                "is_ssl": {
+                    "type": "boolean"
+                },
+                "landline_phone": {
+                    "type": "string"
+                },
+                "mobile_phone": {
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "owner_id": {
+                    "type": "string"
+                },
+                "page_num": {
+                    "type": "integer"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "prefecture": {
+                    "type": "string"
+                },
+                "president": {
+                    "type": "string"
+                },
+                "raw_page": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/domain.Status"
+                },
+                "target": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
                     "type": "string"
                 }
             }
         },
-        "domain.UpdateTaskRequest": {
+        "response.Domains": {
             "type": "object",
             "properties": {
-                "description": {
-                    "type": "string"
+                "count": {
+                    "type": "integer"
                 },
-                "name": {
-                    "type": "string"
+                "domains": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.Domain"
+                    }
                 },
-                "status": {
+                "total": {
                     "type": "integer"
                 }
             }
