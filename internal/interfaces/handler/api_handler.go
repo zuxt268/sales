@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -199,11 +198,9 @@ func (h *apiHandler) FetchDomains(c echo.Context) error {
 	if err := req.Validate(); err != nil {
 		return handleError(c, err)
 	}
-	fmt.Println(req)
-	err := h.fetchUsecase.Fetch(c.Request().Context(), req)
-	if err != nil {
-		return handleError(c, err)
-	}
+	go func() {
+		h.fetchUsecase.Fetch(context.Background(), req)
+	}()
 	return c.NoContent(http.StatusAccepted)
 }
 

@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"log/slog"
 	"strconv"
 
 	"github.com/zuxt268/sales/internal/config"
@@ -12,7 +13,7 @@ import (
 )
 
 type FetchUsecase interface {
-	Fetch(ctx context.Context, req domain.PostFetchRequest) error
+	Fetch(ctx context.Context, req domain.PostFetchRequest)
 }
 
 type fetchUsecase struct {
@@ -36,11 +37,13 @@ func NewFetchUsecase(
 	}
 }
 
-func (u *fetchUsecase) Fetch(ctx context.Context, req domain.PostFetchRequest) error {
+func (u *fetchUsecase) Fetch(ctx context.Context, req domain.PostFetchRequest) {
+	slog.Info("fetch is invoked")
 
 	target, err := u.targetRepo.GetForUpdate(ctx, repository.TargetFilter{IP: &req.Target})
 	if err != nil {
-		return err
+		slog.Error("failed to fetch target", "error", err)
+		return
 	}
 
 	page := 1
@@ -52,7 +55,8 @@ func (u *fetchUsecase) Fetch(ctx context.Context, req domain.PostFetchRequest) e
 			Page:   page,
 		})
 		if err != nil {
-			return err
+			slog.Error("failed get reverse ip", "error", err)
+			return
 		}
 
 		domains := make([]*domain.Domain, 0, len(resp.Response.Domains))
@@ -66,14 +70,16 @@ func (u *fetchUsecase) Fetch(ctx context.Context, req domain.PostFetchRequest) e
 
 		err = u.domainRepo.BulkInsert(ctx, domains)
 		if err != nil {
-			return err
+			slog.Error("failed to insert domains", "error", err)
+			return
 		}
 
 		if maxPage == 0 {
 			domainCount := resp.Response.DomainCount
 			count, err := strconv.Atoi(domainCount)
 			if err != nil {
-				return err
+				slog.Error("failed to parse domain count", "error", err)
+				return
 			}
 			maxPage = (count + 9999) / 10000 // ceil 計算
 		}
@@ -86,8 +92,9 @@ func (u *fetchUsecase) Fetch(ctx context.Context, req domain.PostFetchRequest) e
 	target.Status = domain.TargetStatusFetched
 	err = u.targetRepo.Save(ctx, &target)
 	if err != nil {
-		return err
+		slog.Error("failed to save target", "error", err)
+		return
 	}
 
-	return nil
+	slog.Info("fetch success")
 }
