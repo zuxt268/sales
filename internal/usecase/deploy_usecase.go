@@ -16,12 +16,13 @@ import (
 	"github.com/zuxt268/sales/internal/config"
 	"github.com/zuxt268/sales/internal/entity"
 	"github.com/zuxt268/sales/internal/interfaces/adapter"
+	"github.com/zuxt268/sales/internal/interfaces/dto/request"
 	"github.com/zuxt268/sales/internal/interfaces/repository"
 	"github.com/zuxt268/sales/internal/model"
 )
 
 type DeployUsecase interface {
-	Deploy(ctx context.Context, body entity.DeployRequest)
+	Deploy(ctx context.Context, body request.DeployRequest)
 }
 
 type deployUsecase struct {
@@ -39,7 +40,7 @@ func NewDeployUsecase(
 	}
 }
 
-func (u *deployUsecase) Deploy(ctx context.Context, req entity.DeployRequest) {
+func (u *deployUsecase) Deploy(ctx context.Context, req request.DeployRequest) {
 
 	_ = u.logRepo.Create(ctx, &model.Log{
 		Name:     "deploy",
