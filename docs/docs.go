@@ -239,7 +239,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.DeployRequest"
+                            "$ref": "#/definitions/request.DeployRequest"
                         }
                     }
                 ],
@@ -673,6 +673,17 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "entity.Deploy": {
+            "type": "object",
+            "properties": {
+                "domain": {
+                    "type": "string"
+                },
+                "server_id": {
+                    "type": "string"
+                }
+            }
+        },
         "model.CreateTargetRequest": {
             "type": "object",
             "properties": {
@@ -695,31 +706,6 @@ const docTemplate = `{
                 },
                 "status": {
                     "type": "integer"
-                }
-            }
-        },
-        "model.Deploy": {
-            "type": "object",
-            "properties": {
-                "domain": {
-                    "type": "string"
-                },
-                "server_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "model.DeployRequest": {
-            "type": "object",
-            "properties": {
-                "dst": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Deploy"
-                    }
-                },
-                "src": {
-                    "$ref": "#/definitions/model.Deploy"
                 }
             }
         },
@@ -848,6 +834,20 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "request.DeployRequest": {
+            "type": "object",
+            "properties": {
+                "dst": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Deploy"
+                    }
+                },
+                "src": {
+                    "$ref": "#/definitions/entity.Deploy"
                 }
             }
         },

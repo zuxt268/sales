@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/zuxt268/sales/internal/entity"
 	"github.com/zuxt268/sales/internal/interfaces/dto/request"
 	_ "github.com/zuxt268/sales/internal/interfaces/dto/response"
 	"github.com/zuxt268/sales/internal/model"
@@ -470,11 +469,11 @@ func (h *apiHandler) ExecuteTask(c echo.Context) error {
 // @Tags Wordpress
 // @Accept json
 // @Produce json
-// @Param request body model.DeployRequest true "デプロイ情報"
+// @Param request body request.DeployRequest true "デプロイ情報"
 // @Success 201
 // @Router /external/api/deploy [post]
 func (h *apiHandler) DeployWordpress(c echo.Context) error {
-	var req entity.DeployRequest
+	var req request.DeployRequest
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}

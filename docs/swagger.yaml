@@ -1,5 +1,12 @@
 basePath: /api
 definitions:
+  entity.Deploy:
+    properties:
+      domain:
+        type: string
+      server_id:
+        type: string
+    type: object
   model.CreateTargetRequest:
     properties:
       ip:
@@ -15,22 +22,6 @@ definitions:
         type: string
       status:
         type: integer
-    type: object
-  model.Deploy:
-    properties:
-      domain:
-        type: string
-      server_id:
-        type: string
-    type: object
-  model.DeployRequest:
-    properties:
-      dst:
-        items:
-          $ref: '#/definitions/model.Deploy'
-        type: array
-      src:
-        $ref: '#/definitions/model.Deploy'
     type: object
   model.PostFetchRequest:
     properties:
@@ -119,6 +110,15 @@ definitions:
         type: string
       name:
         type: string
+    type: object
+  request.DeployRequest:
+    properties:
+      dst:
+        items:
+          $ref: '#/definitions/entity.Deploy'
+        type: array
+      src:
+        $ref: '#/definitions/entity.Deploy'
     type: object
   request.UpdateDomain:
     properties:
@@ -392,7 +392,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/model.DeployRequest'
+          $ref: '#/definitions/request.DeployRequest'
       produces:
       - application/json
       responses:
