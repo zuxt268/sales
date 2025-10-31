@@ -105,7 +105,12 @@ func (u *domainUsecase) UpdateDomain(ctx context.Context, id int, req request.Up
 			target.Address = address
 		}
 		if req.Phone != nil {
-			target.Phone = *req.Phone
+			phone := *req.Phone
+			if utf8.RuneCountInString(phone) > 200 {
+				runes := []rune(phone)
+				phone = string(runes[:200])
+			}
+			target.Phone = phone
 		}
 		if req.MobilePhone != nil {
 			target.MobilePhone = *req.MobilePhone
@@ -121,9 +126,9 @@ func (u *domainUsecase) UpdateDomain(ctx context.Context, id int, req request.Up
 		}
 		if req.RawPage != nil {
 			rawPage := *req.RawPage
-			if utf8.RuneCountInString(rawPage) > 8000 {
+			if utf8.RuneCountInString(rawPage) > 6000 {
 				runes := []rune(rawPage)
-				rawPage = string(runes[:8000])
+				rawPage = string(runes[:6000])
 			}
 			target.RawPage = rawPage
 		}
