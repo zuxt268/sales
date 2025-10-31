@@ -1,6 +1,24 @@
 # Sales API
 
-ドメイン管理APIサーバー（JWT認証付き）
+Enterprise-grade domain management API with clean architecture and testability focus.
+
+## 概要
+
+ドメイン情報の収集・管理・分析を行うバックエンドAPIサーバーです。Clean Architectureをベースに、テスタビリティと保守性を重視した設計を採用しています。
+
+## 特徴
+
+### アーキテクチャ
+- **Clean Architecture**: レイヤー分離による依存関係の明確化
+- **純粋関数中心**: ビジネスロジックを副作用のない関数として実装（`entity`層）
+- **テスタビリティ**: モックなしで単体テストが可能な設計
+- **明確な境界**: API I/O（dto）、ビジネスロジック（entity）、永続化（model）の明確な分離
+
+### 技術的特徴
+- **並行処理**: Goroutineとセマフォによる効率的な並行処理
+- **構造化ログ**: slogによるJSON形式の構造化ログ
+- **型安全**: 強い型付けによるコンパイル時エラー検出
+- **OpenAPI対応**: Swaggerによる自動ドキュメント生成
 
 ## 機能
 
@@ -203,7 +221,87 @@ Swagger UIでの認証方法:
 2. `Bearer <your_token>` を入力
 3. 「Authorize」をクリック
 
-## プロジェクト構成
+## アーキテクチャ
+
+このプロジェクトはClean Architectureの原則に基づいて設計されており、テスタビリティと保守性を最優先にしています。
+
+### 設計原則
+
+#### 1. 純粋関数中心のビジネスロジック（Functional Core, Imperative Shell）
+
+```go
+// entity/phone.go - 純粋関数の例
+func SplitPhone(phoneNum string) (mobile, landline string) {
+    // 副作用なし、モック不要でテスト可能
+    // 入力が同じなら出力も同じ（参照透過性）
+}
+```
+
+**利点:**
+- 単体テストが簡単（モック・DB不要）
+- 並行処理安全（race conditionなし）
+- デバッグ容易（入出力が明確）
+- 再利用性が高い
+
+#### 2. レイヤーの明確な分離
+
+```
+外部 → 内部（依存の方向）
+─────────────────────────
+
+Handler (API境界)
+   ↓ dto/request, dto/response
+Usecase (orchestration)
+   ↓ model (gorm構造体)
+Repository (データアクセス)
+   ↓
+DB/External API
+
+横断的に使用:
+entity (純粋関数) ← どこからでも呼べる
+```
+
+**レイヤーの責務:**
+
+| レイヤー | 責務 | 依存 | テスト |
+|---------|------|------|--------|
+| `entity` | 純粋関数によるビジネスルール | なし | 単体テスト（モック不要） |
+| `model` | データ構造（gorm付き） | なし | 不要（構造体のみ） |
+| `dto` | API入出力の型定義 | なし | 不要（構造体のみ） |
+| `usecase` | orchestration・変換処理 | model, entity, repository | モックで単体テスト |
+| `repository` | DB/外部API操作 | model | 統合テスト（testcontainers） |
+| `handler` | HTTPリクエスト処理 | dto, usecase | E2Eテスト |
+
+#### 3. YAGNI原則の適用
+
+**不要な抽象化を避ける:**
+- CRUD中心のAPIでは`entity`層は最小限
+- 複雑なビジネスルールが発生した時に初めて`entity`に切り出し
+- 過度なインターフェース化を避け、必要な箇所のみ適用
+
+#### 4. 並行処理の安全性
+
+```go
+// usecase/gpt_usecase.go
+semaphore := make(chan struct{}, 10) // 並行数制限
+var wg sync.WaitGroup
+
+for _, d := range domains {
+    wg.Add(1)
+    semaphore <- struct{}{}
+
+    go func(d *model.Domain) {
+        defer wg.Done()
+        defer func() { <-semaphore }()
+
+        // 純粋関数を使用（安全）
+        d.MobilePhone, d.Landline = entity.SplitPhone(d.Phone)
+    }(&d)
+}
+wg.Wait()
+```
+
+### プロジェクト構成
 
 ```
 .
@@ -211,24 +309,39 @@ Swagger UIでの認証方法:
 │   ├── sales/          # メインアプリケーション
 │   └── token/          # JWTトークン生成ツール
 ├── internal/
-│   ├── auth/           # JWT認証ロジック
-│   ├── config/         # 設定管理
-│   ├── di/             # 依存性注入コンテナ
-│   ├── domain/         # ドメインモデル (Domain, Target, Task, Log)
-│   ├── external/       # 外部APIクライアント (ViewDNS)
-│   ├── infrastructure/ # データベース・Redis接続
+│   ├── entity/         # 純粋関数（ビジネスロジック）
+│   │   └── phone.go    # 例: SplitPhone(string) (string, string)
+│   ├── model/          # データ構造（gorm付き）
+│   │   ├── domain.go
+│   │   ├── target.go
+│   │   ├── task.go
+│   │   └── log.go
 │   ├── interfaces/
-│   │   ├── handler/    # HTTPハンドラー (API統合)
-│   │   ├── middleware/ # ミドルウェア (JWT認証、slogログ)
-│   │   └── repository/ # データアクセス層 (GORM, OpenAI)
-│   ├── usecase/        # ビジネスロジック (Domain, Target, Task, Log, GPT, Fetch)
+│   │   ├── dto/        # API I/O型定義
+│   │   │   ├── request/
+│   │   │   └── response/
+│   │   ├── adapter/    # 外部サービス連携
+│   │   ├── handler/    # HTTPハンドラー
+│   │   ├── middleware/ # 認証・ログ
+│   │   └── repository/ # データアクセス層
+│   ├── usecase/        # orchestration（副作用管理）
+│   ├── infrastructure/ # DB・Redis接続
+│   ├── config/         # 設定管理
+│   ├── auth/           # JWT認証ロジック
+│   ├── di/             # 依存性注入
 │   └── util/           # ユーティリティ
-├── migrations/         # データベースマイグレーション (sql-migrate)
-├── docs/              # Swagger生成ドキュメント
-├── .air.toml          # Air設定ファイル
-├── dbconfig.yml       # マイグレーション設定
-├── Dockerfile         # 本番環境用Dockerファイル
-└── docker-compose.*   # Docker Compose設定 (dev/prod)
+├── migrations/         # DBマイグレーション
+├── docs/              # Swagger自動生成
+└── docker-compose.*   # 開発・本番環境
+```
+
+### テスト戦略
+
+```
+entity/     → 単体テスト（100%カバレッジ目標）
+usecase/    → モックを使った単体テスト
+repository/ → testcontainersで統合テスト
+handler/    → E2Eテスト（必要に応じて）
 ```
 
 ## 開発
