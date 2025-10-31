@@ -45,7 +45,7 @@ func (r *logRepository) Count(ctx context.Context, filter LogFilter) (int64, err
 	var count int64
 	filter.Limit = nil
 	filter.Offset = nil
-	if err := filter.Apply(r.getDb(ctx).WithContext(ctx)).Count(&count).Error; err != nil {
+	if err := filter.Apply(r.getDb(ctx).WithContext(ctx)).Model(model.Log{}).Count(&count).Error; err != nil {
 		return 0, model.WrapDatabase("failed to count logs", err)
 	}
 	return count, nil
@@ -60,6 +60,7 @@ func (r *logRepository) getDb(ctx context.Context) *gorm.DB {
 
 type LogFilter struct {
 	Category *string
+	Name     *string
 	Limit    *int
 	Offset   *int
 }
@@ -67,6 +68,9 @@ type LogFilter struct {
 func (f *LogFilter) Apply(db *gorm.DB) *gorm.DB {
 	if f.Category != nil {
 		db = db.Where("category = ?", f.Category)
+	}
+	if f.Name != nil {
+		db = db.Where("name = ?", *f.Name)
 	}
 	if f.Limit != nil {
 		db = db.Limit(*f.Limit)

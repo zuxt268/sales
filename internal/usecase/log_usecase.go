@@ -31,7 +31,8 @@ func NewLogUsecase(
 
 func (u *logUsecase) GetLogs(ctx context.Context, req request.GetLogs) (*response.Logs, error) {
 	filter := repository.LogFilter{
-		Category: &req.Category,
+		Category: req.Category,
+		Name:     req.Name,
 		Limit:    req.Limit,
 		Offset:   req.Offset,
 	}

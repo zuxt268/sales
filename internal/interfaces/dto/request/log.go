@@ -2,8 +2,8 @@ package request
 
 type GetLogs struct {
 	Pagination
-	Name     string `json:"name"`
-	Category string `json:"category"`
+	Name     *string `json:"name"`
+	Category *string `json:"category"`
 }
 
 type CreateLog struct {
