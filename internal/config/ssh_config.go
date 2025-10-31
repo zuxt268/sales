@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/kevinburke/ssh_config"
-	"github.com/zuxt268/sales/internal/domain"
 )
 
 var cfg *ssh_config.Config
@@ -29,17 +28,17 @@ func init() {
 	}
 }
 
-func GetSSHConfig(serverID string) (domain.SSHConfig, error) {
+func GetSSHConfig(serverID string) (SSHConfig, error) {
 	if cfg == nil {
-		return domain.SSHConfig{}, fmt.Errorf("SSH config not loaded (config file not found)")
+		return SSHConfig{}, fmt.Errorf("SSH config not loaded (config file not found)")
 	}
 	hostname, err := cfg.Get(serverID, "Hostname")
 	if err != nil {
-		return domain.SSHConfig{}, err
+		return SSHConfig{}, err
 	}
 	user, err := cfg.Get(serverID, "User")
 	if err != nil {
-		return domain.SSHConfig{}, err
+		return SSHConfig{}, err
 	}
 	port := 22
 	if p, err := cfg.Get(serverID, "Port"); err == nil && p != "" {
@@ -47,13 +46,21 @@ func GetSSHConfig(serverID string) (domain.SSHConfig, error) {
 	}
 	identity, err := cfg.Get(serverID, "IdentityFile")
 	if err != nil {
-		return domain.SSHConfig{}, err
+		return SSHConfig{}, err
 	}
-	return domain.SSHConfig{
+	return SSHConfig{
 		Host:    hostname,
 		User:    user,
 		Port:    port,
 		KeyPath: identity,
 		Timeout: 60 * time.Second,
 	}, nil
+}
+
+type SSHConfig struct {
+	Host    string
+	User    string
+	Port    int
+	KeyPath string
+	Timeout time.Duration
 }

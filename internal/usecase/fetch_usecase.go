@@ -6,14 +6,14 @@ import (
 	"strconv"
 
 	"github.com/zuxt268/sales/internal/config"
-	"github.com/zuxt268/sales/internal/domain"
 	"github.com/zuxt268/sales/internal/external"
 	"github.com/zuxt268/sales/internal/interfaces/adapter"
 	"github.com/zuxt268/sales/internal/interfaces/repository"
+	"github.com/zuxt268/sales/internal/model"
 )
 
 type FetchUsecase interface {
-	Fetch(ctx context.Context, req domain.PostFetchRequest)
+	Fetch(ctx context.Context, req model.PostFetchRequest)
 }
 
 type fetchUsecase struct {
@@ -37,7 +37,7 @@ func NewFetchUsecase(
 	}
 }
 
-func (u *fetchUsecase) Fetch(ctx context.Context, req domain.PostFetchRequest) {
+func (u *fetchUsecase) Fetch(ctx context.Context, req model.PostFetchRequest) {
 	slog.Info("fetch is invoked")
 
 	target, err := u.targetRepo.GetForUpdate(ctx, repository.TargetFilter{IP: &req.Target})
@@ -59,12 +59,12 @@ func (u *fetchUsecase) Fetch(ctx context.Context, req domain.PostFetchRequest) {
 			return
 		}
 
-		domains := make([]*domain.Domain, 0, len(resp.Response.Domains))
+		domains := make([]*model.Domain, 0, len(resp.Response.Domains))
 		for _, d := range resp.Response.Domains {
-			domains = append(domains, &domain.Domain{
+			domains = append(domains, &model.Domain{
 				Name:   d.Name,
 				Target: target.Name,
-				Status: domain.StatusInitialize,
+				Status: model.StatusInitialize,
 			})
 		}
 
@@ -89,7 +89,7 @@ func (u *fetchUsecase) Fetch(ctx context.Context, req domain.PostFetchRequest) {
 		page++
 	}
 
-	target.Status = domain.TargetStatusFetched
+	target.Status = model.TargetStatusFetched
 	err = u.targetRepo.Save(ctx, &target)
 	if err != nil {
 		slog.Error("failed to save target", "error", err)

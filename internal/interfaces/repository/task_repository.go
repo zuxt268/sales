@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/zuxt268/sales/internal/domain"
+	"github.com/zuxt268/sales/internal/model"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -12,10 +12,10 @@ import (
 
 type TaskRepository interface {
 	Exists(ctx context.Context, f TaskFilter) (bool, error)
-	Get(ctx context.Context, f TaskFilter) (domain.Task, error)
-	GetForUpdate(ctx context.Context, f TaskFilter) (domain.Task, error)
-	FindAll(ctx context.Context, f TaskFilter) ([]domain.Task, error)
-	Save(ctx context.Context, task *domain.Task) error
+	Get(ctx context.Context, f TaskFilter) (model.Task, error)
+	GetForUpdate(ctx context.Context, f TaskFilter) (model.Task, error)
+	FindAll(ctx context.Context, f TaskFilter) ([]model.Task, error)
+	Save(ctx context.Context, task *model.Task) error
 	Delete(ctx context.Context, f TaskFilter) error
 }
 
@@ -30,59 +30,59 @@ func NewTaskRepository(db *gorm.DB) TaskRepository {
 }
 
 func (r *taskRepository) Exists(ctx context.Context, f TaskFilter) (bool, error) {
-	var tasks []domain.Task
+	var tasks []model.Task
 	err := f.Apply(r.getDb(ctx).WithContext(ctx)).Find(&tasks).Error
 	if err != nil {
-		return false, domain.WrapDatabase("failed to get task", err)
+		return false, model.WrapDatabase("failed to get task", err)
 	}
 	return len(tasks) > 0, nil
 }
 
-func (r *taskRepository) Get(ctx context.Context, f TaskFilter) (domain.Task, error) {
-	t := domain.Task{}
+func (r *taskRepository) Get(ctx context.Context, f TaskFilter) (model.Task, error) {
+	t := model.Task{}
 	err := f.Apply(r.getDb(ctx).WithContext(ctx)).First(&t).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return t, domain.WrapNotFound("task")
+			return t, model.WrapNotFound("task")
 		}
-		return t, domain.WrapDatabase("failed to get task", err)
+		return t, model.WrapDatabase("failed to get task", err)
 	}
 	return t, nil
 }
 
-func (r *taskRepository) GetForUpdate(ctx context.Context, f TaskFilter) (domain.Task, error) {
-	t := domain.Task{}
+func (r *taskRepository) GetForUpdate(ctx context.Context, f TaskFilter) (model.Task, error) {
+	t := model.Task{}
 	err := f.Apply(r.getDb(ctx).WithContext(ctx)).Clauses(clause.Locking{Strength: "UPDATE"}).First(&t).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return t, domain.WrapNotFound("task")
+			return t, model.WrapNotFound("task")
 		}
-		return t, domain.WrapDatabase("failed to get task for update", err)
+		return t, model.WrapDatabase("failed to get task for update", err)
 	}
 	return t, nil
 }
 
-func (r *taskRepository) FindAll(ctx context.Context, f TaskFilter) ([]domain.Task, error) {
-	var tasks []domain.Task
+func (r *taskRepository) FindAll(ctx context.Context, f TaskFilter) ([]model.Task, error) {
+	var tasks []model.Task
 	err := f.Apply(r.getDb(ctx).WithContext(ctx)).Find(&tasks).Error
 	if err != nil {
-		return nil, domain.WrapDatabase("failed to find tasks", err)
+		return nil, model.WrapDatabase("failed to find tasks", err)
 	}
 	return tasks, nil
 }
 
-func (r *taskRepository) Save(ctx context.Context, task *domain.Task) error {
+func (r *taskRepository) Save(ctx context.Context, task *model.Task) error {
 	err := r.getDb(ctx).Save(task).Error
 	if err != nil {
-		return domain.WrapDatabase("failed to save task", err)
+		return model.WrapDatabase("failed to save task", err)
 	}
 	return nil
 }
 
 func (r *taskRepository) Delete(ctx context.Context, f TaskFilter) error {
-	err := f.Apply(r.db.WithContext(ctx)).Delete(&domain.Task{}).Error
+	err := f.Apply(r.db.WithContext(ctx)).Delete(&model.Task{}).Error
 	if err != nil {
-		return domain.WrapDatabase("failed to delete task", err)
+		return model.WrapDatabase("failed to delete task", err)
 	}
 	return nil
 }

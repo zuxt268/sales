@@ -7,11 +7,11 @@ import (
 
 	"github.com/sashabaranov/go-openai"
 	"github.com/zuxt268/sales/internal/config"
-	"github.com/zuxt268/sales/internal/domain"
+	"github.com/zuxt268/sales/internal/model"
 )
 
 type GptRepository interface {
-	Analyze(ctx context.Context, domain *domain.Domain) error
+	Analyze(ctx context.Context, domain *model.Domain) error
 }
 
 type gptRepository struct {
@@ -136,7 +136,7 @@ const promptTemplate = `"""%s"""
 例）自動車整備業,山田太郎,株式会社タロウ,東京都
 `
 
-func (r *gptRepository) Analyze(ctx context.Context, d *domain.Domain) error {
+func (r *gptRepository) Analyze(ctx context.Context, d *model.Domain) error {
 	prompt := fmt.Sprintf(promptTemplate, d.RawPage)
 	resp, err := r.client.CreateChatCompletion(
 		ctx,

@@ -1,8 +1,6 @@
 package model
 
 import (
-	"fmt"
-	"strings"
 	"time"
 )
 
@@ -29,24 +27,6 @@ type Domain struct {
 	Status        Status    `gorm:"column:status"`
 	UpdatedAt     time.Time `gorm:"column:updated_at;autoUpdateTime"`
 	CreatedAt     time.Time `gorm:"column:created_at;autoCreateTime"`
-}
-
-func (u *Domain) SetPhone() {
-	mobile := make([]string, 0)
-	landline := make([]string, 0)
-	for _, phone := range strings.Split(u.Phone, ",") {
-		phone = strings.TrimSpace(phone)
-		if phone == "" {
-			continue
-		}
-		if strings.HasPrefix(phone, "080") || strings.HasPrefix(phone, "090") || strings.HasPrefix(phone, "070") {
-			mobile = append(mobile, phone)
-		} else {
-			landline = append(landline, phone)
-		}
-	}
-	u.MobilePhone = strings.Join(mobile, ",")
-	u.LandlinePhone = strings.Join(landline, ",")
 }
 
 type Status string
@@ -80,13 +60,4 @@ func IsValidStatus(s Status) bool {
 		}
 	}
 	return false
-}
-
-// ConvertToStatus は文字列をStatus型に変換し、バリデーション
-func ConvertToStatus(s string) (Status, error) {
-	status := Status(s)
-	if !IsValidStatus(status) {
-		return "", fmt.Errorf("invalid status value")
-	}
-	return status, nil
 }

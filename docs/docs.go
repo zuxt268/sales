@@ -179,7 +179,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.UpdateDomainRequest"
+                            "$ref": "#/definitions/request.UpdateDomain"
                         }
                     }
                 ],
@@ -239,7 +239,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.DeployRequest"
+                            "$ref": "#/definitions/model.DeployRequest"
                         }
                     }
                 ],
@@ -270,7 +270,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.PostFetchRequest"
+                            "$ref": "#/definitions/model.PostFetchRequest"
                         }
                     }
                 ],
@@ -326,7 +326,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/domain.Log"
+                                "$ref": "#/definitions/response.Logs"
                             }
                         }
                     }
@@ -351,7 +351,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.CreateLogRequest"
+                            "$ref": "#/definitions/request.CreateLog"
                         }
                     }
                 ],
@@ -359,7 +359,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/domain.Log"
+                            "$ref": "#/definitions/response.Log"
                         }
                     }
                 }
@@ -398,7 +398,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/domain.Target"
+                                "$ref": "#/definitions/model.Target"
                             }
                         }
                     }
@@ -423,7 +423,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.CreateTargetRequest"
+                            "$ref": "#/definitions/model.CreateTargetRequest"
                         }
                     }
                 ],
@@ -431,7 +431,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/domain.Target"
+                            "$ref": "#/definitions/model.Target"
                         }
                     }
                 }
@@ -457,7 +457,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.UpdateTargetRequest"
+                            "$ref": "#/definitions/model.UpdateTargetRequest"
                         }
                     }
                 ],
@@ -465,7 +465,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.Target"
+                            "$ref": "#/definitions/model.Target"
                         }
                     }
                 }
@@ -517,7 +517,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/domain.Task"
+                                "$ref": "#/definitions/model.Task"
                             }
                         }
                     }
@@ -542,7 +542,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.CreateTaskRequest"
+                            "$ref": "#/definitions/model.CreateTaskRequest"
                         }
                     }
                 ],
@@ -550,7 +550,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/domain.Task"
+                            "$ref": "#/definitions/model.Task"
                         }
                     }
                 }
@@ -602,7 +602,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.UpdateTaskRequest"
+                            "$ref": "#/definitions/model.UpdateTaskRequest"
                         }
                     }
                 ],
@@ -610,7 +610,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.Task"
+                            "$ref": "#/definitions/model.Task"
                         }
                     }
                 }
@@ -673,21 +673,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "domain.CreateLogRequest": {
-            "type": "object",
-            "properties": {
-                "category": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "domain.CreateTargetRequest": {
+        "model.CreateTargetRequest": {
             "type": "object",
             "properties": {
                 "ip": {
@@ -698,7 +684,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.CreateTaskRequest": {
+        "model.CreateTaskRequest": {
             "type": "object",
             "properties": {
                 "description": {
@@ -712,7 +698,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.Deploy": {
+        "model.Deploy": {
             "type": "object",
             "properties": {
                 "domain": {
@@ -723,41 +709,21 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.DeployRequest": {
+        "model.DeployRequest": {
             "type": "object",
             "properties": {
                 "dst": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.Deploy"
+                        "$ref": "#/definitions/model.Deploy"
                     }
                 },
                 "src": {
-                    "$ref": "#/definitions/domain.Deploy"
+                    "$ref": "#/definitions/model.Deploy"
                 }
             }
         },
-        "domain.Log": {
-            "type": "object",
-            "properties": {
-                "category": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "message": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "domain.PostFetchRequest": {
+        "model.PostFetchRequest": {
             "type": "object",
             "required": [
                 "target"
@@ -768,7 +734,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.Status": {
+        "model.Status": {
             "type": "string",
             "enum": [
                 "unknown",
@@ -789,7 +755,7 @@ const docTemplate = `{
                 "StatusTrash"
             ]
         },
-        "domain.Target": {
+        "model.Target": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -805,14 +771,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
-                    "$ref": "#/definitions/domain.TargetStatus"
+                    "$ref": "#/definitions/model.TargetStatus"
                 },
                 "updated_at": {
                     "type": "string"
                 }
             }
         },
-        "domain.TargetStatus": {
+        "model.TargetStatus": {
             "type": "string",
             "enum": [
                 "init",
@@ -823,7 +789,7 @@ const docTemplate = `{
                 "TargetStatusFetched"
             ]
         },
-        "domain.Task": {
+        "model.Task": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -846,7 +812,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.UpdateTargetRequest": {
+        "model.UpdateTargetRequest": {
             "type": "object",
             "properties": {
                 "ip": {
@@ -857,7 +823,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.UpdateTaskRequest": {
+        "model.UpdateTaskRequest": {
             "type": "object",
             "properties": {
                 "description": {
@@ -871,7 +837,21 @@ const docTemplate = `{
                 }
             }
         },
-        "request.UpdateDomainRequest": {
+        "request.CreateLog": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.UpdateDomain": {
             "type": "object",
             "properties": {
                 "address": {
@@ -923,7 +903,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
-                    "$ref": "#/definitions/domain.Status"
+                    "$ref": "#/definitions/model.Status"
                 },
                 "target": {
                     "type": "string"
@@ -991,7 +971,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
-                    "$ref": "#/definitions/domain.Status"
+                    "$ref": "#/definitions/model.Status"
                 },
                 "target": {
                     "type": "string"
@@ -1014,6 +994,40 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/response.Domain"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.Log": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.Logs": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "logs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.Log"
                     }
                 },
                 "total": {

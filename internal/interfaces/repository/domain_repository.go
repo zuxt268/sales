@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/zuxt268/sales/internal/domain"
+	"github.com/zuxt268/sales/internal/model"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -12,11 +12,11 @@ import (
 
 type DomainRepository interface {
 	Exists(ctx context.Context, f DomainFilter) (bool, error)
-	Get(ctx context.Context, f DomainFilter) (domain.Domain, error)
-	GetForUpdate(ctx context.Context, f DomainFilter) (domain.Domain, error)
-	FindAll(ctx context.Context, f DomainFilter) ([]domain.Domain, error)
-	Save(ctx context.Context, domain *domain.Domain) error
-	BulkInsert(ctx context.Context, domains []*domain.Domain) error
+	Get(ctx context.Context, f DomainFilter) (model.Domain, error)
+	GetForUpdate(ctx context.Context, f DomainFilter) (model.Domain, error)
+	FindAll(ctx context.Context, f DomainFilter) ([]model.Domain, error)
+	Save(ctx context.Context, domain *model.Domain) error
+	BulkInsert(ctx context.Context, domains []*model.Domain) error
 	Delete(ctx context.Context, f DomainFilter) error
 	Count(ctx context.Context, f DomainFilter) (int64, error)
 }
@@ -32,43 +32,43 @@ func NewDomainRepository(db *gorm.DB) DomainRepository {
 }
 
 func (r *domainRepository) Exists(ctx context.Context, f DomainFilter) (bool, error) {
-	var domains []domain.Domain
+	var domains []model.Domain
 	err := f.Apply(r.getDb(ctx).WithContext(ctx)).Find(&domains).Error
 	if err != nil {
-		return false, domain.WrapDatabase("failed to get domain", err)
+		return false, model.WrapDatabase("failed to get domain", err)
 	}
 	return len(domains) > 0, nil
 }
 
-func (r *domainRepository) Get(ctx context.Context, f DomainFilter) (domain.Domain, error) {
-	d := domain.Domain{}
+func (r *domainRepository) Get(ctx context.Context, f DomainFilter) (model.Domain, error) {
+	d := model.Domain{}
 	err := f.Apply(r.getDb(ctx).WithContext(ctx)).First(&d).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return d, domain.WrapNotFound("domain")
+			return d, model.WrapNotFound("domain")
 		}
-		return d, domain.WrapDatabase("failed to get domain", err)
+		return d, model.WrapDatabase("failed to get domain", err)
 	}
 	return d, nil
 }
 
-func (r *domainRepository) GetForUpdate(ctx context.Context, f DomainFilter) (domain.Domain, error) {
-	d := domain.Domain{}
+func (r *domainRepository) GetForUpdate(ctx context.Context, f DomainFilter) (model.Domain, error) {
+	d := model.Domain{}
 	err := f.Apply(r.getDb(ctx).WithContext(ctx)).Clauses(clause.Locking{Strength: "UPDATE"}).First(&d).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return d, domain.WrapNotFound("domain")
+			return d, model.WrapNotFound("domain")
 		}
-		return d, domain.WrapDatabase("failed to get domain for update", err)
+		return d, model.WrapDatabase("failed to get domain for update", err)
 	}
 	return d, nil
 }
 
-func (r *domainRepository) FindAll(ctx context.Context, f DomainFilter) ([]domain.Domain, error) {
-	var ds []domain.Domain
+func (r *domainRepository) FindAll(ctx context.Context, f DomainFilter) ([]model.Domain, error) {
+	var ds []model.Domain
 	err := f.Apply(r.getDb(ctx).WithContext(ctx)).Find(&ds).Error
 	if err != nil {
-		return nil, domain.WrapDatabase("failed to find domains", err)
+		return nil, model.WrapDatabase("failed to find domains", err)
 	}
 	return ds, nil
 }
@@ -77,36 +77,36 @@ func (r *domainRepository) Count(ctx context.Context, f DomainFilter) (int64, er
 	var count int64
 	f.Limit = nil
 	f.Offset = nil
-	err := f.Apply(r.getDb(ctx).WithContext(ctx)).Model(&domain.Domain{}).Count(&count).Error
+	err := f.Apply(r.getDb(ctx).WithContext(ctx)).Model(&model.Domain{}).Count(&count).Error
 	if err != nil {
-		return 0, domain.WrapDatabase("failed to count domains", err)
+		return 0, model.WrapDatabase("failed to count domains", err)
 	}
 	return count, nil
 }
 
-func (r *domainRepository) Save(ctx context.Context, d *domain.Domain) error {
+func (r *domainRepository) Save(ctx context.Context, d *model.Domain) error {
 	err := r.getDb(ctx).Save(d).Error
 	if err != nil {
-		return domain.WrapDatabase("failed to save domain", err)
+		return model.WrapDatabase("failed to save domain", err)
 	}
 	return nil
 }
 
-func (r *domainRepository) BulkInsert(ctx context.Context, domains []*domain.Domain) error {
+func (r *domainRepository) BulkInsert(ctx context.Context, domains []*model.Domain) error {
 	err := r.getDb(ctx).Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "name"}},
 		DoNothing: true,
 	}).WithContext(ctx).CreateInBatches(domains, 100).Error
 	if err != nil {
-		return domain.WrapDatabase("failed to bulk insert domains", err)
+		return model.WrapDatabase("failed to bulk insert domains", err)
 	}
 	return nil
 }
 
 func (r *domainRepository) Delete(ctx context.Context, f DomainFilter) error {
-	err := f.Apply(r.db.WithContext(ctx)).Delete(&domain.Domain{}).Error
+	err := f.Apply(r.db.WithContext(ctx)).Delete(&model.Domain{}).Error
 	if err != nil {
-		return domain.WrapDatabase("failed to delete domain", err)
+		return model.WrapDatabase("failed to delete domain", err)
 	}
 	return nil
 }
@@ -129,7 +129,7 @@ type DomainFilter struct {
 	OwnerID     *string
 	Industry    *string
 	IsSSL       *bool
-	Status      *domain.Status
+	Status      *model.Status
 	Limit       *int
 	Offset      *int
 }

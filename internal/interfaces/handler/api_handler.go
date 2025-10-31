@@ -8,9 +8,10 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/zuxt268/sales/internal/domain"
+	"github.com/zuxt268/sales/internal/entity"
 	"github.com/zuxt268/sales/internal/interfaces/dto/request"
 	_ "github.com/zuxt268/sales/internal/interfaces/dto/response"
+	"github.com/zuxt268/sales/internal/model"
 	"github.com/zuxt268/sales/internal/usecase"
 
 	"github.com/labstack/echo/v4"
@@ -108,7 +109,7 @@ func (h *apiHandler) GetDomain(c echo.Context) error {
 // @Success 200 {array} response.Domains
 // @Router /domains [get]
 func (h *apiHandler) GetDomains(c echo.Context) error {
-	var req request.GetDomainsRequest
+	var req request.GetDomains
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
@@ -127,15 +128,12 @@ func (h *apiHandler) GetDomains(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Param id path string true "ID"
-// @Param request body request.UpdateDomainRequest true "更新ドメイン情報"
+// @Param request body request.UpdateDomain true "更新ドメイン情報"
 // @Success 200 {object} response.Domain
 // @Router /domains/{id} [put]
 func (h *apiHandler) UpdateDomain(c echo.Context) error {
-	var req request.UpdateDomainRequest
+	var req request.UpdateDomain
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, err.Error())
-	}
-	if err := req.Validate(); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 	var id int
@@ -191,11 +189,11 @@ func (h *apiHandler) AnalyzeDomains(c echo.Context) error {
 // @Tags ViewDNS
 // @Accept json
 // @Produce json
-// @Param request body domain.PostFetchRequest true "Fetch request"
+// @Param request body model.PostFetchRequest true "Fetch request"
 // @Success 202
 // @Router /fetch [post]
 func (h *apiHandler) FetchDomains(c echo.Context) error {
-	var req domain.PostFetchRequest
+	var req model.PostFetchRequest
 	if err := c.Bind(&req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
@@ -216,10 +214,10 @@ func (h *apiHandler) FetchDomains(c echo.Context) error {
 // @Produce json
 // @Param limit query int false "Limit"
 // @Param offset query int false "Offset"
-// @Success 200 {array} domain.Target
+// @Success 200 {array} model.Target
 // @Router /targets [get]
 func (h *apiHandler) GetTargets(c echo.Context) error {
-	var req domain.GetTargetsRequest
+	var req model.GetTargetsRequest
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
@@ -236,11 +234,11 @@ func (h *apiHandler) GetTargets(c echo.Context) error {
 // @Tags ターゲット
 // @Accept json
 // @Produce json
-// @Param request body domain.CreateTargetRequest true "作成ターゲット情報"
-// @Success 201 {object} domain.Target
+// @Param request body model.CreateTargetRequest true "作成ターゲット情報"
+// @Success 201 {object} model.Target
 // @Router /targets [post]
 func (h *apiHandler) CreateTarget(c echo.Context) error {
-	var req domain.CreateTargetRequest
+	var req model.CreateTargetRequest
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
@@ -257,8 +255,8 @@ func (h *apiHandler) CreateTarget(c echo.Context) error {
 // @Tags ターゲット
 // @Accept json
 // @Produce json
-// @Param request body domain.UpdateTargetRequest true "更新ターゲット情報"
-// @Success 200 {object} domain.Target
+// @Param request body model.UpdateTargetRequest true "更新ターゲット情報"
+// @Success 200 {object} model.Target
 // @Router /targets/{id} [put]
 func (h *apiHandler) UpdateTarget(c echo.Context) error {
 	var id int
@@ -266,7 +264,7 @@ func (h *apiHandler) UpdateTarget(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	var req domain.UpdateTargetRequest
+	var req model.UpdateTargetRequest
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
@@ -309,10 +307,10 @@ func (h *apiHandler) DeleteTarget(c echo.Context) error {
 // @Param category query string false "カテゴリー"
 // @Param limit query int false "Limit"
 // @Param offset query int false "Offset"
-// @Success 200 {array} domain.Log
+// @Success 200 {array} response.Logs
 // @Router /logs [get]
 func (h *apiHandler) GetLogs(c echo.Context) error {
-	var req domain.GetLogsRequest
+	var req request.GetLogs
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
@@ -329,11 +327,11 @@ func (h *apiHandler) GetLogs(c echo.Context) error {
 // @Tags ログ
 // @Accept json
 // @Produce json
-// @Param request body domain.CreateLogRequest true "作成ログ情報"
-// @Success 201 {object} domain.Log
+// @Param request body request.CreateLog true "作成ログ情報"
+// @Success 201 {object} response.Log
 // @Router /logs [post]
 func (h *apiHandler) CreateLog(c echo.Context) error {
-	var req domain.CreateLogRequest
+	var req request.CreateLog
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
@@ -350,7 +348,7 @@ func (h *apiHandler) CreateLog(c echo.Context) error {
 // @Tags タスク
 // @Accept json
 // @Produce json
-// @Success 200 {array} domain.Task
+// @Success 200 {array} model.Task
 // @Router /tasks [get]
 func (h *apiHandler) GetTasks(c echo.Context) error {
 	resp, err := h.taskUsecase.GetTasks(c.Request().Context())
@@ -366,11 +364,11 @@ func (h *apiHandler) GetTasks(c echo.Context) error {
 // @Tags タスク
 // @Accept json
 // @Produce json
-// @Param request body domain.CreateTaskRequest true "作成タスク情報"
-// @Success 201 {object} domain.Task
+// @Param request body model.CreateTaskRequest true "作成タスク情報"
+// @Success 201 {object} model.Task
 // @Router /tasks [post]
 func (h *apiHandler) CreateTask(c echo.Context) error {
-	var req domain.CreateTaskRequest
+	var req model.CreateTaskRequest
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
@@ -388,8 +386,8 @@ func (h *apiHandler) CreateTask(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Param id path int true "Task ID"
-// @Param request body domain.UpdateTaskRequest true "更新タスク情報"
-// @Success 200 {object} domain.Task
+// @Param request body model.UpdateTaskRequest true "更新タスク情報"
+// @Success 200 {object} model.Task
 // @Router /tasks/{id} [put]
 func (h *apiHandler) UpdateTask(c echo.Context) error {
 	var id int
@@ -397,7 +395,7 @@ func (h *apiHandler) UpdateTask(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	var req domain.UpdateTaskRequest
+	var req model.UpdateTaskRequest
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
@@ -472,11 +470,11 @@ func (h *apiHandler) ExecuteTask(c echo.Context) error {
 // @Tags Wordpress
 // @Accept json
 // @Produce json
-// @Param request body domain.DeployRequest true "デプロイ情報"
+// @Param request body model.DeployRequest true "デプロイ情報"
 // @Success 201
 // @Router /external/api/deploy [post]
 func (h *apiHandler) DeployWordpress(c echo.Context) error {
-	var req domain.DeployRequest
+	var req entity.DeployRequest
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
@@ -500,74 +498,74 @@ func handleError(c echo.Context, err error) error {
 
 	// エラータイプに応じてステータスコードを決定
 	switch {
-	case errors.Is(err, domain.ErrNotFound):
-		return c.JSON(http.StatusNotFound, domain.ErrorResponse{
+	case errors.Is(err, model.ErrNotFound):
+		return c.JSON(http.StatusNotFound, model.ErrorResponse{
 			Error:   "not_found",
 			Message: "The requested resource was not found",
 		})
 
-	case errors.Is(err, domain.ErrAlreadyExists):
-		return c.JSON(http.StatusConflict, domain.ErrorResponse{
+	case errors.Is(err, model.ErrAlreadyExists):
+		return c.JSON(http.StatusConflict, model.ErrorResponse{
 			Error:   "already_exists",
 			Message: "The resource already exists",
 		})
 
-	case errors.Is(err, domain.ErrConflict):
-		return c.JSON(http.StatusConflict, domain.ErrorResponse{
+	case errors.Is(err, model.ErrConflict):
+		return c.JSON(http.StatusConflict, model.ErrorResponse{
 			Error:   "conflict",
 			Message: "Resource conflict occurred",
 		})
 
-	case errors.Is(err, domain.ErrValidation):
-		return c.JSON(http.StatusBadRequest, domain.ErrorResponse{
+	case errors.Is(err, model.ErrValidation):
+		return c.JSON(http.StatusBadRequest, model.ErrorResponse{
 			Error:   "validation_error",
 			Message: err.Error(),
 		})
 
-	case errors.Is(err, domain.ErrInvalidInput):
-		return c.JSON(http.StatusBadRequest, domain.ErrorResponse{
+	case errors.Is(err, model.ErrInvalidInput):
+		return c.JSON(http.StatusBadRequest, model.ErrorResponse{
 			Error:   "invalid_input",
 			Message: err.Error(),
 		})
 
-	case errors.Is(err, domain.ErrExternalAPI):
-		return c.JSON(http.StatusBadGateway, domain.ErrorResponse{
+	case errors.Is(err, model.ErrExternalAPI):
+		return c.JSON(http.StatusBadGateway, model.ErrorResponse{
 			Error:   "external_api_error",
 			Message: "External service is unavailable",
 		})
 
-	case errors.Is(err, domain.ErrTimeout):
-		return c.JSON(http.StatusGatewayTimeout, domain.ErrorResponse{
+	case errors.Is(err, model.ErrTimeout):
+		return c.JSON(http.StatusGatewayTimeout, model.ErrorResponse{
 			Error:   "timeout",
 			Message: "Request timed out",
 		})
 
-	case errors.Is(err, domain.ErrDatabase):
-		return c.JSON(http.StatusInternalServerError, domain.ErrorResponse{
+	case errors.Is(err, model.ErrDatabase):
+		return c.JSON(http.StatusInternalServerError, model.ErrorResponse{
 			Error:   "database_error",
 			Message: "Database operation failed",
 		})
 
-	case errors.Is(err, domain.ErrTransaction):
-		return c.JSON(http.StatusInternalServerError, domain.ErrorResponse{
+	case errors.Is(err, model.ErrTransaction):
+		return c.JSON(http.StatusInternalServerError, model.ErrorResponse{
 			Error:   "transaction_error",
 			Message: "Transaction operation failed",
 		})
 
-	case errors.Is(err, domain.ErrUnauthorized):
-		return c.JSON(http.StatusUnauthorized, domain.ErrorResponse{
+	case errors.Is(err, model.ErrUnauthorized):
+		return c.JSON(http.StatusUnauthorized, model.ErrorResponse{
 			Error:   "unauthorized",
 			Message: "Authentication required",
 		})
 
-	case errors.Is(err, domain.ErrForbidden):
-		return c.JSON(http.StatusForbidden, domain.ErrorResponse{
+	case errors.Is(err, model.ErrForbidden):
+		return c.JSON(http.StatusForbidden, model.ErrorResponse{
 			Error:   "forbidden",
 			Message: "Access denied",
 		})
 
 	default:
-		return c.JSON(http.StatusInternalServerError, domain.ErrorResponse{
+		return c.JSON(http.StatusInternalServerError, model.ErrorResponse{
 			Error:   "internal_error",
 			Message: err.Error(),
 		})

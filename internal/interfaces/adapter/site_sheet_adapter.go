@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/zuxt268/sales/internal/domain"
 	"github.com/zuxt268/sales/internal/infrastructure"
+	"github.com/zuxt268/sales/internal/model"
 )
 
 type SiteSheetAdapter interface {
-	Output(ctx context.Context, rival string, results []domain.Domain) error
+	Output(ctx context.Context, rival string, results []model.Domain) error
 }
 
 type siteSheetAdapter struct {
@@ -27,7 +27,7 @@ func NewSiteSheetAdapter(
 	}
 }
 
-func (s *siteSheetAdapter) Output(ctx context.Context, rival string, results []domain.Domain) error {
+func (s *siteSheetAdapter) Output(ctx context.Context, rival string, results []model.Domain) error {
 	// ヘッダー行を追加
 	cells := make([][]interface{}, 0, len(results)+1)
 	cells = append(cells, []interface{}{
@@ -49,8 +49,8 @@ func (s *siteSheetAdapter) Output(ctx context.Context, rival string, results []d
 	// シート名としてrivalを使用し、A1から書き込み
 	_, err := s.googleSheetsClient.WriteToSheetOrCreate(
 		s.sheetID,
-		rival,          // シート名
-		"A1",           // セル範囲の開始位置
+		rival, // シート名
+		"A1",  // セル範囲の開始位置
 		cells,
 		"USER_ENTERED", // ユーザー入力と同じ処理
 	)

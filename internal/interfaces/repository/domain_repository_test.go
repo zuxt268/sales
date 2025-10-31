@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zuxt268/sales/internal/domain"
 	"github.com/zuxt268/sales/internal/infrastructure"
+	"github.com/zuxt268/sales/internal/model"
 	"github.com/zuxt268/sales/internal/util"
 
 	"gorm.io/gorm"
@@ -37,7 +37,7 @@ func TestDomainRepository_Save(t *testing.T) {
 	repo := NewDomainRepository(testDB)
 	ctx := context.Background()
 
-	d := &domain.Domain{
+	d := &model.Domain{
 		Name:     "example.com",
 		CanView:  true,
 		IsSend:   false,
@@ -49,7 +49,7 @@ func TestDomainRepository_Save(t *testing.T) {
 		IsSSL:    true,
 		RawPage:  "<html></html>",
 		PageNum:  1,
-		Status:   domain.StatusInitialize,
+		Status:   model.StatusInitialize,
 	}
 
 	err := repo.Save(ctx, d)
@@ -82,7 +82,7 @@ func TestDomainRepository_Get(t *testing.T) {
 	ctx := context.Background()
 
 	// テストデータを準備
-	d := &domain.Domain{
+	d := &model.Domain{
 		Name:    "test-get.com",
 		Title:   "Test Get",
 		OwnerID: "owner456",
@@ -118,7 +118,7 @@ func TestDomainRepository_FindAll(t *testing.T) {
 	ctx := context.Background()
 
 	// テストデータを準備
-	domains := []*domain.Domain{
+	domains := []*model.Domain{
 		{Name: "findall1.com", Title: "FindAll 1", Industry: "Tech"},
 		{Name: "findall2.com", Title: "FindAll 2", Industry: "Finance"},
 		{Name: "findall3.com", Title: "FindAll 3", Industry: "Tech"},
@@ -174,7 +174,7 @@ func TestDomainRepository_BulkInsert(t *testing.T) {
 	ctx := context.Background()
 
 	// テストデータを準備
-	domains := []*domain.Domain{
+	domains := []*model.Domain{
 		{Name: "bulk1.com", Title: "Bulk 1"},
 		{Name: "bulk2.com", Title: "Bulk 2"},
 		{Name: "bulk3.com", Title: "Bulk 3"},
@@ -208,7 +208,7 @@ func TestDomainRepository_Delete(t *testing.T) {
 	ctx := context.Background()
 
 	// テストデータを準備
-	d := &domain.Domain{
+	d := &model.Domain{
 		Name:  "delete-test.com",
 		Title: "Delete Test",
 	}
@@ -235,7 +235,7 @@ func TestDomainRepository_Update(t *testing.T) {
 	ctx := context.Background()
 
 	// テストデータを準備
-	d := &domain.Domain{
+	d := &model.Domain{
 		Name:  "update-test.com",
 		Title: "Original Title",
 	}
@@ -290,7 +290,7 @@ func TestDomainRepository_GetForUpdate(t *testing.T) {
 	ctx := context.Background()
 
 	// テストデータを準備
-	d := &domain.Domain{
+	d := &model.Domain{
 		Name:  "forupdate-test.com",
 		Title: "For Update Test",
 	}
@@ -319,8 +319,8 @@ func TestDomainRepository_GormTags(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("PrimaryKey and AutoIncrement", func(t *testing.T) {
-		d1 := &domain.Domain{Name: "pk-test1.com"}
-		d2 := &domain.Domain{Name: "pk-test2.com"}
+		d1 := &model.Domain{Name: "pk-test1.com"}
+		d2 := &model.Domain{Name: "pk-test2.com"}
 
 		if err := repo.Save(ctx, d1); err != nil {
 			t.Fatalf("Failed to save domain 1: %v", err)
@@ -338,8 +338,8 @@ func TestDomainRepository_GormTags(t *testing.T) {
 	})
 
 	t.Run("Unique constraint on Name", func(t *testing.T) {
-		d1 := &domain.Domain{Name: "unique-test.com", Title: "First"}
-		d2 := &domain.Domain{Name: "unique-test.com", Title: "Second"}
+		d1 := &model.Domain{Name: "unique-test.com", Title: "First"}
+		d2 := &model.Domain{Name: "unique-test.com", Title: "Second"}
 
 		if err := repo.Save(ctx, d1); err != nil {
 			t.Fatalf("Failed to save first domain: %v", err)
@@ -353,7 +353,7 @@ func TestDomainRepository_GormTags(t *testing.T) {
 	})
 
 	t.Run("AutoCreateTime and AutoUpdateTime", func(t *testing.T) {
-		d := &domain.Domain{Name: "time-test.com", Title: "Time Test"}
+		d := &model.Domain{Name: "time-test.com", Title: "Time Test"}
 
 		if err := repo.Save(ctx, d); err != nil {
 			t.Fatalf("Failed to save domain: %v", err)
@@ -410,7 +410,7 @@ func TestDomainRepository_AllFields(t *testing.T) {
 	ctx := context.Background()
 
 	// 全フィールドを設定
-	original := &domain.Domain{
+	original := &model.Domain{
 		Name:     "allfields.com",
 		CanView:  true,
 		IsSend:   true,
@@ -422,7 +422,7 @@ func TestDomainRepository_AllFields(t *testing.T) {
 		IsSSL:    true,
 		RawPage:  "<html><body>Test</body></html>",
 		PageNum:  5,
-		Status:   domain.StatusDone,
+		Status:   model.StatusDone,
 	}
 
 	if err := repo.Save(ctx, original); err != nil {
@@ -488,9 +488,9 @@ func TestDomainRepository_Filters(t *testing.T) {
 	ctx := context.Background()
 
 	// テストデータの準備
-	testDomains := []*domain.Domain{
-		{Name: "filter1.com", CanView: true, IsSend: false, OwnerID: "owner1", Industry: "Tech", IsSSL: true, Status: domain.StatusInitialize},
-		{Name: "filter2.com", CanView: false, IsSend: true, OwnerID: "owner2", Industry: "Finance", IsSSL: false, Status: domain.StatusDone},
+	testDomains := []*model.Domain{
+		{Name: "filter1.com", CanView: true, IsSend: false, OwnerID: "owner1", Industry: "Tech", IsSSL: true, Status: model.StatusInitialize},
+		{Name: "filter2.com", CanView: false, IsSend: true, OwnerID: "owner2", Industry: "Finance", IsSSL: false, Status: model.StatusDone},
 	}
 
 	for _, d := range testDomains {
@@ -586,7 +586,7 @@ func TestDomainRepository_Filters(t *testing.T) {
 	})
 
 	t.Run("Filter by Status", func(t *testing.T) {
-		status := domain.StatusDone
+		status := model.StatusDone
 		results, err := repo.FindAll(ctx, DomainFilter{
 			PartialName: util.Pointer("filter"),
 			Status:      &status,
@@ -622,7 +622,7 @@ func TestDomainRepository_DefaultValues(t *testing.T) {
 	ctx := context.Background()
 
 	// 最小限のフィールドのみ設定
-	d := &domain.Domain{
+	d := &model.Domain{
 		Name: "minimal.com",
 	}
 
@@ -670,7 +670,7 @@ func TestDomainRepository_Exists(t *testing.T) {
 	repo := NewDomainRepository(testDB)
 	ctx := context.Background()
 
-	d := &domain.Domain{Name: "exists-test.com"}
+	d := &model.Domain{Name: "exists-test.com"}
 	if err := repo.Save(ctx, d); err != nil {
 		t.Fatalf("Failed to save domain: %v", err)
 	}

@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/zuxt268/sales/internal/domain"
+	"github.com/zuxt268/sales/internal/entity"
 	"github.com/zuxt268/sales/internal/interfaces/adapter"
 	"github.com/zuxt268/sales/internal/interfaces/repository"
+	"github.com/zuxt268/sales/internal/model"
 	"github.com/zuxt268/sales/internal/util"
 )
 
@@ -36,7 +37,7 @@ func NewGptUsecase(
 func (u *gptUsecase) AnalyzeDomains(ctx context.Context) error {
 	_ = u.slackAdapter.Send(ctx, "analyze 開始")
 	domains, err := u.domainRepo.FindAll(ctx, repository.DomainFilter{
-		Status: util.Pointer(domain.StatusCrawlCompInfo),
+		Status: util.Pointer(model.StatusCrawlCompInfo),
 	})
 	if err != nil {
 		return err
@@ -49,21 +50,21 @@ func (u *gptUsecase) AnalyzeDomains(ctx context.Context) error {
 		wg.Add(1)
 		semaphore <- struct{}{}
 
-		go func(d domain.Domain) {
+		go func(d *model.Domain) {
 			defer wg.Done()
 			defer func() { <-semaphore }()
 
-			if err := u.gptRepo.Analyze(ctx, &d); err != nil {
+			if err := u.gptRepo.Analyze(ctx, d); err != nil {
 				fmt.Println(err)
 				return
 			}
-			d.SetPhone()
-			d.Status = domain.StatusDone
-			if err := u.domainRepo.Save(ctx, &d); err != nil {
+			d.MobilePhone, d.LandlinePhone = entity.SplitPhone(d.Phone)
+			d.Status = model.StatusDone
+			if err := u.domainRepo.Save(ctx, d); err != nil {
 				fmt.Println(err)
 				return
 			}
-		}(d)
+		}(&d)
 	}
 
 	wg.Wait()

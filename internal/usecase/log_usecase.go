@@ -3,13 +3,15 @@ package usecase
 import (
 	"context"
 
-	"github.com/zuxt268/sales/internal/domain"
+	"github.com/zuxt268/sales/internal/interfaces/dto/request"
+	"github.com/zuxt268/sales/internal/interfaces/dto/response"
 	"github.com/zuxt268/sales/internal/interfaces/repository"
+	"github.com/zuxt268/sales/internal/model"
 )
 
 type LogUsecase interface {
-	GetLogs(ctx context.Context, req domain.GetLogsRequest) ([]domain.Log, error)
-	CreateLogs(ctx context.Context, req domain.CreateLogRequest) (*domain.Log, error)
+	GetLogs(ctx context.Context, req request.GetLogs) (*response.Logs, error)
+	CreateLogs(ctx context.Context, req request.CreateLog) (*response.Log, error)
 }
 
 type logUsecase struct {
@@ -27,25 +29,32 @@ func NewLogUsecase(
 	}
 }
 
-func (u *logUsecase) GetLogs(ctx context.Context, req domain.GetLogsRequest) ([]domain.Log, error) {
-	return u.logRepo.FindAll(ctx, repository.LogFilter{
-		Category: req.Category,
+func (u *logUsecase) GetLogs(ctx context.Context, req request.GetLogs) (*response.Logs, error) {
+	filter := repository.LogFilter{
+		Category: &req.Category,
 		Limit:    req.Limit,
 		Offset:   req.Offset,
-	})
-}
-
-func (u *logUsecase) CreateLogs(ctx context.Context, req domain.CreateLogRequest) (*domain.Log, error) {
-	log := &domain.Log{
-		Name:     req.Name,
-		Category: req.Category,
-		Message:  req.Message,
 	}
-
-	err := u.logRepo.Create(ctx, log)
+	logs, err := u.logRepo.FindAll(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
+	total, err := u.logRepo.Count(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	return response.GetLogs(logs, total), nil
+}
 
-	return log, nil
+func (u *logUsecase) CreateLogs(ctx context.Context, req request.CreateLog) (*response.Log, error) {
+	l := &model.Log{
+		Category: req.Category,
+		Name:     req.Name,
+		Message:  req.Message,
+	}
+	err := u.logRepo.Create(ctx, l)
+	if err != nil {
+		return nil, err
+	}
+	return response.GetLog(l), nil
 }

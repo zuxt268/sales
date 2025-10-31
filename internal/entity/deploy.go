@@ -1,10 +1,11 @@
-package domain
+package entity
 
 import (
 	"crypto/sha256"
 	"fmt"
 	"strings"
-	"time"
+
+	"github.com/zuxt268/sales/internal/config"
 )
 
 type Deploy struct {
@@ -78,16 +79,16 @@ func (d *Deploy) GetDbUser() string {
 
 func (d *Deploy) GetDbPassword() string {
 	if d.ServerID == "xb932770" {
-		return "vpdmHQYQVnJt"
+		return config.Env.DatabasePassword1
 	}
-	return "z3WbNgMHs78Z"
+	return config.Env.DatabasePassword2
 }
 
 func (d *Deploy) GetDbHost() string {
 	if d.ServerID == "xb932770" {
-		return "mysql204.xbiz.ne.jp"
+		return config.Env.DatabaseHost1
 	}
-	return "localhost"
+	return config.Env.DatabaseHost2
 }
 
 func (d *Deploy) IsSubDomain() bool {
@@ -96,8 +97,7 @@ func (d *Deploy) IsSubDomain() bool {
 }
 
 func (d *Deploy) GetHashData() string {
-	// MOD_STR = "{Domain}homsta"
-	modStr := fmt.Sprintf("%shomsta", d.Domain)
+	modStr := fmt.Sprintf("%s%s", d.Domain, config.Env.HashPhrase)
 
 	// 1回目のハッシュ化
 	firstHash := sha256.Sum256([]byte(modStr))
@@ -156,12 +156,4 @@ func (r *DeployRequest) Validate() error {
 		}
 	}
 	return nil
-}
-
-type SSHConfig struct {
-	Host    string
-	User    string
-	Port    int
-	KeyPath string
-	Timeout time.Duration
 }

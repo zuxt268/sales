@@ -6,11 +6,11 @@ import (
 	"fmt"
 
 	"github.com/redis/go-redis/v9"
-	"github.com/zuxt268/sales/internal/domain"
+	"github.com/zuxt268/sales/internal/model"
 )
 
 type TaskQueueAdapter interface {
-	Enqueue(ctx context.Context, task domain.Task) error
+	Enqueue(ctx context.Context, task model.Task) error
 }
 
 type taskQueueAdapter struct {
@@ -27,7 +27,7 @@ func NewTaskQueueAdapter(
 
 const queueNameTask = "task"
 
-func (a *taskQueueAdapter) Enqueue(ctx context.Context, task domain.Task) error {
+func (a *taskQueueAdapter) Enqueue(ctx context.Context, task model.Task) error {
 	jsonData, err := json.Marshal(task)
 	if err != nil {
 		return fmt.Errorf("failed to marshal data: %w", err)

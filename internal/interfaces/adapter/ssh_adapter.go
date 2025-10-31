@@ -11,18 +11,18 @@ import (
 
 	"github.com/bramvdbogaerde/go-scp"
 	"github.com/bramvdbogaerde/go-scp/auth"
-	"github.com/zuxt268/sales/internal/domain"
+	"github.com/zuxt268/sales/internal/config"
 	"github.com/zuxt268/sales/internal/util"
 	"golang.org/x/crypto/ssh"
 )
 
 type SSHAdapter interface {
-	Run(cfg domain.SSHConfig, command string) error
-	RunOutput(cfg domain.SSHConfig, command string) (string, error)
-	UploadFile(ctx context.Context, cfg domain.SSHConfig, localPath, remotePath string) error
-	DownloadFile(ctx context.Context, cfg domain.SSHConfig, remotePath, localPath string) error
-	WriteFile(cfg domain.SSHConfig, content []byte, remotePath string) error
-	WriteFileWithPerm(cfg domain.SSHConfig, content []byte, remotePath string, perm string) error
+	Run(cfg config.SSHConfig, command string) error
+	RunOutput(cfg config.SSHConfig, command string) (string, error)
+	UploadFile(ctx context.Context, cfg config.SSHConfig, localPath, remotePath string) error
+	DownloadFile(ctx context.Context, cfg config.SSHConfig, remotePath, localPath string) error
+	WriteFile(cfg config.SSHConfig, content []byte, remotePath string) error
+	WriteFileWithPerm(cfg config.SSHConfig, content []byte, remotePath string, perm string) error
 }
 
 type sshAdapter struct {
@@ -33,7 +33,7 @@ func NewSSHAdapter() SSHAdapter {
 }
 
 // getSSHClientConfig loads the private key and returns *ssh.ClientConfig
-func (a *sshAdapter) getSSHClientConfig(cfg domain.SSHConfig) (*ssh.ClientConfig, error) {
+func (a *sshAdapter) getSSHClientConfig(cfg config.SSHConfig) (*ssh.ClientConfig, error) {
 	// チルダを展開
 	keyPath := util.ExpandTilde(cfg.KeyPath)
 
@@ -60,7 +60,7 @@ func (a *sshAdapter) getSSHClientConfig(cfg domain.SSHConfig) (*ssh.ClientConfig
 }
 
 // Run executes a shell command on a remote host via SSH
-func (a *sshAdapter) Run(cfg domain.SSHConfig, command string) error {
+func (a *sshAdapter) Run(cfg config.SSHConfig, command string) error {
 	clientConfig, err := a.getSSHClientConfig(cfg)
 	if err != nil {
 		return err
@@ -109,7 +109,7 @@ func (a *sshAdapter) Run(cfg domain.SSHConfig, command string) error {
 	return nil
 }
 
-func (a *sshAdapter) RunOutput(cfg domain.SSHConfig, command string) (string, error) {
+func (a *sshAdapter) RunOutput(cfg config.SSHConfig, command string) (string, error) {
 	clientConfig, err := a.getSSHClientConfig(cfg)
 	if err != nil {
 		return "", err
@@ -136,7 +136,7 @@ func (a *sshAdapter) RunOutput(cfg domain.SSHConfig, command string) (string, er
 }
 
 // UploadFile copies a local file to the remote host via SCP
-func (a *sshAdapter) UploadFile(ctx context.Context, cfg domain.SSHConfig, localPath, remotePath string) error {
+func (a *sshAdapter) UploadFile(ctx context.Context, cfg config.SSHConfig, localPath, remotePath string) error {
 	// チルダを展開
 	keyPath := util.ExpandTilde(cfg.KeyPath)
 
@@ -168,7 +168,7 @@ func (a *sshAdapter) UploadFile(ctx context.Context, cfg domain.SSHConfig, local
 }
 
 // DownloadFile copies a remote file to the local host via SCP
-func (a *sshAdapter) DownloadFile(ctx context.Context, cfg domain.SSHConfig, remotePath, localPath string) error {
+func (a *sshAdapter) DownloadFile(ctx context.Context, cfg config.SSHConfig, remotePath, localPath string) error {
 	// チルダを展開
 	keyPath := util.ExpandTilde(cfg.KeyPath)
 
@@ -205,12 +205,12 @@ func (a *sshAdapter) DownloadFile(ctx context.Context, cfg domain.SSHConfig, rem
 }
 
 // WriteFile writes content directly to a remote file via SSH stdin
-func (a *sshAdapter) WriteFile(cfg domain.SSHConfig, content []byte, remotePath string) error {
+func (a *sshAdapter) WriteFile(cfg config.SSHConfig, content []byte, remotePath string) error {
 	return a.WriteFileWithPerm(cfg, content, remotePath, "0644")
 }
 
 // WriteFileWithPerm writes content directly to a remote file via SSH stdin with specified permissions
-func (a *sshAdapter) WriteFileWithPerm(cfg domain.SSHConfig, content []byte, remotePath string, perm string) error {
+func (a *sshAdapter) WriteFileWithPerm(cfg config.SSHConfig, content []byte, remotePath string, perm string) error {
 	clientConfig, err := a.getSSHClientConfig(cfg)
 	if err != nil {
 		return err

@@ -3,14 +3,14 @@ package usecase
 import (
 	"context"
 
-	"github.com/zuxt268/sales/internal/domain"
 	"github.com/zuxt268/sales/internal/interfaces/repository"
+	"github.com/zuxt268/sales/internal/model"
 )
 
 type TargetUsecase interface {
-	GetTargets(ctx context.Context, req domain.GetTargetsRequest) ([]domain.Target, error)
-	CreateTarget(ctx context.Context, req domain.CreateTargetRequest) (*domain.Target, error)
-	UpdateTarget(ctx context.Context, id int, req domain.UpdateTargetRequest) (*domain.Target, error)
+	GetTargets(ctx context.Context, req model.GetTargetsRequest) ([]model.Target, error)
+	CreateTarget(ctx context.Context, req model.CreateTargetRequest) (*model.Target, error)
+	UpdateTarget(ctx context.Context, id int, req model.UpdateTargetRequest) (*model.Target, error)
 	DeleteTarget(ctx context.Context, id int) error
 }
 
@@ -29,18 +29,18 @@ func NewTargetUsecase(
 	}
 }
 
-func (u *targetUsecase) GetTargets(ctx context.Context, req domain.GetTargetsRequest) ([]domain.Target, error) {
+func (u *targetUsecase) GetTargets(ctx context.Context, req model.GetTargetsRequest) ([]model.Target, error) {
 	return u.targetRepo.FindAll(ctx, repository.TargetFilter{
 		Limit:  req.Limit,
 		Offset: req.Offset,
 	})
 }
 
-func (u *targetUsecase) CreateTarget(ctx context.Context, req domain.CreateTargetRequest) (*domain.Target, error) {
-	target := &domain.Target{
+func (u *targetUsecase) CreateTarget(ctx context.Context, req model.CreateTargetRequest) (*model.Target, error) {
+	target := &model.Target{
 		IP:     req.IP,
 		Name:   req.Name,
-		Status: domain.TargetStatusInit,
+		Status: model.TargetStatusInit,
 	}
 
 	err := u.targetRepo.Save(ctx, target)
@@ -51,8 +51,8 @@ func (u *targetUsecase) CreateTarget(ctx context.Context, req domain.CreateTarge
 	return target, nil
 }
 
-func (u *targetUsecase) UpdateTarget(ctx context.Context, id int, req domain.UpdateTargetRequest) (*domain.Target, error) {
-	var target domain.Target
+func (u *targetUsecase) UpdateTarget(ctx context.Context, id int, req model.UpdateTargetRequest) (*model.Target, error) {
+	var target model.Target
 	err := u.baseRepo.WithTransaction(ctx, func(ctx context.Context) error {
 		var err error
 		target, err = u.targetRepo.GetForUpdate(ctx, repository.TargetFilter{

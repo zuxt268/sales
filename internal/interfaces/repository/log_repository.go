@@ -3,14 +3,15 @@ package repository
 import (
 	"context"
 
-	"github.com/zuxt268/sales/internal/domain"
+	"github.com/zuxt268/sales/internal/model"
 
 	"gorm.io/gorm"
 )
 
 type LogRepository interface {
-	FindAll(ctx context.Context, filter LogFilter) ([]domain.Log, error)
-	Create(ctx context.Context, log *domain.Log) error
+	FindAll(ctx context.Context, filter LogFilter) ([]*model.Log, error)
+	Create(ctx context.Context, log *model.Log) error
+	Count(ctx context.Context, filter LogFilter) (int64, error)
 }
 
 type logRepository struct {
@@ -23,21 +24,31 @@ func NewLogRepository(db *gorm.DB) LogRepository {
 	}
 }
 
-func (r *logRepository) FindAll(ctx context.Context, filter LogFilter) ([]domain.Log, error) {
-	var logs []domain.Log
+func (r *logRepository) FindAll(ctx context.Context, filter LogFilter) ([]*model.Log, error) {
+	var logs []*model.Log
 	err := filter.Apply(r.getDb(ctx).WithContext(ctx)).Find(&logs).Error
 	if err != nil {
-		return nil, domain.WrapDatabase("failed to find logs", err)
+		return nil, model.WrapDatabase("failed to find logs", err)
 	}
 	return logs, nil
 }
 
-func (r *logRepository) Create(ctx context.Context, log *domain.Log) error {
+func (r *logRepository) Create(ctx context.Context, log *model.Log) error {
 	err := r.getDb(ctx).Create(log).Error
 	if err != nil {
-		return domain.WrapDatabase("failed to create log", err)
+		return model.WrapDatabase("failed to create log", err)
 	}
 	return nil
+}
+
+func (r *logRepository) Count(ctx context.Context, filter LogFilter) (int64, error) {
+	var count int64
+	filter.Limit = nil
+	filter.Offset = nil
+	if err := filter.Apply(r.getDb(ctx).WithContext(ctx)).Count(&count).Error; err != nil {
+		return 0, model.WrapDatabase("failed to count logs", err)
+	}
+	return count, nil
 }
 
 func (r *logRepository) getDb(ctx context.Context) *gorm.DB {

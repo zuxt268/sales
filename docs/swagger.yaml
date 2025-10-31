@@ -1,22 +1,13 @@
 basePath: /api
 definitions:
-  domain.CreateLogRequest:
-    properties:
-      category:
-        type: string
-      message:
-        type: string
-      name:
-        type: string
-    type: object
-  domain.CreateTargetRequest:
+  model.CreateTargetRequest:
     properties:
       ip:
         type: string
       name:
         type: string
     type: object
-  domain.CreateTaskRequest:
+  model.CreateTaskRequest:
     properties:
       description:
         type: string
@@ -25,43 +16,30 @@ definitions:
       status:
         type: integer
     type: object
-  domain.Deploy:
+  model.Deploy:
     properties:
       domain:
         type: string
       server_id:
         type: string
     type: object
-  domain.DeployRequest:
+  model.DeployRequest:
     properties:
       dst:
         items:
-          $ref: '#/definitions/domain.Deploy'
+          $ref: '#/definitions/model.Deploy'
         type: array
       src:
-        $ref: '#/definitions/domain.Deploy'
+        $ref: '#/definitions/model.Deploy'
     type: object
-  domain.Log:
-    properties:
-      category:
-        type: string
-      created_at:
-        type: string
-      id:
-        type: integer
-      message:
-        type: string
-      name:
-        type: string
-    type: object
-  domain.PostFetchRequest:
+  model.PostFetchRequest:
     properties:
       target:
         type: string
     required:
     - target
     type: object
-  domain.Status:
+  model.Status:
     enum:
     - unknown
     - initialize
@@ -79,7 +57,7 @@ definitions:
     - StatusCrawlCompInfo
     - StatusDone
     - StatusTrash
-  domain.Target:
+  model.Target:
     properties:
       created_at:
         type: string
@@ -90,11 +68,11 @@ definitions:
       name:
         type: string
       status:
-        $ref: '#/definitions/domain.TargetStatus'
+        $ref: '#/definitions/model.TargetStatus'
       updated_at:
         type: string
     type: object
-  domain.TargetStatus:
+  model.TargetStatus:
     enum:
     - init
     - fetched
@@ -102,7 +80,7 @@ definitions:
     x-enum-varnames:
     - TargetStatusInit
     - TargetStatusFetched
-  domain.Task:
+  model.Task:
     properties:
       created_at:
         type: string
@@ -117,14 +95,14 @@ definitions:
       updated_at:
         type: string
     type: object
-  domain.UpdateTargetRequest:
+  model.UpdateTargetRequest:
     properties:
       ip:
         type: string
       name:
         type: string
     type: object
-  domain.UpdateTaskRequest:
+  model.UpdateTaskRequest:
     properties:
       description:
         type: string
@@ -133,7 +111,16 @@ definitions:
       status:
         type: integer
     type: object
-  request.UpdateDomainRequest:
+  request.CreateLog:
+    properties:
+      category:
+        type: string
+      message:
+        type: string
+      name:
+        type: string
+    type: object
+  request.UpdateDomain:
     properties:
       address:
         type: string
@@ -168,7 +155,7 @@ definitions:
       raw_page:
         type: string
       status:
-        $ref: '#/definitions/domain.Status'
+        $ref: '#/definitions/model.Status'
       target:
         type: string
       title:
@@ -213,7 +200,7 @@ definitions:
       raw_page:
         type: string
       status:
-        $ref: '#/definitions/domain.Status'
+        $ref: '#/definitions/model.Status'
       target:
         type: string
       title:
@@ -228,6 +215,28 @@ definitions:
       domains:
         items:
           $ref: '#/definitions/response.Domain'
+        type: array
+      total:
+        type: integer
+    type: object
+  response.Log:
+    properties:
+      category:
+        type: string
+      created_at:
+        type: string
+      message:
+        type: string
+      name:
+        type: string
+    type: object
+  response.Logs:
+    properties:
+      count:
+        type: integer
+      logs:
+        items:
+          $ref: '#/definitions/response.Log'
         type: array
       total:
         type: integer
@@ -350,7 +359,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/request.UpdateDomainRequest'
+          $ref: '#/definitions/request.UpdateDomain'
       produces:
       - application/json
       responses:
@@ -383,7 +392,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/domain.DeployRequest'
+          $ref: '#/definitions/model.DeployRequest'
       produces:
       - application/json
       responses:
@@ -403,7 +412,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/domain.PostFetchRequest'
+          $ref: '#/definitions/model.PostFetchRequest'
       produces:
       - application/json
       responses:
@@ -441,7 +450,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/domain.Log'
+              $ref: '#/definitions/response.Logs'
             type: array
       summary: Get logs
       tags:
@@ -456,14 +465,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/domain.CreateLogRequest'
+          $ref: '#/definitions/request.CreateLog'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/domain.Log'
+            $ref: '#/definitions/response.Log'
       summary: Create log
       tags:
       - ログ
@@ -488,7 +497,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/domain.Target'
+              $ref: '#/definitions/model.Target'
             type: array
       summary: Get targets
       tags:
@@ -503,14 +512,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/domain.CreateTargetRequest'
+          $ref: '#/definitions/model.CreateTargetRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/domain.Target'
+            $ref: '#/definitions/model.Target'
       summary: Create target
       tags:
       - ターゲット
@@ -543,14 +552,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/domain.UpdateTargetRequest'
+          $ref: '#/definitions/model.UpdateTargetRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.Target'
+            $ref: '#/definitions/model.Target'
       summary: Update target
       tags:
       - ターゲット
@@ -566,7 +575,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/domain.Task'
+              $ref: '#/definitions/model.Task'
             type: array
       summary: Get tasks
       tags:
@@ -581,14 +590,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/domain.CreateTaskRequest'
+          $ref: '#/definitions/model.CreateTaskRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/domain.Task'
+            $ref: '#/definitions/model.Task'
       summary: Create task
       tags:
       - タスク
@@ -626,14 +635,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/domain.UpdateTaskRequest'
+          $ref: '#/definitions/model.UpdateTaskRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.Task'
+            $ref: '#/definitions/model.Task'
       summary: Update task
       tags:
       - タスク

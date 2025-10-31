@@ -3,9 +3,9 @@ package usecase
 import (
 	"context"
 
-	"github.com/zuxt268/sales/internal/domain"
 	"github.com/zuxt268/sales/internal/interfaces/adapter"
 	"github.com/zuxt268/sales/internal/interfaces/repository"
+	"github.com/zuxt268/sales/internal/model"
 	"github.com/zuxt268/sales/internal/util"
 )
 
@@ -34,14 +34,14 @@ func NewSheetUsecase(
 func (s *sheetUsecase) Output(ctx context.Context) error {
 	// ステータスが"done"のドメインを全て取得
 	domains, err := s.domainRepo.FindAll(ctx, repository.DomainFilter{
-		Status: util.Pointer(domain.StatusDone),
+		Status: util.Pointer(model.StatusDone),
 	})
 	if err != nil {
 		return err
 	}
 
 	// ターゲットごとにドメインをグループ化
-	results := make(map[string][]domain.Domain)
+	results := make(map[string][]model.Domain)
 	for _, d := range domains {
 		results[d.Target] = append(results[d.Target], d)
 	}

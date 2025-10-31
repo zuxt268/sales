@@ -4,16 +4,16 @@ import (
 	"context"
 	"unicode/utf8"
 
-	"github.com/zuxt268/sales/internal/domain"
 	"github.com/zuxt268/sales/internal/interfaces/dto/request"
 	"github.com/zuxt268/sales/internal/interfaces/dto/response"
 	"github.com/zuxt268/sales/internal/interfaces/repository"
+	"github.com/zuxt268/sales/internal/model"
 )
 
 type DomainUsecase interface {
-	GetDomains(ctx context.Context, req request.GetDomainsRequest) (*response.Domains, error)
+	GetDomains(ctx context.Context, req request.GetDomains) (*response.Domains, error)
 	GetDomain(ctx context.Context, id int) (*response.Domain, error)
-	UpdateDomain(ctx context.Context, id int, req request.UpdateDomainRequest) (*response.Domain, error)
+	UpdateDomain(ctx context.Context, id int, req request.UpdateDomain) (*response.Domain, error)
 	DeleteDomain(ctx context.Context, id int) error
 }
 
@@ -40,7 +40,7 @@ func (u *domainUsecase) GetDomain(ctx context.Context, id int) (*response.Domain
 	return response.GetDomain(d), nil
 }
 
-func (u *domainUsecase) GetDomains(ctx context.Context, req request.GetDomainsRequest) (*response.Domains, error) {
+func (u *domainUsecase) GetDomains(ctx context.Context, req request.GetDomains) (*response.Domains, error) {
 	filter := repository.DomainFilter{
 		PartialName: req.Name,
 		Target:      req.Target,
@@ -65,8 +65,8 @@ func (u *domainUsecase) GetDomains(ctx context.Context, req request.GetDomainsRe
 	return response.GetDomains(domains, total), nil
 }
 
-func (u *domainUsecase) UpdateDomain(ctx context.Context, id int, req request.UpdateDomainRequest) (*response.Domain, error) {
-	var target domain.Domain
+func (u *domainUsecase) UpdateDomain(ctx context.Context, id int, req request.UpdateDomain) (*response.Domain, error) {
+	var target model.Domain
 	err := u.baseRepo.WithTransaction(ctx, func(ctx context.Context) error {
 		var err error
 		target, err = u.domainRepo.GetForUpdate(ctx, repository.DomainFilter{

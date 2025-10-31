@@ -24,6 +24,12 @@ type Environment struct {
 	SwaggerHost              string `envconfig:"SWAGGER_HOST" default:"localhost:8091"`
 	NoticeWebAppChannelUrl   string `envconfig:"NOTICE_WEB_APP_CHANNEL_URL"`
 	GoogleServiceAccountPath string `envconfig:"GOOGLE_SERVICE_ACCOUNT_PATH"`
+	DatabasePassword1        string `envconfig:"DATABASE_PASSWORD_1"`
+	DatabasePassword2        string `envconfig:"DATABASE_PASSWORD_2"`
+	DatabaseHost1            string `envconfig:"DATABASE_HOST_1" default:"localhost"`
+	DatabaseHost2            string `envconfig:"DATABASE_HOST_2" default:"localhost"`
+	HashPhrase               string `envconfig:"HASH_PHRASE"`
+	RodutSecretPhrase        string `envconfig:"RODUT_SECRET_PHRASE"`
 }
 
 var Env Environment
