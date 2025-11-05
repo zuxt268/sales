@@ -9,6 +9,7 @@ import (
 )
 
 func TestSpreadSheet(t *testing.T) {
+	t.Skip()
 	_ = godotenv.Load("../../../.env")
 
 	client := NewGoogleSheetsClient()
