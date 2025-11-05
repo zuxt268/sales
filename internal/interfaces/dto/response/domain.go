@@ -36,7 +36,7 @@ type Domains struct {
 	Paginate
 }
 
-func GetDomain(d model.Domain) *Domain {
+func GetDomain(d *model.Domain) *Domain {
 	return &Domain{
 		ID:            d.ID,
 		Name:          d.Name,
@@ -63,7 +63,7 @@ func GetDomain(d model.Domain) *Domain {
 	}
 }
 
-func GetDomains(domains []model.Domain, total int64) *Domains {
+func GetDomains(domains []*model.Domain, total int64) *Domains {
 	resDomains := make([]*Domain, 0, len(domains))
 	for _, d := range domains {
 		resDomains = append(resDomains, GetDomain(d))

@@ -64,7 +64,7 @@ func (u *gptUsecase) AnalyzeDomains(ctx context.Context) error {
 				fmt.Println(err)
 				return
 			}
-		}(&d)
+		}(d)
 	}
 
 	wg.Wait()

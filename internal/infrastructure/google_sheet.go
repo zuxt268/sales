@@ -3,6 +3,7 @@ package infrastructure
 import (
 	"context"
 	"fmt"
+	"log"
 	"log/slog"
 	"os"
 
@@ -18,26 +19,26 @@ type GoogleSheetsClient struct {
 }
 
 // NewGoogleSheetsClient サービスアカウントを使用してGoogle Sheets APIクライアントを初期化
-func NewGoogleSheetsClient() (*GoogleSheetsClient, error) {
+func NewGoogleSheetsClient() *GoogleSheetsClient {
 	ctx := context.Background()
 
 	// サービスアカウントキーファイルを読み込み
 	credPath := config.Env.GoogleServiceAccountPath
 	b, err := os.ReadFile(credPath)
 	if err != nil {
-		return nil, fmt.Errorf("unable to read service account file: %w", err)
+		log.Fatalf("unable to read service account file: %s", err.Error())
 	}
 
 	// サービスアカウントからクライアントを作成
 	creds, err := google.CredentialsFromJSON(ctx, b, sheets.SpreadsheetsScope)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse service account credentials: %w", err)
+		log.Fatalf("unable to parse service account credentials: %s", err.Error())
 	}
 
 	// Sheets APIサービスを作成
 	service, err := sheets.NewService(ctx, option.WithCredentials(creds))
 	if err != nil {
-		return nil, fmt.Errorf("unable to create sheets service: %w", err)
+		log.Fatalf("unable to create sheets service: %s", err.Error())
 	}
 
 	slog.Info("Google Sheets client initialized with service account",
@@ -47,7 +48,7 @@ func NewGoogleSheetsClient() (*GoogleSheetsClient, error) {
 	return &GoogleSheetsClient{
 		service: service,
 		ctx:     ctx,
-	}, nil
+	}
 }
 
 // GetSpreadsheet スプレッドシート情報を取得

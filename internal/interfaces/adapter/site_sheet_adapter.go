@@ -5,11 +5,11 @@ import (
 	"fmt"
 
 	"github.com/zuxt268/sales/internal/infrastructure"
-	"github.com/zuxt268/sales/internal/model"
+	"github.com/zuxt268/sales/internal/interfaces/dto"
 )
 
 type SiteSheetAdapter interface {
-	Output(ctx context.Context, rival string, results []model.Domain) error
+	Output(ctx context.Context, rival string, rows []dto.Row) error
 }
 
 type siteSheetAdapter struct {
@@ -27,23 +27,14 @@ func NewSiteSheetAdapter(
 	}
 }
 
-func (s *siteSheetAdapter) Output(ctx context.Context, rival string, results []model.Domain) error {
+func (s *siteSheetAdapter) Output(ctx context.Context, rival string, rows []dto.Row) error {
 	// ヘッダー行を追加
-	cells := make([][]interface{}, 0, len(results)+1)
-	cells = append(cells, []interface{}{
-		"名前",
-		"会社名",
-		"携帯電話",
-	})
+	cells := make([][]interface{}, 0, len(rows)+1)
+	cells = append(cells, dto.Header)
 
 	// データ行を追加
-	for _, result := range results {
-		row := []interface{}{
-			result.Name,
-			result.Company,
-			result.MobilePhone,
-		}
-		cells = append(cells, row)
+	for _, row := range rows {
+		cells = append(cells, row.Columns)
 	}
 
 	// シート名としてrivalを使用し、A1から書き込み

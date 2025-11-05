@@ -12,9 +12,9 @@ import (
 
 type DomainRepository interface {
 	Exists(ctx context.Context, f DomainFilter) (bool, error)
-	Get(ctx context.Context, f DomainFilter) (model.Domain, error)
-	GetForUpdate(ctx context.Context, f DomainFilter) (model.Domain, error)
-	FindAll(ctx context.Context, f DomainFilter) ([]model.Domain, error)
+	Get(ctx context.Context, f DomainFilter) (*model.Domain, error)
+	GetForUpdate(ctx context.Context, f DomainFilter) (*model.Domain, error)
+	FindAll(ctx context.Context, f DomainFilter) ([]*model.Domain, error)
 	Save(ctx context.Context, domain *model.Domain) error
 	BulkInsert(ctx context.Context, domains []*model.Domain) error
 	Delete(ctx context.Context, f DomainFilter) error
@@ -40,9 +40,9 @@ func (r *domainRepository) Exists(ctx context.Context, f DomainFilter) (bool, er
 	return len(domains) > 0, nil
 }
 
-func (r *domainRepository) Get(ctx context.Context, f DomainFilter) (model.Domain, error) {
-	d := model.Domain{}
-	err := f.Apply(r.getDb(ctx).WithContext(ctx)).First(&d).Error
+func (r *domainRepository) Get(ctx context.Context, f DomainFilter) (*model.Domain, error) {
+	d := &model.Domain{}
+	err := f.Apply(r.getDb(ctx).WithContext(ctx)).First(d).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return d, model.WrapNotFound("domain")
@@ -52,9 +52,9 @@ func (r *domainRepository) Get(ctx context.Context, f DomainFilter) (model.Domai
 	return d, nil
 }
 
-func (r *domainRepository) GetForUpdate(ctx context.Context, f DomainFilter) (model.Domain, error) {
-	d := model.Domain{}
-	err := f.Apply(r.getDb(ctx).WithContext(ctx)).Clauses(clause.Locking{Strength: "UPDATE"}).First(&d).Error
+func (r *domainRepository) GetForUpdate(ctx context.Context, f DomainFilter) (*model.Domain, error) {
+	d := &model.Domain{}
+	err := f.Apply(r.getDb(ctx).WithContext(ctx)).Clauses(clause.Locking{Strength: "UPDATE"}).First(d).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return d, model.WrapNotFound("domain")
@@ -64,8 +64,8 @@ func (r *domainRepository) GetForUpdate(ctx context.Context, f DomainFilter) (mo
 	return d, nil
 }
 
-func (r *domainRepository) FindAll(ctx context.Context, f DomainFilter) ([]model.Domain, error) {
-	var ds []model.Domain
+func (r *domainRepository) FindAll(ctx context.Context, f DomainFilter) ([]*model.Domain, error) {
+	var ds []*model.Domain
 	err := f.Apply(r.getDb(ctx).WithContext(ctx)).Find(&ds).Error
 	if err != nil {
 		return nil, model.WrapDatabase("failed to find domains", err)

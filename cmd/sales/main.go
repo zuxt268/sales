@@ -42,8 +42,11 @@ func main() {
 	// DB接続
 	db := infrastructure.NewDatabase()
 
+	// google spread sheetとの接続
+	sheetClient := infrastructure.NewGoogleSheetsClient()
+
 	// 依存性注入
-	handler := di.Initialize(db)
+	handler := di.Initialize(db, sheetClient)
 
 	// Swagger hostを環境変数から設定
 	docs.SwaggerInfo.Host = config.Env.SwaggerHost
@@ -74,6 +77,7 @@ func main() {
 	api.DELETE("/domains/:id", handler.DeleteDomain)
 	api.POST("/fetch", handler.FetchDomains)
 	api.POST("/domains/analyze", handler.AnalyzeDomains)
+	api.POST("/domains/output", handler.OutputSheet)
 
 	api.GET("/targets", handler.GetTargets)
 	api.POST("/targets", handler.CreateTarget)

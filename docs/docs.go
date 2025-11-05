@@ -122,6 +122,25 @@ const docTemplate = `{
                 }
             }
         },
+        "/domains/output": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ドメイン"
+                ],
+                "summary": "スプレッドシートに出力する",
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    }
+                }
+            }
+        },
         "/domains/{id}": {
             "get": {
                 "description": "Get domain",

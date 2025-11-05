@@ -382,6 +382,18 @@ paths:
       summary: サイトの情報を解析する
       tags:
       - ドメイン
+  /domains/output:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+      summary: スプレッドシートに出力する
+      tags:
+      - ドメイン
   /external/api/deploy:
     post:
       consumes:

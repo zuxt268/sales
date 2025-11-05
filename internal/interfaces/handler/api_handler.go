@@ -36,6 +36,7 @@ type ApiHandler interface {
 	ExecuteTasks(c echo.Context) error
 	ExecuteTask(c echo.Context) error
 	DeployWordpress(c echo.Context) error
+	OutputSheet(c echo.Context) error
 }
 
 type apiHandler struct {
@@ -46,6 +47,7 @@ type apiHandler struct {
 	gptUsecase    usecase.GptUsecase
 	taskUsecase   usecase.TaskUsecase
 	deployUsecase usecase.DeployUsecase
+	sheetUsecase  usecase.SheetUsecase
 }
 
 func NewApiHandler(
@@ -56,6 +58,7 @@ func NewApiHandler(
 	gptUsecase usecase.GptUsecase,
 	taskUsecase usecase.TaskUsecase,
 	deployUsecase usecase.DeployUsecase,
+	sheetUsecase usecase.SheetUsecase,
 ) ApiHandler {
 	return &apiHandler{
 		fetchUsecase:  fetchUsecase,
@@ -65,6 +68,7 @@ func NewApiHandler(
 		gptUsecase:    gptUsecase,
 		taskUsecase:   taskUsecase,
 		deployUsecase: deployUsecase,
+		sheetUsecase:  sheetUsecase,
 	}
 }
 
@@ -484,6 +488,22 @@ func (h *apiHandler) DeployWordpress(c echo.Context) error {
 		h.deployUsecase.Deploy(context.Background(), req)
 	}()
 
+	return c.NoContent(http.StatusOK)
+}
+
+// OutputSheet godoc
+// @Summary スプレッドシートに出力する
+// @Description
+// @Tags ドメイン
+// @Accept json
+// @Produce json
+// @Success 201
+// @Router /domains/output [post]
+func (h *apiHandler) OutputSheet(c echo.Context) error {
+	err := h.sheetUsecase.Output(c.Request().Context())
+	if err != nil {
+		return handleError(c, err)
+	}
 	return c.NoContent(http.StatusOK)
 }
 

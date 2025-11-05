@@ -66,7 +66,7 @@ func (u *domainUsecase) GetDomains(ctx context.Context, req request.GetDomains) 
 }
 
 func (u *domainUsecase) UpdateDomain(ctx context.Context, id int, req request.UpdateDomain) (*response.Domain, error) {
-	var target model.Domain
+	var target *model.Domain
 	err := u.baseRepo.WithTransaction(ctx, func(ctx context.Context) error {
 		var err error
 		target, err = u.domainRepo.GetForUpdate(ctx, repository.DomainFilter{
@@ -135,7 +135,7 @@ func (u *domainUsecase) UpdateDomain(ctx context.Context, id int, req request.Up
 		if req.PageNum != nil {
 			target.PageNum = *req.PageNum
 		}
-		if err := u.domainRepo.Save(ctx, &target); err != nil {
+		if err := u.domainRepo.Save(ctx, target); err != nil {
 			return err
 		}
 		return nil

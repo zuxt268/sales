@@ -30,6 +30,7 @@ type Environment struct {
 	DatabaseHost2            string `envconfig:"DATABASE_HOST_2" default:"localhost"`
 	HashPhrase               string `envconfig:"HASH_PHRASE"`
 	RodutSecretPhrase        string `envconfig:"RODUT_SECRET_PHRASE"`
+	SheetID                  string `envconfig:"SHEET_ID"`
 }
 
 var Env Environment
@@ -43,5 +44,4 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-
 }
