@@ -32,6 +32,7 @@ func GetRows(domains []*model.Domain) []Row {
 				d.MobilePhone,
 				d.LandlinePhone,
 				d.Industry,
+				d.President,
 				d.Company,
 				d.Prefecture,
 				d.PageNum,
