@@ -59,6 +59,8 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       SWAGGER_HOST: ${SWAGGER_HOST:-localhost:8050}
       NOTICE_WEB_APP_CHANNEL_URL: ${NOTICE_WEB_APP_CHANNEL_URL}
+      GOOGLE_SERVICE_ACCOUNT_PATH: ${GOOGLE_SERVICE_ACCOUNT_PATH}
+      SHEET_ID: ${SHEET_ID}
     ports:
       - "8050:8050"
     volumes:
@@ -67,6 +69,7 @@ services:
       - go_mod_cache:/go/pkg/mod
       - ${HOME}/.ssh:/root/.ssh:ro  # 読み取り専用でマウント
       - ./tmp:/app/tmp        # 一時ファイル用
+      - ./credentials:/app/credentials:ro  # Google Service Account認証情報
     depends_on:
       db:
         condition: service_healthy
