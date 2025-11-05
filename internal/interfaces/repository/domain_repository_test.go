@@ -385,7 +385,7 @@ func TestDomainRepository_GormTags(t *testing.T) {
 
 		// 更新時にUpdateAtが自動更新されるか
 		saved.Title = "Updated"
-		if err := repo.Save(ctx, &saved); err != nil {
+		if err := repo.Save(ctx, saved); err != nil {
 			t.Fatalf("Failed to update domain: %v", err)
 		}
 
