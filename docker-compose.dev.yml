@@ -59,7 +59,7 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       SWAGGER_HOST: ${SWAGGER_HOST:-localhost:8050}
       NOTICE_WEB_APP_CHANNEL_URL: ${NOTICE_WEB_APP_CHANNEL_URL}
-      GOOGLE_SERVICE_ACCOUNT_PATH: ${GOOGLE_SERVICE_ACCOUNT_PATH}
+      GOOGLE_SERVICE_ACCOUNT_PATH: /home/appuser/credentials/service_account.json
       SHEET_ID: ${SHEET_ID}
     ports:
       - "8050:8050"
