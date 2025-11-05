@@ -19,5 +19,13 @@ if [ -d /app/tmp ]; then
     chmod 755 /app/tmp
 fi
 
+# credentialsディレクトリの権限を修正
+if [ -d /app/credentials ]; then
+    echo "Setting permissions for /app/credentials..."
+    chown -R appuser:appuser /app/credentials
+    chmod 755 /app/credentials
+    chmod 644 /app/credentials/* 2>/dev/null || true
+fi
+
 # appuserとしてアプリケーションを実行
 exec su-exec appuser "$@"
