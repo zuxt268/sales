@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/zuxt268/sales/internal/model"
 
@@ -28,7 +29,7 @@ func (r *logRepository) FindAll(ctx context.Context, filter LogFilter) ([]*model
 	var logs []*model.Log
 	err := filter.Apply(r.getDb(ctx).WithContext(ctx)).Find(&logs).Error
 	if err != nil {
-		return nil, model.WrapDatabase("failed to find logs", err)
+		return nil, fmt.Errorf("failed to find logs: %w", err)
 	}
 	return logs, nil
 }
@@ -36,7 +37,7 @@ func (r *logRepository) FindAll(ctx context.Context, filter LogFilter) ([]*model
 func (r *logRepository) Create(ctx context.Context, log *model.Log) error {
 	err := r.getDb(ctx).Create(log).Error
 	if err != nil {
-		return model.WrapDatabase("failed to create log", err)
+		return fmt.Errorf("failed to create log: %w", err)
 	}
 	return nil
 }
@@ -46,7 +47,7 @@ func (r *logRepository) Count(ctx context.Context, filter LogFilter) (int64, err
 	filter.Limit = nil
 	filter.Offset = nil
 	if err := filter.Apply(r.getDb(ctx).WithContext(ctx)).Model(model.Log{}).Count(&count).Error; err != nil {
-		return 0, model.WrapDatabase("failed to count logs", err)
+		return 0, fmt.Errorf("failed to count logs: %w", err)
 	}
 	return count, nil
 }

@@ -22,12 +22,16 @@ fi
 # credentialsディレクトリをappuserにコピー
 if [ -d /app/credentials ]; then
     echo "Copying credentials to appuser..."
+    ls -la /app/credentials
     mkdir -p /home/appuser/credentials
-    cp -r /app/credentials/* /home/appuser/credentials/ 2>/dev/null || true
+    cp -r /app/credentials/* /home/appuser/credentials/ 2>&1 || echo "Copy failed"
     chown -R appuser:appuser /home/appuser/credentials
     chmod 755 /home/appuser/credentials
     chmod 644 /home/appuser/credentials/* 2>/dev/null || true
+    ls -la /home/appuser/credentials
     echo "Credentials copied successfully"
+else
+    echo "WARNING: /app/credentials directory not found"
 fi
 
 # appuserとしてアプリケーションを実行

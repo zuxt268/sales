@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/zuxt268/sales/internal/model"
 
@@ -33,7 +34,7 @@ func (r *taskRepository) Exists(ctx context.Context, f TaskFilter) (bool, error)
 	var tasks []model.Task
 	err := f.Apply(r.getDb(ctx).WithContext(ctx)).Find(&tasks).Error
 	if err != nil {
-		return false, model.WrapDatabase("failed to get task", err)
+		return false, fmt.Errorf("failed to fetch tasks: %w", err)
 	}
 	return len(tasks) > 0, nil
 }
@@ -45,7 +46,7 @@ func (r *taskRepository) Get(ctx context.Context, f TaskFilter) (model.Task, err
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return t, model.WrapNotFound("task")
 		}
-		return t, model.WrapDatabase("failed to get task", err)
+		return t, fmt.Errorf("failed to get task: %w", err)
 	}
 	return t, nil
 }
@@ -57,7 +58,7 @@ func (r *taskRepository) GetForUpdate(ctx context.Context, f TaskFilter) (model.
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return t, model.WrapNotFound("task")
 		}
-		return t, model.WrapDatabase("failed to get task for update", err)
+		return t, fmt.Errorf("failed to get task for update: %w", err)
 	}
 	return t, nil
 }
@@ -66,7 +67,7 @@ func (r *taskRepository) FindAll(ctx context.Context, f TaskFilter) ([]model.Tas
 	var tasks []model.Task
 	err := f.Apply(r.getDb(ctx).WithContext(ctx)).Find(&tasks).Error
 	if err != nil {
-		return nil, model.WrapDatabase("failed to find tasks", err)
+		return nil, fmt.Errorf("failed to find tasks: %w", err)
 	}
 	return tasks, nil
 }
@@ -74,7 +75,7 @@ func (r *taskRepository) FindAll(ctx context.Context, f TaskFilter) ([]model.Tas
 func (r *taskRepository) Save(ctx context.Context, task *model.Task) error {
 	err := r.getDb(ctx).Save(task).Error
 	if err != nil {
-		return model.WrapDatabase("failed to save task", err)
+		return fmt.Errorf("failed to save task: %w", err)
 	}
 	return nil
 }
@@ -82,7 +83,7 @@ func (r *taskRepository) Save(ctx context.Context, task *model.Task) error {
 func (r *taskRepository) Delete(ctx context.Context, f TaskFilter) error {
 	err := f.Apply(r.db.WithContext(ctx)).Delete(&model.Task{}).Error
 	if err != nil {
-		return model.WrapDatabase("failed to delete task", err)
+		return fmt.Errorf("failed to delete task: %w", err)
 	}
 	return nil
 }

@@ -90,7 +90,7 @@ func (u *fetchUsecase) Fetch(ctx context.Context, req model.PostFetchRequest) {
 	}
 
 	target.Status = model.TargetStatusFetched
-	err = u.targetRepo.Save(ctx, &target)
+	err = u.targetRepo.Save(ctx, target)
 	if err != nil {
 		slog.Error("failed to save target", "error", err)
 		return

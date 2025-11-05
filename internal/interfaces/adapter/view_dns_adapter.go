@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/zuxt268/sales/internal/external"
-	"github.com/zuxt268/sales/internal/model"
 )
 
 type ViewDNSAdapter interface {
@@ -33,25 +32,25 @@ func (r *viewDNSAdapter) GetReverseIP(ctx context.Context, params *external.Reve
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		return nil, model.WrapExternalAPI("ViewDNS", err)
+		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, model.WrapExternalAPI("ViewDNS", err)
+		return nil, fmt.Errorf("failed to send request: %w", err)
 	}
 	defer func() {
 		_ = resp.Body.Close()
 	}()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, model.WrapExternalAPI("ViewDNS", fmt.Errorf("unexpected status code: %d", resp.StatusCode))
+		return nil, fmt.Errorf("failed to fetch reverse ip address: %s", resp.Status)
 	}
 
 	var response external.ReverseIpResponse
 	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-		return nil, model.WrapExternalAPI("ViewDNS", err)
+		return nil, fmt.Errorf("failed to decode reverse ip response: %w", err)
 	}
 
 	return &response, nil

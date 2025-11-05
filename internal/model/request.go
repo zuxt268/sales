@@ -1,6 +1,9 @@
 package model
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 type PostFetchRequest struct {
 	Target string `json:"target" binding:"required"`
@@ -8,7 +11,7 @@ type PostFetchRequest struct {
 
 func (r *PostFetchRequest) Validate() error {
 	if strings.TrimSpace(r.Target) == "" {
-		return WrapValidation("target is required and cannot be empty or whitespace", nil)
+		return fmt.Errorf("target is required")
 	}
 	return nil
 }
