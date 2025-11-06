@@ -106,9 +106,9 @@ func (u *domainUsecase) UpdateDomain(ctx context.Context, id int, req request.Up
 		}
 		if req.Phone != nil {
 			phone := *req.Phone
-			if utf8.RuneCountInString(phone) > 200 {
+			if utf8.RuneCountInString(phone) > 50 {
 				runes := []rune(phone)
-				phone = string(runes[:200])
+				phone = string(runes[:50])
 			}
 			target.Phone = phone
 		}
