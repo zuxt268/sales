@@ -26,7 +26,7 @@ func GetRows(domains []*model.Domain) []Row {
 	for i, d := range domains {
 		rows[i] = Row{
 			Columns: []interface{}{
-				d.Target,
+				d.Name,
 				d.Title,
 				d.OwnerID,
 				d.MobilePhone,
