@@ -137,14 +137,17 @@ func (h *apiHandler) GetDomains(c echo.Context) error {
 func (h *apiHandler) UpdateDomain(c echo.Context) error {
 	var req request.UpdateDomain
 	if err := c.Bind(&req); err != nil {
+		slog.Error(err.Error())
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 	var id int
 	if err := echo.PathParamsBinder(c).Int("id", &id).BindError(); err != nil {
+		slog.Error(err.Error())
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 	resp, err := h.domainUsecase.UpdateDomain(c.Request().Context(), id, req)
 	if err != nil {
+		slog.Error(err.Error())
 		return handleError(c, err)
 	}
 	return c.JSON(http.StatusOK, resp)
