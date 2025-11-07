@@ -2,7 +2,7 @@ services:
   db:
     build:
       context: .
-      dockerfile: db.Dockerfile
+      dockerfile: db/Dockerfile
     container_name: sales-mysql
     env_file:
       - .env
