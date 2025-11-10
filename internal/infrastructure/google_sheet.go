@@ -7,23 +7,27 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/zuxt268/sales/internal/config"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 	"google.golang.org/api/sheets/v4"
 )
 
-type GoogleSheetsClient struct {
-	service *sheets.Service
+type googleSheetsClient struct {
 	ctx     context.Context
+	service *sheets.Service
+}
+
+type GoogleSheetsClient interface {
+	WriteToSheetOrCreate(spreadsheetID, sheetTitle, cellRange string, values [][]interface{}, valueInputOption string) (bool, error)
+	ClearRange(spreadsheetID, clearRange string) error
+	ReadRange(spreadsheetID, readRange string) ([][]interface{}, error)
 }
 
 // NewGoogleSheetsClient サービスアカウントを使用してGoogle Sheets APIクライアントを初期化
-func NewGoogleSheetsClient() *GoogleSheetsClient {
+func NewGoogleSheetsClient(credPath string) GoogleSheetsClient {
 	ctx := context.Background()
 
 	// サービスアカウントキーファイルを読み込み
-	credPath := config.Env.GoogleServiceAccountPath
 	b, err := os.ReadFile(credPath)
 	if err != nil {
 		log.Fatalf("unable to read service account file: %s", err.Error())
@@ -45,14 +49,14 @@ func NewGoogleSheetsClient() *GoogleSheetsClient {
 		"credentials_path", credPath,
 	)
 
-	return &GoogleSheetsClient{
+	return &googleSheetsClient{
 		service: service,
 		ctx:     ctx,
 	}
 }
 
 // GetSpreadsheet スプレッドシート情報を取得
-func (c *GoogleSheetsClient) GetSpreadsheet(spreadsheetID string) (*sheets.Spreadsheet, error) {
+func (c *googleSheetsClient) GetSpreadsheet(spreadsheetID string) (*sheets.Spreadsheet, error) {
 	spreadsheet, err := c.service.Spreadsheets.Get(spreadsheetID).Do()
 	if err != nil {
 		return nil, fmt.Errorf("unable to get spreadsheet: %w", err)
@@ -69,7 +73,7 @@ func (c *GoogleSheetsClient) GetSpreadsheet(spreadsheetID string) (*sheets.Sprea
 
 // ReadRange 指定範囲のデータを読み取り
 // range例: "Sheet1!A1:D10" or "Sheet1" (シート全体)
-func (c *GoogleSheetsClient) ReadRange(spreadsheetID, readRange string) ([][]interface{}, error) {
+func (c *googleSheetsClient) ReadRange(spreadsheetID, readRange string) ([][]interface{}, error) {
 	resp, err := c.service.Spreadsheets.Values.Get(spreadsheetID, readRange).Do()
 	if err != nil {
 		return nil, fmt.Errorf("unable to read range: %w", err)
@@ -85,7 +89,7 @@ func (c *GoogleSheetsClient) ReadRange(spreadsheetID, readRange string) ([][]int
 }
 
 // ReadMultipleRanges 複数範囲のデータを一度に読み取り
-func (c *GoogleSheetsClient) ReadMultipleRanges(spreadsheetID string, ranges []string) (map[string][][]interface{}, error) {
+func (c *googleSheetsClient) ReadMultipleRanges(spreadsheetID string, ranges []string) (map[string][][]interface{}, error) {
 	resp, err := c.service.Spreadsheets.Values.BatchGet(spreadsheetID).Ranges(ranges...).Do()
 	if err != nil {
 		return nil, fmt.Errorf("unable to batch read ranges: %w", err)
@@ -106,7 +110,7 @@ func (c *GoogleSheetsClient) ReadMultipleRanges(spreadsheetID string, ranges []s
 
 // WriteRange 指定範囲にデータを書き込み
 // valueInputOption: "RAW" (そのまま) or "USER_ENTERED" (ユーザー入力と同じ処理)
-func (c *GoogleSheetsClient) WriteRange(spreadsheetID, writeRange string, values [][]interface{}, valueInputOption string) error {
+func (c *googleSheetsClient) WriteRange(spreadsheetID, writeRange string, values [][]interface{}, valueInputOption string) error {
 	if valueInputOption == "" {
 		valueInputOption = "USER_ENTERED"
 	}
@@ -133,7 +137,7 @@ func (c *GoogleSheetsClient) WriteRange(spreadsheetID, writeRange string, values
 }
 
 // AppendRows 行を末尾に追加
-func (c *GoogleSheetsClient) AppendRows(spreadsheetID, appendRange string, values [][]interface{}, valueInputOption string) error {
+func (c *googleSheetsClient) AppendRows(spreadsheetID, appendRange string, values [][]interface{}, valueInputOption string) error {
 	if valueInputOption == "" {
 		valueInputOption = "USER_ENTERED"
 	}
@@ -160,7 +164,7 @@ func (c *GoogleSheetsClient) AppendRows(spreadsheetID, appendRange string, value
 }
 
 // BatchUpdate 複数範囲のデータを一度に更新
-func (c *GoogleSheetsClient) BatchUpdate(spreadsheetID string, data map[string][][]interface{}, valueInputOption string) error {
+func (c *googleSheetsClient) BatchUpdate(spreadsheetID string, data map[string][][]interface{}, valueInputOption string) error {
 	if valueInputOption == "" {
 		valueInputOption = "USER_ENTERED"
 	}
@@ -192,22 +196,20 @@ func (c *GoogleSheetsClient) BatchUpdate(spreadsheetID string, data map[string][
 }
 
 // ClearRange 指定範囲のデータをクリア
-func (c *GoogleSheetsClient) ClearRange(spreadsheetID, clearRange string) error {
+func (c *googleSheetsClient) ClearRange(spreadsheetID, clearRange string) error {
 	_, err := c.service.Spreadsheets.Values.Clear(spreadsheetID, clearRange, &sheets.ClearValuesRequest{}).Do()
 	if err != nil {
 		return fmt.Errorf("unable to clear range: %w", err)
 	}
-
 	slog.Info("Cleared range in spreadsheet",
 		"spreadsheet_id", spreadsheetID,
 		"range", clearRange,
 	)
-
 	return nil
 }
 
 // AddSheet 新しいシートを追加
-func (c *GoogleSheetsClient) AddSheet(spreadsheetID, sheetTitle string) (*sheets.SheetProperties, error) {
+func (c *googleSheetsClient) AddSheet(spreadsheetID, sheetTitle string) (*sheets.SheetProperties, error) {
 	requests := []*sheets.Request{
 		{
 			AddSheet: &sheets.AddSheetRequest{
@@ -239,7 +241,7 @@ func (c *GoogleSheetsClient) AddSheet(spreadsheetID, sheetTitle string) (*sheets
 }
 
 // DeleteSheet シートを削除
-func (c *GoogleSheetsClient) DeleteSheet(spreadsheetID string, sheetID int64) error {
+func (c *googleSheetsClient) DeleteSheet(spreadsheetID string, sheetID int64) error {
 	requests := []*sheets.Request{
 		{
 			DeleteSheet: &sheets.DeleteSheetRequest{
@@ -266,7 +268,7 @@ func (c *GoogleSheetsClient) DeleteSheet(spreadsheetID string, sheetID int64) er
 }
 
 // UpdateSheetProperties シートのプロパティを更新（名前変更など）
-func (c *GoogleSheetsClient) UpdateSheetProperties(spreadsheetID string, sheetID int64, newTitle string) error {
+func (c *googleSheetsClient) UpdateSheetProperties(spreadsheetID string, sheetID int64, newTitle string) error {
 	requests := []*sheets.Request{
 		{
 			UpdateSheetProperties: &sheets.UpdateSheetPropertiesRequest{
@@ -298,7 +300,7 @@ func (c *GoogleSheetsClient) UpdateSheetProperties(spreadsheetID string, sheetID
 }
 
 // CopySheet シートをコピー
-func (c *GoogleSheetsClient) CopySheet(spreadsheetID string, sourceSheetID int64, destinationSpreadsheetID string) (*sheets.SheetProperties, error) {
+func (c *googleSheetsClient) CopySheet(spreadsheetID string, sourceSheetID int64, destinationSpreadsheetID string) (*sheets.SheetProperties, error) {
 	copyRequest := &sheets.CopySheetToAnotherSpreadsheetRequest{
 		DestinationSpreadsheetId: destinationSpreadsheetID,
 	}
@@ -319,7 +321,7 @@ func (c *GoogleSheetsClient) CopySheet(spreadsheetID string, sourceSheetID int64
 }
 
 // InsertRows 行を挿入
-func (c *GoogleSheetsClient) InsertRows(spreadsheetID string, sheetID int64, startIndex, endIndex int64) error {
+func (c *googleSheetsClient) InsertRows(spreadsheetID string, sheetID int64, startIndex, endIndex int64) error {
 	requests := []*sheets.Request{
 		{
 			InsertDimension: &sheets.InsertDimensionRequest{
@@ -353,7 +355,7 @@ func (c *GoogleSheetsClient) InsertRows(spreadsheetID string, sheetID int64, sta
 }
 
 // DeleteRows 行を削除
-func (c *GoogleSheetsClient) DeleteRows(spreadsheetID string, sheetID int64, startIndex, endIndex int64) error {
+func (c *googleSheetsClient) DeleteRows(spreadsheetID string, sheetID int64, startIndex, endIndex int64) error {
 	requests := []*sheets.Request{
 		{
 			DeleteDimension: &sheets.DeleteDimensionRequest{
@@ -387,7 +389,7 @@ func (c *GoogleSheetsClient) DeleteRows(spreadsheetID string, sheetID int64, sta
 }
 
 // InsertColumns 列を挿入
-func (c *GoogleSheetsClient) InsertColumns(spreadsheetID string, sheetID int64, startIndex, endIndex int64) error {
+func (c *googleSheetsClient) InsertColumns(spreadsheetID string, sheetID int64, startIndex, endIndex int64) error {
 	requests := []*sheets.Request{
 		{
 			InsertDimension: &sheets.InsertDimensionRequest{
@@ -421,7 +423,7 @@ func (c *GoogleSheetsClient) InsertColumns(spreadsheetID string, sheetID int64, 
 }
 
 // DeleteColumns 列を削除
-func (c *GoogleSheetsClient) DeleteColumns(spreadsheetID string, sheetID int64, startIndex, endIndex int64) error {
+func (c *googleSheetsClient) DeleteColumns(spreadsheetID string, sheetID int64, startIndex, endIndex int64) error {
 	requests := []*sheets.Request{
 		{
 			DeleteDimension: &sheets.DeleteDimensionRequest{
@@ -455,7 +457,7 @@ func (c *GoogleSheetsClient) DeleteColumns(spreadsheetID string, sheetID int64, 
 }
 
 // FindSheet タイトルでシートを検索
-func (c *GoogleSheetsClient) FindSheet(spreadsheetID, sheetTitle string) (*sheets.Sheet, error) {
+func (c *googleSheetsClient) FindSheet(spreadsheetID, sheetTitle string) (*sheets.Sheet, error) {
 	spreadsheet, err := c.GetSpreadsheet(spreadsheetID)
 	if err != nil {
 		return nil, err
@@ -471,7 +473,7 @@ func (c *GoogleSheetsClient) FindSheet(spreadsheetID, sheetTitle string) (*sheet
 }
 
 // SheetExists シートが存在するかチェック
-func (c *GoogleSheetsClient) SheetExists(spreadsheetID, sheetTitle string) (bool, error) {
+func (c *googleSheetsClient) SheetExists(spreadsheetID, sheetTitle string) (bool, error) {
 	_, err := c.FindSheet(spreadsheetID, sheetTitle)
 	if err != nil {
 		if err.Error() == fmt.Sprintf("sheet not found: %s", sheetTitle) {
@@ -483,7 +485,7 @@ func (c *GoogleSheetsClient) SheetExists(spreadsheetID, sheetTitle string) (bool
 }
 
 // GetOrCreateSheet シートが存在すれば取得、なければ作成
-func (c *GoogleSheetsClient) GetOrCreateSheet(spreadsheetID, sheetTitle string) (*sheets.Sheet, bool, error) {
+func (c *googleSheetsClient) GetOrCreateSheet(spreadsheetID, sheetTitle string) (*sheets.Sheet, bool, error) {
 	// シートを検索
 	sheet, err := c.FindSheet(spreadsheetID, sheetTitle)
 	if err == nil {
@@ -520,7 +522,7 @@ func (c *GoogleSheetsClient) GetOrCreateSheet(spreadsheetID, sheetTitle string) 
 }
 
 // WriteToSheetOrCreate シートがなければ作成してからデータを書き込み
-func (c *GoogleSheetsClient) WriteToSheetOrCreate(spreadsheetID, sheetTitle, cellRange string, values [][]interface{}, valueInputOption string) (bool, error) {
+func (c *googleSheetsClient) WriteToSheetOrCreate(spreadsheetID, sheetTitle, cellRange string, values [][]interface{}, valueInputOption string) (bool, error) {
 	// シートを取得または作成
 	_, created, err := c.GetOrCreateSheet(spreadsheetID, sheetTitle)
 	if err != nil {

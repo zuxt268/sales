@@ -21,22 +21,20 @@ type Row struct {
 	Columns []interface{}
 }
 
-func GetRows(domains []*model.Domain) []Row {
-	rows := make([]Row, len(domains))
+func GetRows(domains []*model.Domain) [][]interface{} {
+	rows := make([][]interface{}, len(domains))
 	for i, d := range domains {
-		rows[i] = Row{
-			Columns: []interface{}{
-				d.Name,
-				d.Title,
-				d.OwnerID,
-				d.MobilePhone,
-				d.LandlinePhone,
-				d.Industry,
-				d.President,
-				d.Company,
-				d.Prefecture,
-				d.PageNum,
-			},
+		rows[i] = []interface{}{
+			d.Name,
+			d.Title,
+			d.OwnerID,
+			d.MobilePhone,
+			d.LandlinePhone,
+			d.Industry,
+			d.President,
+			d.Company,
+			d.Prefecture,
+			d.PageNum,
 		}
 	}
 	return rows

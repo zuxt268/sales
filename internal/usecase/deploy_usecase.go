@@ -26,17 +26,20 @@ type DeployUsecase interface {
 }
 
 type deployUsecase struct {
-	sshAdapter adapter.SSHAdapter
-	logRepo    repository.LogRepository
+	sshAdapter       adapter.SSHAdapter
+	logRepo          repository.LogRepository
+	siteSheetAdapter adapter.SheetAdapter
 }
 
 func NewDeployUsecase(
 	sshAdapter adapter.SSHAdapter,
 	logRepo repository.LogRepository,
+	siteSheetAdapter adapter.SheetAdapter,
 ) DeployUsecase {
 	return &deployUsecase{
-		sshAdapter: sshAdapter,
-		logRepo:    logRepo,
+		sshAdapter:       sshAdapter,
+		logRepo:          logRepo,
+		siteSheetAdapter: siteSheetAdapter,
 	}
 }
 

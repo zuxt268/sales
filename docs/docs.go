@@ -239,6 +239,25 @@ const docTemplate = `{
                 }
             }
         },
+        "/external/api/assort": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Wordpress"
+                ],
+                "summary": "ワードプレスを整理し、スプレッドシートに出力します",
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    }
+                }
+            }
+        },
         "/external/api/deploy": {
             "post": {
                 "consumes": [

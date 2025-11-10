@@ -43,7 +43,8 @@ func main() {
 	db := infrastructure.NewDatabase()
 
 	// google spread sheetとの接続
-	sheetClient := infrastructure.NewGoogleSheetsClient()
+	credPath := config.Env.GoogleServiceAccountPath
+	sheetClient := infrastructure.NewGoogleSheetsClient(credPath)
 
 	// 依存性注入
 	handler := di.Initialize(db, sheetClient)
@@ -97,6 +98,7 @@ func main() {
 	external := e.Group("/external/api")
 	external.Use(middleware2.JWTMiddleware())
 	external.POST("/deploy", handler.DeployWordpress)
+	external.POST("/assort", handler.AssortWordpress)
 
 	srv := &http.Server{
 		Addr:    config.Env.Address,

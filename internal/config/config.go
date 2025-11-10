@@ -31,6 +31,8 @@ type Environment struct {
 	HashPhrase               string `envconfig:"HASH_PHRASE"`
 	RodutSecretPhrase        string `envconfig:"RODUT_SECRET_PHRASE"`
 	SheetID                  string `envconfig:"SHEET_ID"`
+	SiteSheetID              string `envconfig:"SITE_SHEET_ID"`
+	ServerIDs                string `envconfig:"SERVER_IDS"`
 }
 
 var Env Environment

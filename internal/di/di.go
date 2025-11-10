@@ -11,7 +11,10 @@ import (
 	"gorm.io/gorm"
 )
 
-func Initialize(db *gorm.DB, sheetClient *infrastructure.GoogleSheetsClient) handler.ApiHandler {
+func Initialize(
+	db *gorm.DB,
+	sheetClient infrastructure.GoogleSheetsClient,
+) handler.ApiHandler {
 	domainRepo := repository.NewDomainRepository(db)
 	viewDnsAdapter := adapter.NewViewDNSAdapter(config.Env.ViewDnsApiUrl)
 	baseRepo := repository.NewBaseRepository(db)
@@ -30,9 +33,9 @@ func Initialize(db *gorm.DB, sheetClient *infrastructure.GoogleSheetsClient) han
 	gptUsecase := usecase.NewGptUsecase(slackAdapter, domainRepo, gptRepo)
 	taskUsecase := usecase.NewTaskUsecase(baseRepo, taskRepo, taskQueueAdapter)
 	sshAdapter := adapter.NewSSHAdapter()
-	deployUsecase := usecase.NewDeployUsecase(sshAdapter, logRepo)
-	siteSheetAdapter := adapter.NewSiteSheetAdapter(config.Env.SheetID, sheetClient)
-	sheetUsecase := usecase.NewSheetUsecase(baseRepo, domainRepo, siteSheetAdapter)
+	sheetAdapter := adapter.NewSheetAdapter(sheetClient)
+	deployUsecase := usecase.NewDeployUsecase(sshAdapter, logRepo, sheetAdapter)
+	sheetUsecase := usecase.NewSheetUsecase(baseRepo, domainRepo, sheetAdapter)
 
 	return handler.NewApiHandler(
 		fetchUsecase,

@@ -36,6 +36,7 @@ type ApiHandler interface {
 	ExecuteTasks(c echo.Context) error
 	ExecuteTask(c echo.Context) error
 	DeployWordpress(c echo.Context) error
+	AssortWordpress(c echo.Context) error
 	OutputSheet(c echo.Context) error
 }
 
@@ -477,7 +478,7 @@ func (h *apiHandler) ExecuteTask(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Param request body request.DeployRequest true "デプロイ情報"
-// @Success 201
+// @Success 202
 // @Router /external/api/deploy [post]
 func (h *apiHandler) DeployWordpress(c echo.Context) error {
 	var req request.DeployRequest
@@ -491,7 +492,22 @@ func (h *apiHandler) DeployWordpress(c echo.Context) error {
 		h.deployUsecase.Deploy(context.Background(), req)
 	}()
 
-	return c.NoContent(http.StatusOK)
+	return c.NoContent(http.StatusAccepted)
+}
+
+// AssortWordpress godoc
+// @Summary ワードプレスを整理し、スプレッドシートに出力します
+// @Description
+// @Tags Wordpress
+// @Accept json
+// @Produce json
+// @Success 202
+// @Router /external/api/assort [post]
+func (h *apiHandler) AssortWordpress(c echo.Context) error {
+	go func() {
+		h.deployUsecase.Assort(context.Background())
+	}()
+	return c.NoContent(http.StatusAccepted)
 }
 
 // OutputSheet godoc
@@ -503,7 +519,7 @@ func (h *apiHandler) DeployWordpress(c echo.Context) error {
 // @Success 201
 // @Router /domains/output [post]
 func (h *apiHandler) OutputSheet(c echo.Context) error {
-	err := h.sheetUsecase.Output(c.Request().Context())
+	err := h.sheetUsecase.RivalSheetOutput(c.Request().Context())
 	if err != nil {
 		return handleError(c, err)
 	}

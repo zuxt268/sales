@@ -394,6 +394,18 @@ paths:
       summary: スプレッドシートに出力する
       tags:
       - ドメイン
+  /external/api/assort:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+      summary: ワードプレスを整理し、スプレッドシートに出力します
+      tags:
+      - Wordpress
   /external/api/deploy:
     post:
       consumes:
