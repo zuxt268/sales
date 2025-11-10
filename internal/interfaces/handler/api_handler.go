@@ -477,9 +477,10 @@ func (h *apiHandler) ExecuteTask(c echo.Context) error {
 // @Tags Wordpress
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param request body request.DeployRequest true "デプロイ情報"
 // @Success 202
-// @Router /external/api/deploy [post]
+// @Router /external/deploy [post]
 func (h *apiHandler) DeployWordpress(c echo.Context) error {
 	var req request.DeployRequest
 	if err := c.Bind(&req); err != nil {
@@ -501,8 +502,9 @@ func (h *apiHandler) DeployWordpress(c echo.Context) error {
 // @Tags Wordpress
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Success 202
-// @Router /external/api/assort [post]
+// @Router /external/assort [post]
 func (h *apiHandler) AssortWordpress(c echo.Context) error {
 	go func() {
 		h.sheetUsecase.Assort(context.Background())

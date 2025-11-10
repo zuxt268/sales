@@ -239,8 +239,13 @@ const docTemplate = `{
                 }
             }
         },
-        "/external/api/assort": {
+        "/external/assort": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -252,14 +257,19 @@ const docTemplate = `{
                 ],
                 "summary": "ワードプレスを整理し、スプレッドシートに出力します",
                 "responses": {
-                    "201": {
-                        "description": "Created"
+                    "202": {
+                        "description": "Accepted"
                     }
                 }
             }
         },
-        "/external/api/deploy": {
+        "/external/deploy": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -282,8 +292,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Created"
+                    "202": {
+                        "description": "Accepted"
                     }
                 }
             }
@@ -1073,6 +1083,14 @@ const docTemplate = `{
                 }
             }
         }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "Type \"Bearer\" followed by a space and JWT token.",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
     }
 }`
 
@@ -1083,7 +1101,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/api",
 	Schemes:          []string{},
 	Title:            "Sales API",
-	Description:      "Type \"Bearer\" followed by a space and JWT token.",
+	Description:      "ドメイン管理API",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

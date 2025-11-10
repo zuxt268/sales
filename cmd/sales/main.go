@@ -27,6 +27,7 @@ import (
 // @version 1.0
 // @description ドメイン管理API
 // @BasePath /api
+// @securityDefinitions.apikey BearerAuth
 // @in header
 // @name Authorization
 // @description Type "Bearer" followed by a space and JWT token.
@@ -95,7 +96,7 @@ func main() {
 	api.POST("/tasks/execute", handler.ExecuteTasks)
 	api.POST("/tasks/:id/execute", handler.ExecuteTask)
 
-	external := e.Group("/external/api")
+	external := api.Group("/external")
 	external.Use(middleware2.JWTMiddleware())
 	external.POST("/deploy", handler.DeployWordpress)
 	external.POST("/assort", handler.AssortWordpress)

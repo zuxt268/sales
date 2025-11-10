@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "Type \"Bearer\" followed by a space and JWT token.",
+        "description": "ドメイン管理API",
         "title": "Sales API",
         "contact": {},
         "version": "1.0"
@@ -232,8 +232,13 @@
                 }
             }
         },
-        "/external/api/assort": {
+        "/external/assort": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -245,14 +250,19 @@
                 ],
                 "summary": "ワードプレスを整理し、スプレッドシートに出力します",
                 "responses": {
-                    "201": {
-                        "description": "Created"
+                    "202": {
+                        "description": "Accepted"
                     }
                 }
             }
         },
-        "/external/api/deploy": {
+        "/external/deploy": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -275,8 +285,8 @@
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Created"
+                    "202": {
+                        "description": "Accepted"
                     }
                 }
             }
@@ -1065,6 +1075,14 @@
                     "type": "integer"
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "Type \"Bearer\" followed by a space and JWT token.",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }

@@ -243,7 +243,7 @@ definitions:
     type: object
 info:
   contact: {}
-  description: Type "Bearer" followed by a space and JWT token.
+  description: ドメイン管理API
   title: Sales API
   version: "1.0"
 paths:
@@ -394,19 +394,21 @@ paths:
       summary: スプレッドシートに出力する
       tags:
       - ドメイン
-  /external/api/assort:
+  /external/assort:
     post:
       consumes:
       - application/json
       produces:
       - application/json
       responses:
-        "201":
-          description: Created
+        "202":
+          description: Accepted
+      security:
+      - BearerAuth: []
       summary: ワードプレスを整理し、スプレッドシートに出力します
       tags:
       - Wordpress
-  /external/api/deploy:
+  /external/deploy:
     post:
       consumes:
       - application/json
@@ -420,8 +422,10 @@ paths:
       produces:
       - application/json
       responses:
-        "201":
-          description: Created
+        "202":
+          description: Accepted
+      security:
+      - BearerAuth: []
       summary: ワードプレスをデプロイします
       tags:
       - Wordpress
@@ -700,4 +704,10 @@ paths:
       summary: 全てのタスクを実行します
       tags:
       - タスク
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
