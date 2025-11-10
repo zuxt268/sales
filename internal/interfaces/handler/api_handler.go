@@ -505,7 +505,7 @@ func (h *apiHandler) DeployWordpress(c echo.Context) error {
 // @Router /external/api/assort [post]
 func (h *apiHandler) AssortWordpress(c echo.Context) error {
 	go func() {
-		h.deployUsecase.Assort(context.Background())
+		h.sheetUsecase.Assort(context.Background())
 	}()
 	return c.NoContent(http.StatusAccepted)
 }

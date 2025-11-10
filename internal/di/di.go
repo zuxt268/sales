@@ -35,7 +35,7 @@ func Initialize(
 	sshAdapter := adapter.NewSSHAdapter()
 	sheetAdapter := adapter.NewSheetAdapter(sheetClient)
 	deployUsecase := usecase.NewDeployUsecase(sshAdapter, logRepo, sheetAdapter)
-	sheetUsecase := usecase.NewSheetUsecase(baseRepo, domainRepo, sheetAdapter)
+	sheetUsecase := usecase.NewSheetUsecase(baseRepo, domainRepo, sheetAdapter, sshAdapter)
 
 	return handler.NewApiHandler(
 		fetchUsecase,
