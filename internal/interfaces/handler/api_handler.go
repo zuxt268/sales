@@ -1,9 +1,11 @@
 package handler
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -539,11 +541,30 @@ func (h *apiHandler) AssortWordpress(c echo.Context) error {
 // @Success 204
 // @Router /webhook/analyze [post]
 func (h *apiHandler) AnalyzeDomain(c echo.Context) error {
+	// リクエストBodyを読み取ってログ出力
+	bodyBytes, err := io.ReadAll(c.Request().Body)
+	if err != nil {
+		slog.Error("Failed to read request body", "error", err)
+		return c.JSON(http.StatusBadRequest, "Failed to read request body")
+	}
+
+	slog.Info("Received webhook request",
+		"body", string(bodyBytes),
+		"content-type", c.Request().Header.Get("Content-Type"),
+		"content-length", len(bodyBytes))
+
+	// Bodyを再度読めるように復元
+	c.Request().Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+
 	var domainMessage external.DomainMessage
 	if err := c.Bind(&domainMessage); err != nil {
+		slog.Error("Failed to bind request body", "error", err, "raw_body", string(bodyBytes))
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
-	err := h.gptUsecase.AnalyzeDomain(c.Request().Context(), &domainMessage)
+
+	slog.Info("Successfully parsed domain message", "message", domainMessage)
+
+	err = h.gptUsecase.AnalyzeDomain(c.Request().Context(), &domainMessage)
 	if err != nil {
 		return handleError(c, err)
 	}
