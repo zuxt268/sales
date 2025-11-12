@@ -1,4 +1,4 @@
-package dto
+package external
 
 import (
 	"github.com/zuxt268/sales/internal/model"

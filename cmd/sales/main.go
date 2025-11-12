@@ -47,8 +47,11 @@ func main() {
 	credPath := config.Env.GoogleServiceAccountPath
 	sheetClient := infrastructure.NewGoogleSheetsClient(credPath)
 
+	googleProjectID := os.Getenv("GOOGLE_PROJECT_ID")
+	pubSubClient := infrastructure.NewPubSubClient(googleProjectID, credPath)
+
 	// 依存性注入
-	handler := di.Initialize(db, sheetClient)
+	handler := di.Initialize(db, sheetClient, pubSubClient)
 
 	// Swagger hostを環境変数から設定
 	docs.SwaggerInfo.Host = config.Env.SwaggerHost
@@ -70,7 +73,6 @@ func main() {
 	})
 
 	api := e.Group("/api")
-	//api.Use(middleware2.JWTMiddleware())
 	api.Use(middleware2.SlogMiddleware())
 
 	api.GET("/domains", handler.GetDomains)
@@ -78,6 +80,7 @@ func main() {
 	api.PUT("/domains/:id", handler.UpdateDomain)
 	api.DELETE("/domains/:id", handler.DeleteDomain)
 	api.POST("/fetch", handler.FetchDomains)
+	api.POST("/polling", handler.PollingDomains)
 	api.POST("/domains/analyze", handler.AnalyzeDomains)
 	api.POST("/domains/output", handler.OutputSheet)
 
@@ -100,6 +103,9 @@ func main() {
 	external.Use(middleware2.JWTMiddleware())
 	external.POST("/deploy", handler.DeployWordpress)
 	external.POST("/assort", handler.AssortWordpress)
+
+	webhook := api.Group("/webhook")
+	webhook.POST("/analyze", handler.AnalyzeDomain)
 
 	srv := &http.Server{
 		Addr:    config.Env.Address,
@@ -132,6 +138,8 @@ func main() {
 		slog.Error("Server forced to shutdown", "error", err)
 		os.Exit(1)
 	}
+
+	_ = pubSubClient.Close()
 
 	slog.Info("Server exiting")
 }

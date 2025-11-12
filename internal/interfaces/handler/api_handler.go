@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/zuxt268/sales/internal/entity"
+	"github.com/zuxt268/sales/internal/interfaces/dto/external"
 	"github.com/zuxt268/sales/internal/interfaces/dto/request"
 	_ "github.com/zuxt268/sales/internal/interfaces/dto/response"
 	"github.com/zuxt268/sales/internal/model"
@@ -22,6 +24,7 @@ type ApiHandler interface {
 	UpdateDomain(c echo.Context) error
 	DeleteDomain(c echo.Context) error
 	FetchDomains(c echo.Context) error
+	PollingDomains(c echo.Context) error
 	AnalyzeDomains(c echo.Context) error
 	GetTargets(c echo.Context) error
 	CreateTarget(c echo.Context) error
@@ -38,6 +41,7 @@ type ApiHandler interface {
 	DeployWordpress(c echo.Context) error
 	AssortWordpress(c echo.Context) error
 	OutputSheet(c echo.Context) error
+	AnalyzeDomain(c echo.Context) error
 }
 
 type apiHandler struct {
@@ -209,6 +213,21 @@ func (h *apiHandler) FetchDomains(c echo.Context) error {
 	}
 	go func() {
 		h.fetchUsecase.Fetch(context.Background(), req)
+	}()
+	return c.NoContent(http.StatusAccepted)
+}
+
+// PollingDomains godoc
+// @Summary Polling domains
+// @Description Polling domain information
+// @Tags Domains
+// @Accept json
+// @Produce json
+// @Success 202
+// @Router /polling [post]
+func (h *apiHandler) PollingDomains(c echo.Context) error {
+	go func() {
+		h.fetchUsecase.Polling(context.Background())
 	}()
 	return c.NoContent(http.StatusAccepted)
 }
@@ -512,6 +531,25 @@ func (h *apiHandler) AssortWordpress(c echo.Context) error {
 	return c.NoContent(http.StatusAccepted)
 }
 
+// AnalyzeDomain godoc
+// @Summary PubSubのwebhookエンドポイント
+// @Tags ドメイン
+// @Accept json
+// @Produce json
+// @Success 204
+// @Router /webhook/analyze [post]
+func (h *apiHandler) AnalyzeDomain(c echo.Context) error {
+	var domainMessage external.DomainMessage
+	if err := c.Bind(&domainMessage); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	err := h.gptUsecase.AnalyzeDomain(c.Request().Context(), &domainMessage)
+	if err != nil {
+		return handleError(c, err)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
 // OutputSheet godoc
 // @Summary スプレッドシートに出力する
 // @Description
@@ -538,67 +576,67 @@ func handleError(c echo.Context, err error) error {
 
 	// エラータイプに応じてステータスコードを決定
 	switch {
-	case errors.Is(err, model.ErrNotFound):
+	case errors.Is(err, entity.ErrNotFound):
 		return c.JSON(http.StatusNotFound, model.ErrorResponse{
 			Error:   "not_found",
 			Message: "The requested resource was not found",
 		})
 
-	case errors.Is(err, model.ErrAlreadyExists):
+	case errors.Is(err, entity.ErrAlreadyExists):
 		return c.JSON(http.StatusConflict, model.ErrorResponse{
 			Error:   "already_exists",
 			Message: "The resource already exists",
 		})
 
-	case errors.Is(err, model.ErrConflict):
+	case errors.Is(err, entity.ErrConflict):
 		return c.JSON(http.StatusConflict, model.ErrorResponse{
 			Error:   "conflict",
 			Message: "Resource conflict occurred",
 		})
 
-	case errors.Is(err, model.ErrValidation):
+	case errors.Is(err, entity.ErrValidation):
 		return c.JSON(http.StatusBadRequest, model.ErrorResponse{
 			Error:   "validation_error",
 			Message: err.Error(),
 		})
 
-	case errors.Is(err, model.ErrInvalidInput):
+	case errors.Is(err, entity.ErrInvalidInput):
 		return c.JSON(http.StatusBadRequest, model.ErrorResponse{
 			Error:   "invalid_input",
 			Message: err.Error(),
 		})
 
-	case errors.Is(err, model.ErrExternalAPI):
+	case errors.Is(err, entity.ErrExternalAPI):
 		return c.JSON(http.StatusBadGateway, model.ErrorResponse{
 			Error:   "external_api_error",
 			Message: "External service is unavailable",
 		})
 
-	case errors.Is(err, model.ErrTimeout):
+	case errors.Is(err, entity.ErrTimeout):
 		return c.JSON(http.StatusGatewayTimeout, model.ErrorResponse{
 			Error:   "timeout",
 			Message: "Request timed out",
 		})
 
-	case errors.Is(err, model.ErrDatabase):
+	case errors.Is(err, entity.ErrDatabase):
 		return c.JSON(http.StatusInternalServerError, model.ErrorResponse{
 			Error:   "database_error",
 			Message: "Database operation failed",
 		})
 
-	case errors.Is(err, model.ErrTransaction):
+	case errors.Is(err, entity.ErrTransaction):
 		return c.JSON(http.StatusInternalServerError, model.ErrorResponse{
 			Error:   "transaction_error",
 			Message: "Transaction operation failed",
 		})
 
-	case errors.Is(err, model.ErrUnauthorized):
+	case errors.Is(err, entity.ErrUnauthorized):
 		return c.JSON(http.StatusUnauthorized, model.ErrorResponse{
 			Error:   "unauthorized",
 			Message: "Authentication required",
 		})
 
-	case errors.Is(err, model.ErrForbidden):
+	case errors.Is(err, entity.ErrForbidden):
 		return c.JSON(http.StatusForbidden, model.ErrorResponse{
 			Error:   "forbidden",
 			Message: "Access denied",

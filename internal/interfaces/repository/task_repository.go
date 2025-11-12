@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/zuxt268/sales/internal/entity"
 	"github.com/zuxt268/sales/internal/model"
 
 	"gorm.io/gorm"
@@ -44,7 +45,7 @@ func (r *taskRepository) Get(ctx context.Context, f TaskFilter) (model.Task, err
 	err := f.Apply(r.getDb(ctx).WithContext(ctx)).First(&t).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return t, model.WrapNotFound("task")
+			return t, entity.WrapNotFound("task")
 		}
 		return t, fmt.Errorf("failed to get task: %w", err)
 	}
@@ -56,7 +57,7 @@ func (r *taskRepository) GetForUpdate(ctx context.Context, f TaskFilter) (model.
 	err := f.Apply(r.getDb(ctx).WithContext(ctx)).Clauses(clause.Locking{Strength: "UPDATE"}).First(&t).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return t, model.WrapNotFound("task")
+			return t, entity.WrapNotFound("task")
 		}
 		return t, fmt.Errorf("failed to get task for update: %w", err)
 	}

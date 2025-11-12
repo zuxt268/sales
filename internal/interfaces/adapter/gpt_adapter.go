@@ -1,4 +1,4 @@
-package repository
+package adapter
 
 import (
 	"context"
@@ -10,18 +10,18 @@ import (
 	"github.com/zuxt268/sales/internal/model"
 )
 
-type GptRepository interface {
+type GptAdapter interface {
 	Analyze(ctx context.Context, domain *model.Domain) error
 }
 
-type gptRepository struct {
+type gptAdapter struct {
 	client *openai.Client
 }
 
-func NewGptRepository() GptRepository {
+func NewGptAdapter() GptAdapter {
 	apiKey := config.Env.OpenaiApiKey
 	client := openai.NewClient(apiKey)
-	return &gptRepository{
+	return &gptAdapter{
 		client: client,
 	}
 }
@@ -136,9 +136,9 @@ const promptTemplate = `"""%s"""
 例）自動車整備業,山田太郎,株式会社タロウ,東京都
 `
 
-func (r *gptRepository) Analyze(ctx context.Context, d *model.Domain) error {
+func (a *gptAdapter) Analyze(ctx context.Context, d *model.Domain) error {
 	prompt := fmt.Sprintf(promptTemplate, d.RawPage)
-	resp, err := r.client.CreateChatCompletion(
+	resp, err := a.client.CreateChatCompletion(
 		ctx,
 		openai.ChatCompletionRequest{
 			Model: "gpt-5-nano",

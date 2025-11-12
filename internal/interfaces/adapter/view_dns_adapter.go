@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/zuxt268/sales/internal/external"
+	"github.com/zuxt268/sales/internal/interfaces/dto/external"
 )
 
 type ViewDNSAdapter interface {

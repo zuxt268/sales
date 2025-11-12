@@ -9,7 +9,7 @@ import (
 
 	"github.com/zuxt268/sales/internal/config"
 	"github.com/zuxt268/sales/internal/interfaces/adapter"
-	"github.com/zuxt268/sales/internal/interfaces/dto"
+	"github.com/zuxt268/sales/internal/interfaces/dto/external"
 	"github.com/zuxt268/sales/internal/interfaces/repository"
 	"github.com/zuxt268/sales/internal/model"
 	"github.com/zuxt268/sales/internal/util"
@@ -61,7 +61,7 @@ func (s *sheetUsecase) RivalSheetOutput(ctx context.Context) error {
 	// 各ターゲットごとにスプレッドシートに出力
 	var errors []error
 	for target, domains := range results {
-		rows := dto.GetRows(domains)
+		rows := external.GetRows(domains)
 		if err := s.sheetAdapter.Output(rivalSheetID, target, rows); err != nil {
 			// エラーを収集して処理を継続（全ターゲットを処理）
 			errors = append(errors, err)

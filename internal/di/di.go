@@ -14,6 +14,7 @@ import (
 func Initialize(
 	db *gorm.DB,
 	sheetClient infrastructure.GoogleSheetsClient,
+	pubSubClient infrastructure.PubSubClient,
 ) handler.ApiHandler {
 	domainRepo := repository.NewDomainRepository(db)
 	viewDnsAdapter := adapter.NewViewDNSAdapter(config.Env.ViewDnsApiUrl)
@@ -21,16 +22,17 @@ func Initialize(
 	targetRepo := repository.NewTargetRepository(db)
 	logRepo := repository.NewLogRepository(db)
 	taskRepo := repository.NewTaskRepository(db)
-	gptRepo := repository.NewGptRepository()
+	gptRepo := adapter.NewGptAdapter()
 	slackAdapter := adapter.NewSlackAdapter()
 	redisQueue := infrastructure.NewRedisQueue()
 	taskQueueAdapter := adapter.NewTaskQueueAdapter(redisQueue)
+	pubSubAdapter := adapter.NewPubSubAdapter(pubSubClient)
 
-	fetchUsecase := usecase.NewFetchUsecase(viewDnsAdapter, slackAdapter, domainRepo, targetRepo)
+	fetchUsecase := usecase.NewFetchUsecase(viewDnsAdapter, slackAdapter, pubSubAdapter, domainRepo, targetRepo)
 	domainUsecase := usecase.NewDomainUsecase(baseRepo, domainRepo)
 	targetUsecase := usecase.NewTargetUsecase(baseRepo, targetRepo)
 	logUsecase := usecase.NewLogUsecase(baseRepo, logRepo)
-	gptUsecase := usecase.NewGptUsecase(slackAdapter, domainRepo, gptRepo)
+	gptUsecase := usecase.NewGptUsecase(baseRepo, domainRepo, slackAdapter, gptRepo)
 	taskUsecase := usecase.NewTaskUsecase(baseRepo, taskRepo, taskQueueAdapter)
 	sshAdapter := adapter.NewSSHAdapter()
 	sheetAdapter := adapter.NewSheetAdapter(sheetClient)

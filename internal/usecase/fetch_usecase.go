@@ -2,23 +2,28 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"strconv"
+	"sync"
 
 	"github.com/zuxt268/sales/internal/config"
-	"github.com/zuxt268/sales/internal/external"
 	"github.com/zuxt268/sales/internal/interfaces/adapter"
+	"github.com/zuxt268/sales/internal/interfaces/dto/external"
 	"github.com/zuxt268/sales/internal/interfaces/repository"
 	"github.com/zuxt268/sales/internal/model"
+	"github.com/zuxt268/sales/internal/util"
 )
 
 type FetchUsecase interface {
+	Polling(ctx context.Context)
 	Fetch(ctx context.Context, req model.PostFetchRequest)
 }
 
 type fetchUsecase struct {
 	viewDnsAdapter adapter.ViewDNSAdapter
 	slackAdapter   adapter.SlackAdapter
+	pubSubAdapter  adapter.PubSubAdapter
 	domainRepo     repository.DomainRepository
 	targetRepo     repository.TargetRepository
 }
@@ -26,15 +31,65 @@ type fetchUsecase struct {
 func NewFetchUsecase(
 	viewDnsAdapter adapter.ViewDNSAdapter,
 	slackAdapter adapter.SlackAdapter,
+	pubSubAdapter adapter.PubSubAdapter,
 	domainRepo repository.DomainRepository,
 	targetRepo repository.TargetRepository,
 ) FetchUsecase {
 	return &fetchUsecase{
 		viewDnsAdapter: viewDnsAdapter,
 		slackAdapter:   slackAdapter,
+		pubSubAdapter:  pubSubAdapter,
 		domainRepo:     domainRepo,
 		targetRepo:     targetRepo,
 	}
+}
+
+func (u *fetchUsecase) Polling(ctx context.Context) {
+	slog.Info("Polling is invoked")
+
+	domains, err := u.domainRepo.FindAll(ctx, repository.DomainFilter{
+		Status: util.Pointer(model.StatusInitialize),
+	})
+	if err != nil {
+		slog.Error("Error fetching domains", slog.Any("error", err))
+		return
+	}
+
+	var wg sync.WaitGroup
+	sem := make(chan struct{}, 20) // 同時10件まで
+
+	for _, domain := range domains {
+		wg.Add(1)
+		go func(d *model.Domain) {
+			defer wg.Done()
+			sem <- struct{}{}
+			defer func() { <-sem }()
+
+			if err := u.handleDomain(ctx, d); err != nil {
+				slog.Error("failed to process domain",
+					slog.Int("domain_id", d.ID),
+					slog.Any("error", err),
+				)
+			}
+		}(domain)
+	}
+
+	wg.Wait()
+	slog.Info("Polling finished")
+}
+
+func (u *fetchUsecase) handleDomain(ctx context.Context, domain *model.Domain) error {
+	if err := u.pubSubAdapter.PushDomain(ctx, &external.DomainMessage{
+		DomainId: domain.ID,
+	}); err != nil {
+		return fmt.Errorf("pubsub publish failed: %w", err)
+	}
+
+	domain.Status = model.StatusCheckView
+	if err := u.domainRepo.Save(ctx, domain); err != nil {
+		return fmt.Errorf("failed to update status: %w", err)
+	}
+	return nil
 }
 
 func (u *fetchUsecase) Fetch(ctx context.Context, req model.PostFetchRequest) {

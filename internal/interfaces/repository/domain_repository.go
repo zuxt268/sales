@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/zuxt268/sales/internal/entity"
 	"github.com/zuxt268/sales/internal/model"
 
 	"gorm.io/gorm"
@@ -46,7 +47,7 @@ func (r *domainRepository) Get(ctx context.Context, f DomainFilter) (*model.Doma
 	err := f.Apply(r.getDb(ctx).WithContext(ctx)).First(d).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return d, model.WrapNotFound("domain")
+			return d, entity.WrapNotFound("domain")
 		}
 		return nil, fmt.Errorf("failed to get domain: %w", err)
 	}
@@ -58,7 +59,7 @@ func (r *domainRepository) GetForUpdate(ctx context.Context, f DomainFilter) (*m
 	err := f.Apply(r.getDb(ctx).WithContext(ctx)).Clauses(clause.Locking{Strength: "UPDATE"}).First(d).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return d, model.WrapNotFound("domain")
+			return d, entity.WrapNotFound("domain")
 		}
 		return nil, fmt.Errorf("failed to get domain for update: %w", err)
 	}

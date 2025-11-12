@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/zuxt268/sales/internal/entity"
 	"github.com/zuxt268/sales/internal/model"
 
 	"gorm.io/gorm"
@@ -45,7 +46,7 @@ func (r *targetRepository) Get(ctx context.Context, f TargetFilter) (*model.Targ
 	err := f.Apply(r.getDb(ctx).WithContext(ctx)).First(t).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return t, model.WrapNotFound("target")
+			return t, entity.WrapNotFound("target")
 		}
 		return nil, fmt.Errorf("failed to fetch target: %w", err)
 	}
@@ -57,7 +58,7 @@ func (r *targetRepository) GetForUpdate(ctx context.Context, f TargetFilter) (*m
 	err := f.Apply(r.getDb(ctx).WithContext(ctx)).Clauses(clause.Locking{Strength: "UPDATE"}).First(t).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, model.WrapNotFound("target")
+			return nil, entity.WrapNotFound("target")
 		}
 		return nil, fmt.Errorf("failed to fetch target: %w", err)
 	}
