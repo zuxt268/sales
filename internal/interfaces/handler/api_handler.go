@@ -3,6 +3,7 @@ package handler
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -556,18 +557,34 @@ func (h *apiHandler) AnalyzeDomain(c echo.Context) error {
 	// Bodyを再度読めるように復元
 	c.Request().Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 
+	// Pub/Sub Push の構造体
+	var push struct {
+		Message struct {
+			Data []byte `json:"data"`
+		} `json:"message"`
+	}
+
+	// Pub/Sub JSON を解析
+	if err := json.Unmarshal(bodyBytes, &push); err != nil {
+		slog.Error("Failed to unmarshal pubsub push", "error", err)
+		return c.JSON(http.StatusBadRequest, "invalid pubsub message")
+	}
+
+	slog.Info("Decoded PubSub data", "data_json", string(push.Message.Data))
+
+	// Base64 decode 済み JSON を DomainMessage に Unmarshal
 	var domainMessage external.DomainMessage
-	if err := c.Bind(&domainMessage); err != nil {
-		slog.Error("Failed to bind request body", "error", err, "raw_body", string(bodyBytes))
-		return c.JSON(http.StatusBadRequest, err.Error())
+	if err := json.Unmarshal(push.Message.Data, &domainMessage); err != nil {
+		slog.Error("Failed to unmarshal domain message", "error", err, "decoded", string(push.Message.Data))
+		return c.JSON(http.StatusBadRequest, "invalid domain message")
 	}
 
 	slog.Info("Successfully parsed domain message", "message", domainMessage)
 
-	err = h.gptUsecase.AnalyzeDomain(c.Request().Context(), &domainMessage)
-	if err != nil {
+	if err := h.gptUsecase.AnalyzeDomain(c.Request().Context(), &domainMessage); err != nil {
 		return handleError(c, err)
 	}
+
 	return c.NoContent(http.StatusNoContent)
 }
 
