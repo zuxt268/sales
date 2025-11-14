@@ -26,6 +26,10 @@ Enterprise-grade domain management API with clean architecture and testability f
 - **ターゲット管理**: IPベースのターゲット管理機能
 - **タスク管理**: タスクの作成、更新、実行機能
 - **ログ管理**: 操作ログの記録と取得
+- **バックアップ機能**:
+  - Google Sheetsからの自動CSVバックアップ
+  - DBから直接CSVバックアップ（targetごとに分類）
+  - Google Drive共有ドライブへの自動アップロード
 - **JWT認証**: Bearer token認証によるセキュアなAPI
 - **AI連携**: OpenAI GPTを使用した業種自動判定
 - **構造化ログ**: slogによるJSON形式のログ出力
@@ -106,6 +110,11 @@ JWT_SECRET=your_jwt_secret_key
 
 # OpenAI API設定
 OPENAI_API_KEY=your_openai_api_key
+
+# Google API設定
+GOOGLE_SERVICE_ACCOUNT_PATH=./credentials/service_account.json
+SHEET_ID=your_spreadsheet_id
+GOOGLE_DRIVE_BACKUP_FOLDER_ID=your_shared_drive_folder_id
 ```
 
 ### 4. データベースマイグレーションの実行
@@ -203,6 +212,11 @@ curl -H "Authorization: Bearer <your_token>" http://localhost:8091/api/domains
 
 - `GET /api/logs` - ログ一覧取得
 - `POST /api/logs` - ログ作成
+
+### バックアップ
+
+- `POST /api/backup` - Google Sheetsのデータをバックアップ & クリア
+- `POST /api/backup/direct` - DBから直接CSVバックアップ（pending_output → done）
 
 ### ドキュメント
 
