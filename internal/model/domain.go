@@ -37,6 +37,7 @@ const (
 	StatusCheckView     Status = "check_view"
 	StatusCheckJapan    Status = "check_japan"
 	StatusCrawlCompInfo Status = "crawl_comp_info"
+	StatusPendingOutput Status = "pending_output"
 	StatusDone          Status = "done"
 	StatusTrash         Status = "trash"
 )

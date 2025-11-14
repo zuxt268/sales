@@ -21,6 +21,7 @@ type GoogleSheetsClient interface {
 	WriteToSheetOrCreate(spreadsheetID, sheetTitle, cellRange string, values [][]interface{}, valueInputOption string) (bool, error)
 	ClearRange(spreadsheetID, clearRange string) error
 	ReadRange(spreadsheetID, readRange string) ([][]interface{}, error)
+	GetSpreadsheet(spreadsheetID string) (*sheets.Spreadsheet, error)
 }
 
 // NewGoogleSheetsClient サービスアカウントを使用してGoogle Sheets APIクライアントを初期化

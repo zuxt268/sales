@@ -18,6 +18,8 @@ import (
 type SheetUsecase interface {
 	RivalSheetOutput(ctx context.Context) error
 	Assort(ctx context.Context)
+	BackupAndClearSheet(ctx context.Context)
+	BackupDomainsDirectly(ctx context.Context) error
 }
 
 type sheetUsecase struct {
@@ -41,9 +43,9 @@ func NewSheetUsecase(
 	}
 }
 
-func (s *sheetUsecase) RivalSheetOutput(ctx context.Context) error {
+func (u *sheetUsecase) RivalSheetOutput(ctx context.Context) error {
 	// ステータスが"done"のドメインを全て取得
-	domains, err := s.domainRepo.FindAll(ctx, repository.DomainFilter{
+	domains, err := u.domainRepo.FindAll(ctx, repository.DomainFilter{
 		Status: util.Pointer(model.StatusDone),
 	})
 	if err != nil {
@@ -62,7 +64,7 @@ func (s *sheetUsecase) RivalSheetOutput(ctx context.Context) error {
 	var errors []error
 	for target, domains := range results {
 		rows := external.GetRows(domains)
-		if err := s.sheetAdapter.Output(rivalSheetID, target, rows); err != nil {
+		if err := u.sheetAdapter.Output(rivalSheetID, target, rows); err != nil {
 			// エラーを収集して処理を継続（全ターゲットを処理）
 			errors = append(errors, err)
 		}
@@ -152,4 +154,82 @@ func (u *sheetUsecase) Assort(ctx context.Context) {
 	}
 
 	slog.Info("Assort処理完了")
+}
+
+// BackupAndClearSheet backs up a spreadsheet to Google Drive and then clears all sheets
+func (u *sheetUsecase) BackupAndClearSheet(ctx context.Context) {
+
+	sheetID := config.Env.SheetID
+	driveFolderID := config.Env.GoogleDriveBackupFolderID
+
+	if err := u.sheetAdapter.BackupToGoogleDrive(sheetID, driveFolderID); err != nil {
+		slog.Error("backup to google drive failed", "error", err.Error())
+		return
+	}
+	// Clear all sheets only after successful backup
+	if err := u.sheetAdapter.ClearAllSheets(sheetID); err != nil {
+		slog.Error("clear sheets failed", "error", err.Error())
+		return
+	}
+
+	slog.Info("Successfully backed up and cleared spreadsheet",
+		"sheet_id", sheetID,
+	)
+}
+
+// BackupDomainsDirectly backs up domains with status "pending_output" directly from DB to Google Drive as CSV
+func (u *sheetUsecase) BackupDomainsDirectly(ctx context.Context) error {
+	// Get domains with status "pending_output"
+	slog.Info("Starting direct domain backup from DB")
+
+	domains, err := u.domainRepo.FindAll(ctx, repository.DomainFilter{
+		Status: util.Pointer(model.StatusPendingOutput),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to get domains: %w", err)
+	}
+
+	if len(domains) == 0 {
+		slog.Info("No domains with status pending_output found")
+		return nil
+	}
+
+	// Group domains by target
+	domainsByTarget := make(map[string][]*model.Domain)
+	for _, d := range domains {
+		domainsByTarget[d.Target] = append(domainsByTarget[d.Target], d)
+	}
+
+	slog.Info("Grouped domains by target",
+		"total_domains", len(domains),
+		"targets", len(domainsByTarget),
+	)
+
+	// Backup to Google Drive
+	driveFolderID := config.Env.GoogleDriveBackupFolderID
+	if err := u.sheetAdapter.BackupDomainsToGoogleDrive(domainsByTarget, driveFolderID); err != nil {
+		return fmt.Errorf("failed to backup domains to Google Drive: %w", err)
+	}
+
+	slog.Info("Backup completed, updating domain status to done")
+
+	// Update all domains status to "done" with single query
+	// Execute: UPDATE domains SET status = 'done' WHERE status = 'pending_output'
+	err = u.baseRepo.WithTransaction(ctx, func(ctx context.Context) error {
+		if updateErr := u.domainRepo.BulkUpdateStatus(ctx, model.StatusPendingOutput, model.StatusDone); updateErr != nil {
+			return fmt.Errorf("failed to bulk update domain status: %w", updateErr)
+		}
+		return nil
+	})
+	if err != nil {
+		slog.Error("Failed to update domain status", "error", err.Error())
+		return fmt.Errorf("failed to update domain status: %w", err)
+	}
+
+	slog.Info("Successfully backed up domains and updated status",
+		"total_domains", len(domains),
+		"targets", len(domainsByTarget),
+	)
+
+	return nil
 }

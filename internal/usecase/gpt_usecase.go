@@ -93,7 +93,7 @@ func (u *gptUsecase) AnalyzeDomains(ctx context.Context) error {
 				return
 			}
 			d.MobilePhone, d.LandlinePhone = entity.SplitPhone(d.Phone)
-			d.Status = model.StatusDone
+			d.Status = model.StatusPendingOutput
 			if err := u.domainRepo.Save(ctx, d); err != nil {
 				slog.Error("gpt repo save error", "error", err)
 				return

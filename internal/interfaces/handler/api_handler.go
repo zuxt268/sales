@@ -28,6 +28,7 @@ type ApiHandler interface {
 	DeleteDomain(c echo.Context) error
 	FetchDomains(c echo.Context) error
 	PollingDomains(c echo.Context) error
+	BackupDomains(c echo.Context) error
 	AnalyzeDomains(c echo.Context) error
 	GetTargets(c echo.Context) error
 	CreateTarget(c echo.Context) error
@@ -231,6 +232,21 @@ func (h *apiHandler) FetchDomains(c echo.Context) error {
 func (h *apiHandler) PollingDomains(c echo.Context) error {
 	go func() {
 		h.fetchUsecase.Polling(context.Background())
+	}()
+	return c.NoContent(http.StatusAccepted)
+}
+
+// BackupDomains godoc
+// @Summary Backup domains
+// @Description Polling domain information
+// @Tags Domains
+// @Accept json
+// @Produce json
+// @Success 202
+// @Router /backup [post]
+func (h *apiHandler) BackupDomains(c echo.Context) error {
+	go func() {
+		h.sheetUsecase.BackupAndClearSheet(context.Background())
 	}()
 	return c.NoContent(http.StatusAccepted)
 }

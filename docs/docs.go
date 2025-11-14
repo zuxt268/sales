@@ -15,6 +15,26 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/backup": {
+            "post": {
+                "description": "Polling domain information",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Domains"
+                ],
+                "summary": "Backup domains",
+                "responses": {
+                    "202": {
+                        "description": "Accepted"
+                    }
+                }
+            }
+        },
         "/domains": {
             "get": {
                 "description": "Get domain list",
@@ -413,6 +433,26 @@ const docTemplate = `{
                 }
             }
         },
+        "/polling": {
+            "post": {
+                "description": "Polling domain information",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Domains"
+                ],
+                "summary": "Polling domains",
+                "responses": {
+                    "202": {
+                        "description": "Accepted"
+                    }
+                }
+            }
+        },
         "/targets": {
             "get": {
                 "description": "Get target list",
@@ -715,6 +755,25 @@ const docTemplate = `{
                 "responses": {
                     "201": {
                         "description": "Created"
+                    }
+                }
+            }
+        },
+        "/webhook/analyze": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ドメイン"
+                ],
+                "summary": "PubSubのwebhookエンドポイント",
+                "responses": {
+                    "204": {
+                        "description": "No Content"
                     }
                 }
             }

@@ -14,6 +14,7 @@ import (
 func Initialize(
 	db *gorm.DB,
 	sheetClient infrastructure.GoogleSheetsClient,
+	driveClient infrastructure.GoogleDriveClient,
 	pubSubClient infrastructure.PubSubClient,
 ) handler.ApiHandler {
 	domainRepo := repository.NewDomainRepository(db)
@@ -35,7 +36,7 @@ func Initialize(
 	gptUsecase := usecase.NewGptUsecase(baseRepo, domainRepo, slackAdapter, gptRepo)
 	taskUsecase := usecase.NewTaskUsecase(baseRepo, taskRepo, taskQueueAdapter)
 	sshAdapter := adapter.NewSSHAdapter()
-	sheetAdapter := adapter.NewSheetAdapter(sheetClient)
+	sheetAdapter := adapter.NewSheetAdapter(sheetClient, driveClient)
 	deployUsecase := usecase.NewDeployUsecase(sshAdapter, logRepo, sheetAdapter)
 	sheetUsecase := usecase.NewSheetUsecase(baseRepo, domainRepo, sheetAdapter, sshAdapter)
 

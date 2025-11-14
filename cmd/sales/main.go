@@ -47,11 +47,13 @@ func main() {
 	credPath := config.Env.GoogleServiceAccountPath
 	sheetClient := infrastructure.NewGoogleSheetsClient(credPath)
 
+	driveClient := infrastructure.NewGoogleDriveClient(credPath)
+
 	googleProjectID := os.Getenv("GOOGLE_PROJECT_ID")
 	pubSubClient := infrastructure.NewPubSubClient(googleProjectID, credPath)
 
 	// 依存性注入
-	handler := di.Initialize(db, sheetClient, pubSubClient)
+	handler := di.Initialize(db, sheetClient, driveClient, pubSubClient)
 
 	// Swagger hostを環境変数から設定
 	docs.SwaggerInfo.Host = config.Env.SwaggerHost
@@ -81,6 +83,7 @@ func main() {
 	api.DELETE("/domains/:id", handler.DeleteDomain)
 	api.POST("/fetch", handler.FetchDomains)
 	api.POST("/polling", handler.PollingDomains)
+	api.POST("/backup", handler.BackupDomains)
 	api.POST("/domains/analyze", handler.AnalyzeDomains)
 	api.POST("/domains/output", handler.OutputSheet)
 

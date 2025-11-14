@@ -247,6 +247,19 @@ info:
   title: Sales API
   version: "1.0"
 paths:
+  /backup:
+    post:
+      consumes:
+      - application/json
+      description: Polling domain information
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+      summary: Backup domains
+      tags:
+      - Domains
   /domains:
     get:
       consumes:
@@ -504,6 +517,19 @@ paths:
       summary: Create log
       tags:
       - ログ
+  /polling:
+    post:
+      consumes:
+      - application/json
+      description: Polling domain information
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+      summary: Polling domains
+      tags:
+      - Domains
   /targets:
     get:
       consumes:
@@ -704,6 +730,18 @@ paths:
       summary: 全てのタスクを実行します
       tags:
       - タスク
+  /webhook/analyze:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      summary: PubSubのwebhookエンドポイント
+      tags:
+      - ドメイン
 securityDefinitions:
   BearerAuth:
     description: Type "Bearer" followed by a space and JWT token.

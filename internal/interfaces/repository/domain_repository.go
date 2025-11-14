@@ -19,6 +19,7 @@ type DomainRepository interface {
 	FindAll(ctx context.Context, f DomainFilter) ([]*model.Domain, error)
 	Save(ctx context.Context, domain *model.Domain) error
 	BulkInsert(ctx context.Context, domains []*model.Domain) error
+	BulkUpdateStatus(ctx context.Context, fromStatus, toStatus model.Status) error
 	Delete(ctx context.Context, f DomainFilter) error
 	Count(ctx context.Context, f DomainFilter) (int64, error)
 }
@@ -101,6 +102,17 @@ func (r *domainRepository) BulkInsert(ctx context.Context, domains []*model.Doma
 	}).WithContext(ctx).CreateInBatches(domains, 100).Error
 	if err != nil {
 		return fmt.Errorf("failed to insert domains: %w", err)
+	}
+	return nil
+}
+
+// BulkUpdateStatus updates all domains from one status to another in a single query
+func (r *domainRepository) BulkUpdateStatus(ctx context.Context, fromStatus, toStatus model.Status) error {
+	err := r.getDb(ctx).Model(&model.Domain{}).
+		Where("status = ?", fromStatus).
+		Update("status", toStatus).Error
+	if err != nil {
+		return fmt.Errorf("failed to bulk update status: %w", err)
 	}
 	return nil
 }
