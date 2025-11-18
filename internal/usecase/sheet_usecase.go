@@ -179,7 +179,6 @@ func (u *sheetUsecase) BackupAndClearSheet(ctx context.Context) {
 
 // BackupDomainsDirectly backs up domains with status "pending_output" directly from DB to Google Drive as CSV
 func (u *sheetUsecase) BackupDomainsDirectly(ctx context.Context) error {
-	// Get domains with status "pending_output"
 	slog.Info("Starting direct domain backup from DB")
 
 	domains, err := u.domainRepo.FindAll(ctx, repository.DomainFilter{
