@@ -83,7 +83,7 @@ func main() {
 	api.DELETE("/domains/:id", handler.DeleteDomain)
 	api.POST("/fetch", handler.FetchDomains)
 	api.POST("/polling", handler.PollingDomains)
-	api.POST("/backup", handler.BackupDomains)
+	api.POST("/backup", handler.BackupGoogleDrive)
 	api.POST("/domains/analyze", handler.AnalyzeDomains)
 	api.POST("/domains/output", handler.OutputSheet)
 
