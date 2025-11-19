@@ -91,16 +91,6 @@ func main() {
 	api.PUT("/targets/:id", handler.UpdateTarget)
 	api.DELETE("/targets/:id", handler.DeleteTarget)
 
-	api.GET("/logs", handler.GetLogs)
-	api.POST("/logs", handler.CreateLog)
-
-	api.GET("/tasks", handler.GetTasks)
-	api.POST("/tasks", handler.CreateTask)
-	api.PUT("/tasks/:id", handler.UpdateTask)
-	api.DELETE("/tasks/:id", handler.DeleteTask)
-	api.POST("/tasks/execute", handler.ExecuteTasks)
-	api.POST("/tasks/:id/execute", handler.ExecuteTask)
-
 	external := api.Group("/external")
 	external.Use(middleware2.JWTMiddleware())
 	external.POST("/deploy", handler.DeployWordpress)

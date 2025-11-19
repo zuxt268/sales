@@ -17,7 +17,6 @@ import (
 	"github.com/zuxt268/sales/internal/entity"
 	"github.com/zuxt268/sales/internal/interfaces/adapter"
 	"github.com/zuxt268/sales/internal/interfaces/dto/request"
-	"github.com/zuxt268/sales/internal/interfaces/repository"
 )
 
 type DeployUsecase interface {
@@ -26,18 +25,15 @@ type DeployUsecase interface {
 
 type deployUsecase struct {
 	sshAdapter       adapter.SSHAdapter
-	logRepo          repository.LogRepository
 	siteSheetAdapter adapter.SheetAdapter
 }
 
 func NewDeployUsecase(
 	sshAdapter adapter.SSHAdapter,
-	logRepo repository.LogRepository,
 	siteSheetAdapter adapter.SheetAdapter,
 ) DeployUsecase {
 	return &deployUsecase{
 		sshAdapter:       sshAdapter,
-		logRepo:          logRepo,
 		siteSheetAdapter: siteSheetAdapter,
 	}
 }
