@@ -58,7 +58,7 @@ func (u *gptUsecase) AnalyzeDomain(ctx context.Context, domainMessage *external.
 			return err
 		}
 		domain.MobilePhone, domain.LandlinePhone = entity.SplitPhone(domain.Phone)
-		domain.Status = model.StatusDone
+		domain.Status = model.StatusPendingOutput
 		if err := u.domainRepo.Save(ctx, domain); err != nil {
 			return err
 		}
