@@ -109,12 +109,13 @@ func (r *targetRepository) getDb(ctx context.Context) *gorm.DB {
 }
 
 type TargetFilter struct {
-	ID     *int
-	IP     *string
-	Name   *string
-	Status *model.TargetStatus
-	Limit  *int
-	Offset *int
+	ID      *int
+	IP      *string
+	Name    *string
+	NotName *string
+	Status  *model.TargetStatus
+	Limit   *int
+	Offset  *int
 }
 
 func (f *TargetFilter) Apply(db *gorm.DB) *gorm.DB {
@@ -126,6 +127,9 @@ func (f *TargetFilter) Apply(db *gorm.DB) *gorm.DB {
 	}
 	if f.Name != nil {
 		db = db.Where("name = ?", *f.Name)
+	}
+	if f.NotName != nil {
+		db = db.Where("name != ?", *f.Name)
 	}
 	if f.Status != nil {
 		db = db.Where("status = ?", *f.Status)

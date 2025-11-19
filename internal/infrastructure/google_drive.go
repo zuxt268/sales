@@ -16,6 +16,7 @@ import (
 type GoogleDriveClient interface {
 	CreateFolder(folderName string, parentFolderID string) (string, error)
 	UploadCSV(fileName string, csvData io.Reader, folderID string) error
+	ShareFolder(folderID string, email string) error
 }
 
 type googleDriveClient struct {
@@ -100,6 +101,27 @@ func (c *googleDriveClient) UploadCSV(fileName string, csvData io.Reader, folder
 	slog.Info("Uploaded CSV to Google Drive",
 		"file_name", fileName,
 		"folder_id", folderID,
+	)
+
+	return nil
+}
+
+// ShareFolder shares a folder with a specific email address
+func (c *googleDriveClient) ShareFolder(folderID string, email string) error {
+	permission := &drive.Permission{
+		Type:         "user",
+		Role:         "writer",
+		EmailAddress: email,
+	}
+
+	_, err := c.service.Permissions.Create(folderID, permission).SupportsAllDrives(true).SendNotificationEmail(false).Do()
+	if err != nil {
+		return fmt.Errorf("unable to share folder: %w", err)
+	}
+
+	slog.Info("Shared folder with user",
+		"folder_id", folderID,
+		"email", email,
 	)
 
 	return nil

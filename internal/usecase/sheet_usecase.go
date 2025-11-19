@@ -9,16 +9,13 @@ import (
 
 	"github.com/zuxt268/sales/internal/config"
 	"github.com/zuxt268/sales/internal/interfaces/adapter"
-	"github.com/zuxt268/sales/internal/interfaces/dto/external"
 	"github.com/zuxt268/sales/internal/interfaces/repository"
 	"github.com/zuxt268/sales/internal/model"
 	"github.com/zuxt268/sales/internal/util"
 )
 
 type SheetUsecase interface {
-	RivalSheetOutput(ctx context.Context) error
 	Assort(ctx context.Context)
-	BackupAndClearSheet(ctx context.Context)
 	BackupDomainsDirectly(ctx context.Context) error
 }
 
@@ -41,41 +38,6 @@ func NewSheetUsecase(
 		sheetAdapter: sheetAdapter,
 		sshAdapter:   sshAdapter,
 	}
-}
-
-func (u *sheetUsecase) RivalSheetOutput(ctx context.Context) error {
-	// ステータスが"done"のドメインを全て取得
-	domains, err := u.domainRepo.FindAll(ctx, repository.DomainFilter{
-		Status: util.Pointer(model.StatusDone),
-	})
-	if err != nil {
-		return err
-	}
-
-	// ターゲットごとにドメインをグループ化
-	results := make(map[string][]*model.Domain)
-	for _, d := range domains {
-		results[d.Target] = append(results[d.Target], d)
-	}
-
-	rivalSheetID := config.Env.SheetID
-
-	// 各ターゲットごとにスプレッドシートに出力
-	var errors []error
-	for target, domains := range results {
-		rows := external.GetRows(domains)
-		if err := u.sheetAdapter.Output(rivalSheetID, target, rows); err != nil {
-			// エラーを収集して処理を継続（全ターゲットを処理）
-			errors = append(errors, err)
-		}
-	}
-
-	// エラーがあれば最初のエラーを返す
-	if len(errors) > 0 {
-		return errors[0]
-	}
-
-	return nil
 }
 
 // DomainInfo assortの出力構造体
@@ -156,27 +118,6 @@ func (u *sheetUsecase) Assort(ctx context.Context) {
 	slog.Info("Assort処理完了")
 }
 
-// BackupAndClearSheet backs up a spreadsheet to Google Drive and then clears all sheets
-func (u *sheetUsecase) BackupAndClearSheet(ctx context.Context) {
-
-	sheetID := config.Env.SheetID
-	driveFolderID := config.Env.GoogleDriveBackupFolderID
-
-	if err := u.sheetAdapter.BackupToGoogleDrive(sheetID, driveFolderID); err != nil {
-		slog.Error("backup to google drive failed", "error", err.Error())
-		return
-	}
-	// Clear all sheets only after successful backup
-	if err := u.sheetAdapter.ClearAllSheets(sheetID); err != nil {
-		slog.Error("clear sheets failed", "error", err.Error())
-		return
-	}
-
-	slog.Info("Successfully backed up and cleared spreadsheet",
-		"sheet_id", sheetID,
-	)
-}
-
 // BackupDomainsDirectly backs up domains with status "pending_output" directly from DB to Google Drive as CSV
 func (u *sheetUsecase) BackupDomainsDirectly(ctx context.Context) error {
 	slog.Info("Starting direct domain backup from DB")
@@ -187,33 +128,26 @@ func (u *sheetUsecase) BackupDomainsDirectly(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to get domains: %w", err)
 	}
-
 	if len(domains) == 0 {
 		slog.Info("No domains with status pending_output found")
 		return nil
 	}
 
-	// Group domains by target
 	domainsByTarget := make(map[string][]*model.Domain)
 	for _, d := range domains {
 		domainsByTarget[d.Target] = append(domainsByTarget[d.Target], d)
 	}
 
-	slog.Info("Grouped domains by target",
+	slog.Info("出力ターゲット",
 		"total_domains", len(domains),
 		"targets", len(domainsByTarget),
 	)
 
-	// Backup to Google Drive
 	driveFolderID := config.Env.GoogleDriveBackupFolderID
 	if err := u.sheetAdapter.BackupDomainsToGoogleDrive(domainsByTarget, driveFolderID); err != nil {
 		return fmt.Errorf("failed to backup domains to Google Drive: %w", err)
 	}
 
-	slog.Info("Backup completed, updating domain status to done")
-
-	// Update all domains status to "done" with single query
-	// Execute: UPDATE domains SET status = 'done' WHERE status = 'pending_output'
 	err = u.baseRepo.WithTransaction(ctx, func(ctx context.Context) error {
 		if updateErr := u.domainRepo.BulkUpdateStatus(ctx, model.StatusPendingOutput, model.StatusDone); updateErr != nil {
 			return fmt.Errorf("failed to bulk update domain status: %w", updateErr)
@@ -225,7 +159,7 @@ func (u *sheetUsecase) BackupDomainsDirectly(ctx context.Context) error {
 		return fmt.Errorf("failed to update domain status: %w", err)
 	}
 
-	slog.Info("Successfully backed up domains and updated status",
+	slog.Info("ファイルの出力完了",
 		"total_domains", len(domains),
 		"targets", len(domainsByTarget),
 	)

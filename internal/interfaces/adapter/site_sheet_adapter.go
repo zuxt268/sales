@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/zuxt268/sales/internal/config"
 	"github.com/zuxt268/sales/internal/infrastructure"
 	"github.com/zuxt268/sales/internal/model"
 	"github.com/zuxt268/sales/internal/util"
@@ -15,6 +16,7 @@ type SheetAdapter interface {
 	BackupToGoogleDrive(sheetID string, driveFolderID string) error
 	BackupDomainsToGoogleDrive(domainsByTarget map[string][]*model.Domain, driveFolderID string) error
 	ClearAllSheets(sheetID string) error
+	ShareDrive(driveFolderID string) error
 }
 
 type sheetAdapter struct {
@@ -58,16 +60,13 @@ func (s *sheetAdapter) Input(sheetID string, sheetName string) ([][]interface{},
 
 // BackupToGoogleDrive backs up all sheets in a spreadsheet to Google Drive as CSV files
 func (s *sheetAdapter) BackupToGoogleDrive(sheetID string, driveFolderID string) error {
-	// Get spreadsheet info
 	spreadsheet, err := s.googleSheetsClient.GetSpreadsheet(sheetID)
 	if err != nil {
 		return fmt.Errorf("failed to get spreadsheet: %w", err)
 	}
 
-	// Create backup folder with timestamp
-	timestamp := time.Now().Format("20060102_150405")
-	backupFolderName := fmt.Sprintf("競合サイト_%s", timestamp)
-	backupFolderID, err := s.googleDriveClient.CreateFolder(backupFolderName, driveFolderID)
+	folderName := fmt.Sprintf("競合サイト_%s", time.Now().Format("20060102_150405"))
+	backupFolderID, err := s.googleDriveClient.CreateFolder(folderName, driveFolderID)
 	if err != nil {
 		return fmt.Errorf("failed to create backup folder: %w", err)
 	}
@@ -133,6 +132,13 @@ func (s *sheetAdapter) BackupDomainsToGoogleDrive(domainsByTarget map[string][]*
 		}
 	}
 
+	// Share folder with specified email if configured (after all files are uploaded)
+	if shareEmail := config.Env.GoogleDriveShareEmail; shareEmail != "" {
+		if err := s.googleDriveClient.ShareFolder(backupFolderID, shareEmail); err != nil {
+			return fmt.Errorf("failed to share backup folder: %w", err)
+		}
+	}
+
 	return nil
 }
 
@@ -154,4 +160,8 @@ func (s *sheetAdapter) ClearAllSheets(sheetID string) error {
 	}
 
 	return nil
+}
+
+func (s *sheetAdapter) ShareDrive(driveFolderID string) error {
+	return s.googleDriveClient.ShareFolder(driveFolderID, config.Env.GoogleDriveShareEmail)
 }

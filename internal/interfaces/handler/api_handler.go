@@ -44,7 +44,6 @@ type ApiHandler interface {
 	ExecuteTask(c echo.Context) error
 	DeployWordpress(c echo.Context) error
 	AssortWordpress(c echo.Context) error
-	OutputSheet(c echo.Context) error
 	AnalyzeDomain(c echo.Context) error
 }
 
@@ -204,19 +203,11 @@ func (h *apiHandler) AnalyzeDomains(c echo.Context) error {
 // @Tags ViewDNS
 // @Accept json
 // @Produce json
-// @Param request body model.PostFetchRequest true "Fetch request"
 // @Success 202
 // @Router /fetch [post]
 func (h *apiHandler) FetchDomains(c echo.Context) error {
-	var req model.PostFetchRequest
-	if err := c.Bind(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
-	if err := req.Validate(); err != nil {
-		return handleError(c, err)
-	}
 	go func() {
-		h.fetchUsecase.Fetch(context.Background(), req)
+		h.fetchUsecase.Fetch(context.Background())
 	}()
 	return c.NoContent(http.StatusAccepted)
 }
@@ -602,22 +593,6 @@ func (h *apiHandler) AnalyzeDomain(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
-}
-
-// OutputSheet godoc
-// @Summary スプレッドシートに出力する
-// @Description
-// @Tags ドメイン
-// @Accept json
-// @Produce json
-// @Success 201
-// @Router /domains/output [post]
-func (h *apiHandler) OutputSheet(c echo.Context) error {
-	err := h.sheetUsecase.RivalSheetOutput(c.Request().Context())
-	if err != nil {
-		return handleError(c, err)
-	}
-	return c.NoContent(http.StatusOK)
 }
 
 func handleError(c echo.Context, err error) error {

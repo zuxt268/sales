@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/zuxt268/sales/internal/entity"
 	"github.com/zuxt268/sales/internal/model"
@@ -110,7 +111,10 @@ func (r *domainRepository) BulkInsert(ctx context.Context, domains []*model.Doma
 func (r *domainRepository) BulkUpdateStatus(ctx context.Context, fromStatus, toStatus model.Status) error {
 	err := r.getDb(ctx).Model(&model.Domain{}).
 		Where("status = ?", fromStatus).
-		Update("status", toStatus).Error
+		Updates(map[string]interface{}{
+			"status":     toStatus,
+			"updated_at": time.Now(),
+		}).Error
 	if err != nil {
 		return fmt.Errorf("failed to bulk update status: %w", err)
 	}

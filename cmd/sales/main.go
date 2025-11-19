@@ -85,7 +85,6 @@ func main() {
 	api.POST("/polling", handler.PollingDomains)
 	api.POST("/backup", handler.BackupGoogleDrive)
 	api.POST("/domains/analyze", handler.AnalyzeDomains)
-	api.POST("/domains/output", handler.OutputSheet)
 
 	api.GET("/targets", handler.GetTargets)
 	api.POST("/targets", handler.CreateTarget)

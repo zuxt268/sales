@@ -34,6 +34,7 @@ type Environment struct {
 	SiteSheetID               string `envconfig:"SITE_SHEET_ID"`
 	ServerIDs                 string `envconfig:"SERVER_IDS"`
 	GoogleDriveBackupFolderID string `envconfig:"GOOGLE_DRIVE_BACKUP_FOLDER_ID"`
+	GoogleDriveShareEmail     string `envconfig:"GOOGLE_DRIVE_SHARE_EMAIL"`
 }
 
 var Env Environment
