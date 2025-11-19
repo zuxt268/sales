@@ -18,7 +18,6 @@ import (
 	"github.com/zuxt268/sales/internal/interfaces/adapter"
 	"github.com/zuxt268/sales/internal/interfaces/dto/request"
 	"github.com/zuxt268/sales/internal/interfaces/repository"
-	"github.com/zuxt268/sales/internal/model"
 )
 
 type DeployUsecase interface {
@@ -45,19 +44,10 @@ func NewDeployUsecase(
 
 func (u *deployUsecase) Deploy(ctx context.Context, req request.DeployRequest) {
 
-	_ = u.logRepo.Create(ctx, &model.Log{
-		Name:     "deploy",
-		Category: "info",
-		Message:  "デプロイ開始",
-	})
+	slog.Info("デプロイ開始", "src", req.Src)
 
 	if err := os.MkdirAll("./tmp", 0755); err != nil {
 		slog.Error("ディレクトリ作成に失敗", "error", err.Error())
-		_ = u.logRepo.Create(ctx, &model.Log{
-			Name:     "deploy",
-			Category: "error",
-			Message:  "ディレクトリ作成に失敗",
-		})
 		return
 	}
 
@@ -66,11 +56,6 @@ func (u *deployUsecase) Deploy(ctx context.Context, req request.DeployRequest) {
 	srcConfig, err := config.GetSSHConfig(req.Src.ServerID)
 	if err != nil {
 		slog.Error("Srcのconfigの取得に失敗", "error", err.Error())
-		_ = u.logRepo.Create(ctx, &model.Log{
-			Name:     "deploy",
-			Category: "error",
-			Message:  fmt.Sprintf("Srcのconfigの取得に失敗: error=%v", err),
-		})
 		return
 	}
 
@@ -79,11 +64,6 @@ func (u *deployUsecase) Deploy(ctx context.Context, req request.DeployRequest) {
 	err = u.createBackup(req.Src, srcConfig)
 	if err != nil {
 		slog.Error("バックアップコマンドの失敗", "error", err.Error())
-		_ = u.logRepo.Create(ctx, &model.Log{
-			Name:     "deploy",
-			Category: "error",
-			Message:  fmt.Sprintf("バックアップコマンドの失敗, error=%v", err),
-		})
 		return
 	}
 	slog.Info("リモートでバックアップ作成完了", "domain", req.Src.Domain)
@@ -96,11 +76,6 @@ func (u *deployUsecase) Deploy(ctx context.Context, req request.DeployRequest) {
 		fmt.Sprintf("./tmp/%s.sql", req.Src.Domain),
 	); err != nil {
 		slog.Error("sqlファイルのダウンロードに失敗", "error", err.Error())
-		_ = u.logRepo.Create(ctx, &model.Log{
-			Name:     "deploy",
-			Category: "error",
-			Message:  fmt.Sprintf("sqlファイルのダウンロードに失敗, error=%v", err),
-		})
 		return
 	}
 
@@ -110,11 +85,6 @@ func (u *deployUsecase) Deploy(ctx context.Context, req request.DeployRequest) {
 		fmt.Sprintf("./tmp/%s.zip", req.Src.Domain),
 	); err != nil {
 		slog.Error("zipファイルのダウンロードに失敗", "error", err.Error())
-		_ = u.logRepo.Create(ctx, &model.Log{
-			Name:     "deploy",
-			Category: "error",
-			Message:  fmt.Sprintf("zipファイルのダウンロードに失敗, error=%v", err),
-		})
 		return
 	}
 
@@ -182,11 +152,6 @@ func (u *deployUsecase) Deploy(ctx context.Context, req request.DeployRequest) {
 	// アップロードエラーチェック
 	for err := range uploadErrors {
 		slog.Error("アップロードエラー発生", "error", err.Error())
-		_ = u.logRepo.Create(ctx, &model.Log{
-			Name:     "deploy",
-			Category: "error",
-			Message:  fmt.Sprintf("/tmpアップロード失敗: error=%v", err),
-		})
 		return
 	}
 	slog.Info("全サーバーへ/tmpアップロード完了", "server_count", len(serverMap))
@@ -210,11 +175,6 @@ func (u *deployUsecase) Deploy(ctx context.Context, req request.DeployRequest) {
 			dstConfig, err := config.GetSSHConfig(dst.ServerID)
 			if err != nil {
 				slog.Error("Dstのconfigの取得に失敗", "error", err.Error(), "domain", dst.Domain)
-				_ = u.logRepo.Create(ctx, &model.Log{
-					Name:     "deploy",
-					Category: "error",
-					Message:  fmt.Sprintf("Dstのconfigの取得に失敗, error=%v", err),
-				})
 				return
 			}
 
@@ -223,11 +183,6 @@ func (u *deployUsecase) Deploy(ctx context.Context, req request.DeployRequest) {
 			cleanupCmd := fmt.Sprintf("cd %s && find . -mindepth 1 -maxdepth 1 -exec rm -rf {} +", dst.WordpressRootDirectory())
 			if err := u.sshAdapter.Run(dstConfig, cleanupCmd); err != nil {
 				slog.Error("クリーンアップコマンド失敗", "error", err.Error(), "domain", dst.Domain)
-				_ = u.logRepo.Create(ctx, &model.Log{
-					Name:     "deploy",
-					Category: "error",
-					Message:  fmt.Sprintf("クリーンアップコマンド失敗, error=%v, domain=%s", err, dst.Domain),
-				})
 				return
 			}
 			slog.Info("dstディレクトリクリーンアップ完了", "domain", dst.Domain)
@@ -240,11 +195,6 @@ func (u *deployUsecase) Deploy(ctx context.Context, req request.DeployRequest) {
 			)
 			if err := u.sshAdapter.Run(dstConfig, copyCmd); err != nil {
 				slog.Error("/tmpからコピー失敗", "error", err.Error(), "domain", dst.Domain)
-				_ = u.logRepo.Create(ctx, &model.Log{
-					Name:     "deploy",
-					Category: "error",
-					Message:  fmt.Sprintf("/tmpからコピー失敗, error=%v, domain=%s", err, dst.Domain),
-				})
 				return
 			}
 			slog.Info("/tmpからコピー完了", "domain", dst.Domain)
@@ -253,11 +203,6 @@ func (u *deployUsecase) Deploy(ctx context.Context, req request.DeployRequest) {
 			err = u.restoreBackup(req.Src, dst, dstConfig)
 			if err != nil {
 				slog.Error("展開&インポート失敗", "error", err.Error(), "domain", dst.Domain)
-				_ = u.logRepo.Create(ctx, &model.Log{
-					Name:     "deploy",
-					Category: "error",
-					Message:  fmt.Sprintf("展開&インポート失敗, error=%v, domain=%s", err, dst.Domain),
-				})
 				return
 			}
 			slog.Info("展開 & DB復元完了", "domain", dst.Domain)
@@ -277,11 +222,6 @@ RewriteRule . /index.php [L]
 			htaccessPath := fmt.Sprintf("%s/.htaccess", dst.WordpressRootDirectory())
 			if err := u.sshAdapter.WriteFile(dstConfig, []byte(defaultHtaccess), htaccessPath); err != nil {
 				slog.Error("Rootの.htaccess書き込み失敗", "error", err)
-				_ = u.logRepo.Create(ctx, &model.Log{
-					Name:     "deploy",
-					Category: "error",
-					Message:  fmt.Sprintf("Rootの.htaccess書き込み失敗, error=%v, domain=%s", err, dst.Domain),
-				})
 				return
 			}
 			slog.Info("Rootの.htaccess書き込み完了", "domain", dst.Domain)
@@ -292,11 +232,6 @@ RewriteRule . /index.php [L]
 				content, err := assets.Root.ReadFile("php/mamoru.php")
 				if err != nil {
 					slog.Error("mamoru.php読み込み失敗", "error", err.Error(), "domain", dst.Domain)
-					_ = u.logRepo.Create(ctx, &model.Log{
-						Name:     "deploy",
-						Category: "error",
-						Message:  fmt.Sprintf("mamoru.php読み込み失敗, error=%v, domain=%s", err, dst.Domain),
-					})
 					return
 				}
 
@@ -305,11 +240,6 @@ RewriteRule . /index.php [L]
 
 				if err := u.sshAdapter.WriteFile(dstConfig, content, remotePath); err != nil {
 					slog.Error("mamoru.php書き込み失敗", "error", err.Error(), "domain", dst.Domain)
-					_ = u.logRepo.Create(ctx, &model.Log{
-						Name:     "deploy",
-						Category: "error",
-						Message:  fmt.Sprintf("mamoru.php書き込み失敗, error=%v, domain=%s", err, dst.Domain),
-					})
 					return
 				}
 
@@ -320,11 +250,6 @@ RewriteRule . /index.php [L]
 				hashFilePath := fmt.Sprintf("%s/.hash_data", dst.MuPluginDirectory())
 				if err := u.sshAdapter.WriteFileWithPerm(dstConfig, []byte(dst.GetHashData()), hashFilePath, "0644"); err != nil {
 					slog.Error(".hash_data書き込み失敗", "error", err.Error(), "domain", dst.Domain)
-					_ = u.logRepo.Create(ctx, &model.Log{
-						Name:     "deploy",
-						Category: "error",
-						Message:  fmt.Sprintf(".hash_data書き込み失敗, error=%v, domain=%s", err, dst.Domain),
-					})
 					return
 				}
 				slog.Info(".hash_dataファイル作成完了", "domain", dst.Domain)
@@ -336,11 +261,6 @@ RewriteRule . /index.php [L]
 					dst.MuPluginDirectory())
 				if err := u.sshAdapter.Run(dstConfig, cleanupCmd); err != nil {
 					slog.Warn("ファイル削除失敗", "domain", dst.Domain, "error", err)
-					_ = u.logRepo.Create(ctx, &model.Log{
-						Name:     "deploy",
-						Category: "error",
-						Message:  fmt.Sprintf("mamoru.phpと.hash_dataの削除完了, error=%v, domain=%s", err, dst.Domain),
-					})
 					return
 				}
 				slog.Info("mamoru.phpと.hash_dataの削除完了", "domain", dst.Domain)
@@ -350,11 +270,6 @@ RewriteRule . /index.php [L]
 
 			err = u.rodut(dst, dstConfig)
 			if err != nil {
-				_ = u.logRepo.Create(ctx, &model.Log{
-					Name:     "deploy",
-					Category: "error",
-					Message:  fmt.Sprintf("rodut配布で失敗, error=%v, domain=%s", err, dst.Domain),
-				})
 				return
 			}
 
@@ -369,11 +284,6 @@ RewriteRule . /index.php [L]
 			)
 			if err := u.sshAdapter.Run(dstConfig, cleanupCmd); err != nil {
 				slog.Error(".ファイル削除失敗", "error", err.Error(), "domain", dst.Domain)
-				_ = u.logRepo.Create(ctx, &model.Log{
-					Name:     "deploy",
-					Category: "error",
-					Message:  fmt.Sprintf(".ファイル削除失敗, error=%v, domain=%s", err, dst.Domain),
-				})
 				return
 			}
 			slog.Info(".zipと.sqlの削除完了", "domain", dst.Domain)

@@ -142,25 +142,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/domains/output": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ドメイン"
-                ],
-                "summary": "スプレッドシートに出力する",
-                "responses": {
-                    "201": {
-                        "description": "Created"
-                    }
-                }
-            }
-        },
         "/domains/{id}": {
             "get": {
                 "description": "Get domain",
@@ -331,104 +312,9 @@ const docTemplate = `{
                     "ViewDNS"
                 ],
                 "summary": "Fetch domains",
-                "parameters": [
-                    {
-                        "description": "Fetch request",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/model.PostFetchRequest"
-                        }
-                    }
-                ],
                 "responses": {
                     "202": {
                         "description": "Accepted"
-                    }
-                }
-            }
-        },
-        "/logs": {
-            "get": {
-                "description": "Get log list",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ログ"
-                ],
-                "summary": "Get logs",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "処理名",
-                        "name": "name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "カテゴリー",
-                        "name": "category",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Limit",
-                        "name": "limit",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Offset",
-                        "name": "offset",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/response.Logs"
-                            }
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "Create new log",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ログ"
-                ],
-                "summary": "Create log",
-                "parameters": [
-                    {
-                        "description": "作成ログ情報",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.CreateLog"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/response.Log"
-                        }
                     }
                 }
             }
@@ -586,179 +472,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/tasks": {
-            "get": {
-                "description": "Get task list",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "タスク"
-                ],
-                "summary": "Get tasks",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/model.Task"
-                            }
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "Create new task",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "タスク"
-                ],
-                "summary": "Create task",
-                "parameters": [
-                    {
-                        "description": "作成タスク情報",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/model.CreateTaskRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/model.Task"
-                        }
-                    }
-                }
-            }
-        },
-        "/tasks/execute": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "タスク"
-                ],
-                "summary": "全てのタスクを実行します",
-                "responses": {
-                    "201": {
-                        "description": "Created"
-                    }
-                }
-            }
-        },
-        "/tasks/{id}": {
-            "put": {
-                "description": "Update task information",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "タスク"
-                ],
-                "summary": "Update task",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Task ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "更新タスク情報",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/model.UpdateTaskRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/model.Task"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "description": "Delete task by id",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "タスク"
-                ],
-                "summary": "Delete task",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Task ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    }
-                }
-            }
-        },
-        "/tasks/{id}/execute": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "タスク"
-                ],
-                "summary": "タスクを実行します",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Task ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created"
-                    }
-                }
-            }
-        },
         "/webhook/analyze": {
             "post": {
                 "consumes": [
@@ -802,31 +515,6 @@ const docTemplate = `{
                 }
             }
         },
-        "model.CreateTaskRequest": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "integer"
-                }
-            }
-        },
-        "model.PostFetchRequest": {
-            "type": "object",
-            "required": [
-                "target"
-            ],
-            "properties": {
-                "target": {
-                    "type": "string"
-                }
-            }
-        },
         "model.Status": {
             "type": "string",
             "enum": [
@@ -835,6 +523,7 @@ const docTemplate = `{
                 "check_view",
                 "check_japan",
                 "crawl_comp_info",
+                "pending_output",
                 "done",
                 "trash"
             ],
@@ -844,6 +533,7 @@ const docTemplate = `{
                 "StatusCheckView",
                 "StatusCheckJapan",
                 "StatusCrawlCompInfo",
+                "StatusPendingOutput",
                 "StatusDone",
                 "StatusTrash"
             ]
@@ -882,61 +572,10 @@ const docTemplate = `{
                 "TargetStatusFetched"
             ]
         },
-        "model.Task": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "integer"
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
         "model.UpdateTargetRequest": {
             "type": "object",
             "properties": {
                 "ip": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "model.UpdateTaskRequest": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "integer"
-                }
-            }
-        },
-        "request.CreateLog": {
-            "type": "object",
-            "properties": {
-                "category": {
-                    "type": "string"
-                },
-                "message": {
                     "type": "string"
                 },
                 "name": {
@@ -1101,40 +740,6 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/response.Domain"
-                    }
-                },
-                "total": {
-                    "type": "integer"
-                }
-            }
-        },
-        "response.Log": {
-            "type": "object",
-            "properties": {
-                "category": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "response.Logs": {
-            "type": "object",
-            "properties": {
-                "count": {
-                    "type": "integer"
-                },
-                "logs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/response.Log"
                     }
                 },
                 "total": {

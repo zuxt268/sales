@@ -14,22 +14,6 @@ definitions:
       name:
         type: string
     type: object
-  model.CreateTaskRequest:
-    properties:
-      description:
-        type: string
-      name:
-        type: string
-      status:
-        type: integer
-    type: object
-  model.PostFetchRequest:
-    properties:
-      target:
-        type: string
-    required:
-    - target
-    type: object
   model.Status:
     enum:
     - unknown
@@ -37,6 +21,7 @@ definitions:
     - check_view
     - check_japan
     - crawl_comp_info
+    - pending_output
     - done
     - trash
     type: string
@@ -46,6 +31,7 @@ definitions:
     - StatusCheckView
     - StatusCheckJapan
     - StatusCrawlCompInfo
+    - StatusPendingOutput
     - StatusDone
     - StatusTrash
   model.Target:
@@ -71,42 +57,9 @@ definitions:
     x-enum-varnames:
     - TargetStatusInit
     - TargetStatusFetched
-  model.Task:
-    properties:
-      created_at:
-        type: string
-      description:
-        type: string
-      id:
-        type: integer
-      name:
-        type: string
-      status:
-        type: integer
-      updated_at:
-        type: string
-    type: object
   model.UpdateTargetRequest:
     properties:
       ip:
-        type: string
-      name:
-        type: string
-    type: object
-  model.UpdateTaskRequest:
-    properties:
-      description:
-        type: string
-      name:
-        type: string
-      status:
-        type: integer
-    type: object
-  request.CreateLog:
-    properties:
-      category:
-        type: string
-      message:
         type: string
       name:
         type: string
@@ -215,28 +168,6 @@ definitions:
       domains:
         items:
           $ref: '#/definitions/response.Domain'
-        type: array
-      total:
-        type: integer
-    type: object
-  response.Log:
-    properties:
-      category:
-        type: string
-      created_at:
-        type: string
-      message:
-        type: string
-      name:
-        type: string
-    type: object
-  response.Logs:
-    properties:
-      count:
-        type: integer
-      logs:
-        items:
-          $ref: '#/definitions/response.Log'
         type: array
       total:
         type: integer
@@ -395,18 +326,6 @@ paths:
       summary: サイトの情報を解析する
       tags:
       - ドメイン
-  /domains/output:
-    post:
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-      summary: スプレッドシートに出力する
-      tags:
-      - ドメイン
   /external/assort:
     post:
       consumes:
@@ -447,13 +366,6 @@ paths:
       consumes:
       - application/json
       description: Fetch domain information from target
-      parameters:
-      - description: Fetch request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/model.PostFetchRequest'
       produces:
       - application/json
       responses:
@@ -462,61 +374,6 @@ paths:
       summary: Fetch domains
       tags:
       - ViewDNS
-  /logs:
-    get:
-      consumes:
-      - application/json
-      description: Get log list
-      parameters:
-      - description: 処理名
-        in: query
-        name: name
-        type: string
-      - description: カテゴリー
-        in: query
-        name: category
-        type: string
-      - description: Limit
-        in: query
-        name: limit
-        type: integer
-      - description: Offset
-        in: query
-        name: offset
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/response.Logs'
-            type: array
-      summary: Get logs
-      tags:
-      - ログ
-    post:
-      consumes:
-      - application/json
-      description: Create new log
-      parameters:
-      - description: 作成ログ情報
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/request.CreateLog'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/response.Log'
-      summary: Create log
-      tags:
-      - ログ
   /polling:
     post:
       consumes:
@@ -617,119 +474,6 @@ paths:
       summary: Update target
       tags:
       - ターゲット
-  /tasks:
-    get:
-      consumes:
-      - application/json
-      description: Get task list
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/model.Task'
-            type: array
-      summary: Get tasks
-      tags:
-      - タスク
-    post:
-      consumes:
-      - application/json
-      description: Create new task
-      parameters:
-      - description: 作成タスク情報
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/model.CreateTaskRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/model.Task'
-      summary: Create task
-      tags:
-      - タスク
-  /tasks/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: Delete task by id
-      parameters:
-      - description: Task ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
-      summary: Delete task
-      tags:
-      - タスク
-    put:
-      consumes:
-      - application/json
-      description: Update task information
-      parameters:
-      - description: Task ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: 更新タスク情報
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/model.UpdateTaskRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/model.Task'
-      summary: Update task
-      tags:
-      - タスク
-  /tasks/{id}/execute:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: Task ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-      summary: タスクを実行します
-      tags:
-      - タスク
-  /tasks/execute:
-    post:
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-      summary: 全てのタスクを実行します
-      tags:
-      - タスク
   /webhook/analyze:
     post:
       consumes:

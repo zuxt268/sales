@@ -34,14 +34,6 @@ type ApiHandler interface {
 	CreateTarget(c echo.Context) error
 	UpdateTarget(c echo.Context) error
 	DeleteTarget(c echo.Context) error
-	GetLogs(c echo.Context) error
-	CreateLog(c echo.Context) error
-	GetTasks(c echo.Context) error
-	CreateTask(c echo.Context) error
-	UpdateTask(c echo.Context) error
-	DeleteTask(c echo.Context) error
-	ExecuteTasks(c echo.Context) error
-	ExecuteTask(c echo.Context) error
 	DeployWordpress(c echo.Context) error
 	AssortWordpress(c echo.Context) error
 	AnalyzeDomain(c echo.Context) error
@@ -51,9 +43,7 @@ type apiHandler struct {
 	fetchUsecase  usecase.FetchUsecase
 	domainUsecase usecase.DomainUsecase
 	targetUsecase usecase.TargetUsecase
-	logUsecase    usecase.LogUsecase
 	gptUsecase    usecase.GptUsecase
-	taskUsecase   usecase.TaskUsecase
 	deployUsecase usecase.DeployUsecase
 	sheetUsecase  usecase.SheetUsecase
 }
@@ -62,9 +52,7 @@ func NewApiHandler(
 	fetchUsecase usecase.FetchUsecase,
 	domainUsecase usecase.DomainUsecase,
 	targetUsecase usecase.TargetUsecase,
-	logUsecase usecase.LogUsecase,
 	gptUsecase usecase.GptUsecase,
-	taskUsecase usecase.TaskUsecase,
 	deployUsecase usecase.DeployUsecase,
 	sheetUsecase usecase.SheetUsecase,
 ) ApiHandler {
@@ -72,9 +60,7 @@ func NewApiHandler(
 		fetchUsecase:  fetchUsecase,
 		domainUsecase: domainUsecase,
 		targetUsecase: targetUsecase,
-		logUsecase:    logUsecase,
 		gptUsecase:    gptUsecase,
-		taskUsecase:   taskUsecase,
 		deployUsecase: deployUsecase,
 		sheetUsecase:  sheetUsecase,
 	}
@@ -331,173 +317,6 @@ func (h *apiHandler) DeleteTarget(c echo.Context) error {
 		return handleError(c, err)
 	}
 	return c.NoContent(http.StatusNoContent)
-}
-
-// GetLogs godoc
-// @Summary Get logs
-// @Description Get log list
-// @Tags ログ
-// @Accept json
-// @Produce json
-// @Param name query string false "処理名"
-// @Param category query string false "カテゴリー"
-// @Param limit query int false "Limit"
-// @Param offset query int false "Offset"
-// @Success 200 {array} response.Logs
-// @Router /logs [get]
-func (h *apiHandler) GetLogs(c echo.Context) error {
-	var req request.GetLogs
-	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, err.Error())
-	}
-	resp, err := h.logUsecase.GetLogs(c.Request().Context(), req)
-	if err != nil {
-		return handleError(c, err)
-	}
-	return c.JSON(http.StatusOK, resp)
-}
-
-// CreateLog godoc
-// @Summary Create log
-// @Description Create new log
-// @Tags ログ
-// @Accept json
-// @Produce json
-// @Param request body request.CreateLog true "作成ログ情報"
-// @Success 201 {object} response.Log
-// @Router /logs [post]
-func (h *apiHandler) CreateLog(c echo.Context) error {
-	var req request.CreateLog
-	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, err.Error())
-	}
-	resp, err := h.logUsecase.CreateLogs(c.Request().Context(), req)
-	if err != nil {
-		return handleError(c, err)
-	}
-	return c.JSON(http.StatusCreated, resp)
-}
-
-// GetTasks godoc
-// @Summary Get tasks
-// @Description Get task list
-// @Tags タスク
-// @Accept json
-// @Produce json
-// @Success 200 {array} model.Task
-// @Router /tasks [get]
-func (h *apiHandler) GetTasks(c echo.Context) error {
-	resp, err := h.taskUsecase.GetTasks(c.Request().Context())
-	if err != nil {
-		return handleError(c, err)
-	}
-	return c.JSON(http.StatusOK, resp)
-}
-
-// CreateTask godoc
-// @Summary Create task
-// @Description Create new task
-// @Tags タスク
-// @Accept json
-// @Produce json
-// @Param request body model.CreateTaskRequest true "作成タスク情報"
-// @Success 201 {object} model.Task
-// @Router /tasks [post]
-func (h *apiHandler) CreateTask(c echo.Context) error {
-	var req model.CreateTaskRequest
-	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, err.Error())
-	}
-	resp, err := h.taskUsecase.CreateTask(c.Request().Context(), &req)
-	if err != nil {
-		return handleError(c, err)
-	}
-	return c.JSON(http.StatusCreated, resp)
-}
-
-// UpdateTask godoc
-// @Summary Update task
-// @Description Update task information
-// @Tags タスク
-// @Accept json
-// @Produce json
-// @Param id path int true "Task ID"
-// @Param request body model.UpdateTaskRequest true "更新タスク情報"
-// @Success 200 {object} model.Task
-// @Router /tasks/{id} [put]
-func (h *apiHandler) UpdateTask(c echo.Context) error {
-	var id int
-	if err := echo.PathParamsBinder(c).Int("id", &id).BindError(); err != nil {
-		return c.JSON(http.StatusBadRequest, err.Error())
-	}
-
-	var req model.UpdateTaskRequest
-	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, err.Error())
-	}
-	resp, err := h.taskUsecase.UpdateTask(c.Request().Context(), id, &req)
-	if err != nil {
-		return handleError(c, err)
-	}
-	return c.JSON(http.StatusOK, resp)
-}
-
-// DeleteTask godoc
-// @Summary Delete task
-// @Description Delete task by id
-// @Tags タスク
-// @Accept json
-// @Produce json
-// @Param id path int true "Task ID"
-// @Success 204
-// @Router /tasks/{id} [delete]
-func (h *apiHandler) DeleteTask(c echo.Context) error {
-	var id int
-	if err := echo.PathParamsBinder(c).Int("id", &id).BindError(); err != nil {
-		return c.JSON(http.StatusBadRequest, err.Error())
-	}
-	err := h.taskUsecase.DeleteTask(c.Request().Context(), id)
-	if err != nil {
-		return handleError(c, err)
-	}
-	return c.NoContent(http.StatusNoContent)
-}
-
-// ExecuteTasks godoc
-// @Summary 全てのタスクを実行します
-// @Description
-// @Tags タスク
-// @Accept json
-// @Produce json
-// @Success 201
-// @Router /tasks/execute [post]
-func (h *apiHandler) ExecuteTasks(c echo.Context) error {
-	err := h.taskUsecase.ExecuteTasks(c.Request().Context())
-	if err != nil {
-		return handleError(c, err)
-	}
-	return c.NoContent(http.StatusAccepted)
-}
-
-// ExecuteTask godoc
-// @Summary タスクを実行します
-// @Description
-// @Tags タスク
-// @Accept json
-// @Produce json
-// @Param id path int true "Task ID"
-// @Success 201
-// @Router /tasks/{id}/execute [post]
-func (h *apiHandler) ExecuteTask(c echo.Context) error {
-	var id int
-	if err := echo.PathParamsBinder(c).Int("id", &id).BindError(); err != nil {
-		return c.JSON(http.StatusBadRequest, err.Error())
-	}
-	resp, err := h.taskUsecase.ExecuteTask(c.Request().Context(), id)
-	if err != nil {
-		return handleError(c, err)
-	}
-	return c.JSON(http.StatusOK, resp)
 }
 
 // DeployWordpress godoc
