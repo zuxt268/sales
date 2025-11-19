@@ -129,7 +129,7 @@ func (f *TargetFilter) Apply(db *gorm.DB) *gorm.DB {
 		db = db.Where("name = ?", *f.Name)
 	}
 	if f.NotName != nil {
-		db = db.Where("name != ?", *f.Name)
+		db = db.Where("name != ?", *f.NotName)
 	}
 	if f.Status != nil {
 		db = db.Where("status = ?", *f.Status)
