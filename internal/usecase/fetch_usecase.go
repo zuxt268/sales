@@ -97,11 +97,13 @@ func (u *fetchUsecase) Fetch(ctx context.Context) {
 
 	targets, err := u.targetRepo.FindAll(ctx, repository.TargetFilter{
 		NotName: util.Pointer("WIX"),
+		Status:  util.Pointer(model.TargetStatusInit),
 	})
 	if err != nil {
 		slog.Error("failed to fetch target", "error", err)
 		return
 	}
+	slog.Info("target", slog.Any("targets length", len(targets)))
 
 	for _, target := range targets {
 		page := 1
