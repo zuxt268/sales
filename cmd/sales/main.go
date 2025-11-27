@@ -91,13 +91,23 @@ func main() {
 	api.PUT("/targets/:id", handler.UpdateTarget)
 	api.DELETE("/targets/:id", handler.DeleteTarget)
 
-	external := api.Group("/external")
-	external.Use(middleware2.JWTMiddleware())
-	external.POST("/deploy", handler.DeployWordpress)
-	external.POST("/assort", handler.AssortWordpress)
+	external := api.Group("/external", middleware2.JWTMiddleware())
+	{
+		external.POST("/deploy", handler.DeployWordpress)
+		external.POST("/assort", handler.AssortWordpress)
+	}
 
 	webhook := api.Group("/webhook")
-	webhook.POST("/analyze", handler.AnalyzeDomain)
+	{
+		webhook.POST("/analyze", handler.Analyze)
+	}
+
+	growth := api.Group("/growth")
+	{
+		growth.POST("/fetch", handler.Fetch)
+		growth.POST("/polling", handler.Polling)
+		growth.POST("/output", handler.Output)
+	}
 
 	srv := &http.Server{
 		Addr:    config.Env.Address,

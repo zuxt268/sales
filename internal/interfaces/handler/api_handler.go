@@ -12,6 +12,7 @@ import (
 	"strconv"
 
 	"github.com/zuxt268/sales/internal/entity"
+	"github.com/zuxt268/sales/internal/interfaces/adapter"
 	"github.com/zuxt268/sales/internal/interfaces/dto/external"
 	"github.com/zuxt268/sales/internal/interfaces/dto/request"
 	_ "github.com/zuxt268/sales/internal/interfaces/dto/response"
@@ -37,6 +38,11 @@ type ApiHandler interface {
 	DeployWordpress(c echo.Context) error
 	AssortWordpress(c echo.Context) error
 	AnalyzeDomain(c echo.Context) error
+
+	Fetch(c echo.Context) error
+	Polling(c echo.Context) error
+	Analyze(c echo.Context) error
+	Output(c echo.Context) error
 }
 
 type apiHandler struct {
@@ -46,6 +52,8 @@ type apiHandler struct {
 	gptUsecase    usecase.GptUsecase
 	deployUsecase usecase.DeployUsecase
 	sheetUsecase  usecase.SheetUsecase
+	growthUsecase usecase.GrowthUsecase
+	slackAdapter  adapter.SlackAdapter
 }
 
 func NewApiHandler(
@@ -55,6 +63,8 @@ func NewApiHandler(
 	gptUsecase usecase.GptUsecase,
 	deployUsecase usecase.DeployUsecase,
 	sheetUsecase usecase.SheetUsecase,
+	growthUsecase usecase.GrowthUsecase,
+	slackAdapter adapter.SlackAdapter,
 ) ApiHandler {
 	return &apiHandler{
 		fetchUsecase:  fetchUsecase,
@@ -63,6 +73,8 @@ func NewApiHandler(
 		gptUsecase:    gptUsecase,
 		deployUsecase: deployUsecase,
 		sheetUsecase:  sheetUsecase,
+		growthUsecase: growthUsecase,
+		slackAdapter:  slackAdapter,
 	}
 }
 
@@ -412,6 +424,117 @@ func (h *apiHandler) AnalyzeDomain(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+// Fetch godoc
+// @Summary
+// @Tags ドメイン
+// @Accept json
+// @Produce json
+// @Success 204
+// @Router /growth/fetch [post]
+func (h *apiHandler) Fetch(c echo.Context) error {
+	err := h.growthUsecase.Fetch(c.Request().Context())
+	if err != nil {
+		msg := "[Fetch]\n" + err.Error()
+		if err := h.slackAdapter.Send(c.Request().Context(), msg); err != nil {
+			return c.JSON(http.StatusInternalServerError, err.Error())
+		}
+		return handleError(c, err)
+	}
+	return c.NoContent(http.StatusAccepted)
+}
+
+// Polling godoc
+// @Summary
+// @Tags ドメイン
+// @Accept json
+// @Produce json
+// @Success 204
+// @Router /growth/polling [post]
+func (h *apiHandler) Polling(c echo.Context) error {
+	err := h.growthUsecase.Polling(context.Background())
+	if err != nil {
+		msg := "[Polling]\n" + err.Error()
+		if err := h.slackAdapter.Send(c.Request().Context(), msg); err != nil {
+			return c.JSON(http.StatusInternalServerError, err.Error())
+		}
+		return handleError(c, err)
+	}
+	return c.NoContent(http.StatusAccepted)
+}
+
+// Analyze godoc
+// @Summary
+// @Tags ドメイン
+// @Accept json
+// @Produce json
+// @Success 204
+// @Router /growth/analyze [post]
+func (h *apiHandler) Analyze(c echo.Context) error {
+	// リクエストBodyを読み取ってログ出力
+	bodyBytes, err := io.ReadAll(c.Request().Body)
+	if err != nil {
+		slog.Error("Failed to read request body", "error", err)
+		return c.JSON(http.StatusBadRequest, "Failed to read request body")
+	}
+
+	slog.Info("Received webhook request",
+		"body", string(bodyBytes),
+		"content-type", c.Request().Header.Get("Content-Type"),
+		"content-length", len(bodyBytes))
+
+	// Bodyを再度読めるように復元
+	c.Request().Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+
+	// Pub/Sub Push の構造体
+	var push struct {
+		Message struct {
+			Data []byte `json:"data"`
+		} `json:"message"`
+	}
+
+	// Pub/Sub JSON を解析
+	if err := json.Unmarshal(bodyBytes, &push); err != nil {
+		slog.Error("Failed to unmarshal pubsub push", "error", err)
+		return c.JSON(http.StatusBadRequest, "invalid pubsub message")
+	}
+
+	slog.Info("Decoded PubSub data", "data_json", string(push.Message.Data))
+
+	// Base64 decode 済み JSON を DomainMessage に Unmarshal
+	var domainMessage external.DomainMessage
+	if err := json.Unmarshal(push.Message.Data, &domainMessage); err != nil {
+		slog.Error("Failed to unmarshal domain message", "error", err, "decoded", string(push.Message.Data))
+		return c.JSON(http.StatusBadRequest, "invalid domain message")
+	}
+
+	slog.Info("Successfully parsed domain message", "message", domainMessage)
+
+	if err := h.growthUsecase.Analyze(c.Request().Context(), &domainMessage); err != nil {
+		return handleError(c, err)
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+// Output godoc
+// @Summary
+// @Tags ドメイン
+// @Accept json
+// @Produce json
+// @Success 204
+// @Router /growth/output [post]
+func (h *apiHandler) Output(c echo.Context) error {
+	err := h.sheetUsecase.BackupDomainsDirectly(context.Background())
+	if err != nil {
+		msg := "[Output]\n" + err.Error()
+		if err := h.slackAdapter.Send(c.Request().Context(), msg); err != nil {
+			return c.JSON(http.StatusInternalServerError, err.Error())
+		}
+		return handleError(c, err)
+	}
+	return c.NoContent(http.StatusAccepted)
 }
 
 func handleError(c echo.Context, err error) error {

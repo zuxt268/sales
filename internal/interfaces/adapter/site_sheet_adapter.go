@@ -120,7 +120,7 @@ func (s *sheetAdapter) BackupDomainsToGoogleDrive(domainsByTarget map[string][]*
 		}
 
 		// Convert to CSV
-		csvReader, err := util.ConvertDomainsToCSVReader(domains)
+		csvReader, err := util.ConvertToCsv(domains)
 		if err != nil {
 			return fmt.Errorf("failed to convert domains for target %s to CSV: %w", target, err)
 		}

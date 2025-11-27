@@ -7,7 +7,6 @@ import (
 
 	"github.com/zuxt268/sales/internal/entity"
 	"github.com/zuxt268/sales/internal/model"
-
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -109,13 +108,16 @@ func (r *targetRepository) getDb(ctx context.Context) *gorm.DB {
 }
 
 type TargetFilter struct {
-	ID      *int
-	IP      *string
-	Name    *string
-	NotName *string
-	Status  *model.TargetStatus
-	Limit   *int
-	Offset  *int
+	ID                  *int
+	IP                  *string
+	Name                *string
+	NotName             *string
+	Status              *model.TargetStatus
+	NotStatus           *model.TargetStatus
+	Limit               *int
+	Offset              *int
+	OrderBy             []string
+	OrderLastFetchedAsc *bool
 }
 
 func (f *TargetFilter) Apply(db *gorm.DB) *gorm.DB {
@@ -134,11 +136,33 @@ func (f *TargetFilter) Apply(db *gorm.DB) *gorm.DB {
 	if f.Status != nil {
 		db = db.Where("status = ?", *f.Status)
 	}
+	if f.NotStatus != nil {
+		db = db.Where("status != ?", *f.NotStatus)
+	}
 	if f.Limit != nil {
 		db = db.Limit(*f.Limit)
 		if f.Offset != nil {
 			db = db.Offset(*f.Offset)
 		}
 	}
+	if f.OrderLastFetchedAsc != nil && *f.OrderLastFetchedAsc {
+		db = db.
+			Order("last_fetched_at IS NULL ASC").
+			Order("last_fetched_at ASC")
+	}
+	for _, order := range f.OrderBy {
+		if expr, ok := allowedOrders[order]; ok {
+			db = db.Order(expr)
+		}
+	}
 	return db
+}
+
+var allowedOrders = map[string]string{
+	"id":          "id",
+	"-id":         "id DESC",
+	"created_at":  "created_at",
+	"-created_at": "created_at DESC",
+	"name":        "name",
+	"-name":       "name DESC",
 }

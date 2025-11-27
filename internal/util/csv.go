@@ -37,17 +37,22 @@ func ConvertToCSVReader(data [][]interface{}) (io.Reader, error) {
 	return &buf, nil
 }
 
-// ConvertDomainsToCSVReader converts []*model.Domain to CSV format as io.Reader
-func ConvertDomainsToCSVReader(domains []*model.Domain) (io.Reader, error) {
+// ConvertToCsv converts []*model.Domain to CSV format as io.Reader
+func ConvertToCsv(domains []*model.Domain) (io.Reader, error) {
 	var buf bytes.Buffer
 	writer := csv.NewWriter(&buf)
 
 	// Write header
 	header := []string{
-		"ID", "Name", "Target", "CanView", "IsJapan", "IsSend", "Title",
-		"OwnerID", "Address", "Phone", "MobilePhone", "LandlinePhone",
-		"Industry", "President", "Company", "Prefecture", "IsSSL",
-		"PageNum", "Status", "UpdatedAt", "CreatedAt",
+		"ドメイン",
+		"サイトタイトル",
+		"ownerId",
+		"携帯電話",
+		"固定電話",
+		"業種",
+		"代表者",
+		"企業名",
+		"都道府県",
 	}
 	if err := writer.Write(header); err != nil {
 		return nil, fmt.Errorf("failed to write CSV header: %w", err)
@@ -56,27 +61,15 @@ func ConvertDomainsToCSVReader(domains []*model.Domain) (io.Reader, error) {
 	// Write data rows
 	for _, d := range domains {
 		row := []string{
-			fmt.Sprintf("%d", d.ID),
 			d.Name,
-			d.Target,
-			fmt.Sprintf("%t", d.CanView),
-			fmt.Sprintf("%t", d.IsJapan),
-			fmt.Sprintf("%t", d.IsSend),
 			d.Title,
 			d.OwnerID,
-			d.Address,
-			d.Phone,
 			d.MobilePhone,
 			d.LandlinePhone,
 			d.Industry,
 			d.President,
 			d.Company,
 			d.Prefecture,
-			fmt.Sprintf("%t", d.IsSSL),
-			fmt.Sprintf("%d", d.PageNum),
-			string(d.Status),
-			d.UpdatedAt.Format("2006-01-02 15:04:05"),
-			d.CreatedAt.Format("2006-01-02 15:04:05"),
 		}
 		if err := writer.Write(row); err != nil {
 			return nil, fmt.Errorf("failed to write CSV row: %w", err)
