@@ -33,6 +33,15 @@ func Initialize(
 	sheetAdapter := adapter.NewSheetAdapter(sheetClient, driveClient)
 	deployUsecase := usecase.NewDeployUsecase(sshAdapter, sheetAdapter)
 	sheetUsecase := usecase.NewSheetUsecase(baseRepo, domainRepo, sheetAdapter, sshAdapter)
+	growthUsecase := usecase.NewGrowthUsecase(
+		baseRepo,
+		domainRepo,
+		targetRepo,
+		pubSubAdapter,
+		viewDnsAdapter,
+		sheetAdapter,
+		gptRepo,
+	)
 
 	return handler.NewApiHandler(
 		fetchUsecase,
@@ -41,5 +50,7 @@ func Initialize(
 		gptUsecase,
 		deployUsecase,
 		sheetUsecase,
+		growthUsecase,
+		slackAdapter,
 	)
 }
