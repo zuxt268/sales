@@ -91,7 +91,12 @@ func (u *domainUsecase) UpdateDomain(ctx context.Context, id int, req request.Up
 			target.IsJapan = *req.IsJapan
 		}
 		if req.Title != nil {
-			target.Title = *req.Title
+			title := *req.Title
+			if utf8.RuneCountInString(title) > 255 {
+				runes := []rune(title)
+				title = string(runes[:300])
+			}
+			target.Title = title
 		}
 		if req.OwnerID != nil {
 			target.OwnerID = *req.OwnerID
