@@ -94,7 +94,7 @@ func (u *domainUsecase) UpdateDomain(ctx context.Context, id int, req request.Up
 			title := *req.Title
 			if utf8.RuneCountInString(title) > 255 {
 				runes := []rune(title)
-				title = string(runes[:300])
+				title = string(runes[:255])
 			}
 			target.Title = title
 		}
