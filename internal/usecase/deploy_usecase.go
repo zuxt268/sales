@@ -21,6 +21,7 @@ import (
 
 type DeployUsecase interface {
 	Deploy(ctx context.Context, body request.DeployRequest)
+	DeployOne(ctx context.Context, body request.DeployOneRequest) error
 }
 
 type deployUsecase struct {
@@ -329,6 +330,175 @@ RewriteRule . /index.php [L]
 
 	slog.Info("全デプロイ完了", "duration", time.Since(start).Seconds())
 
+}
+
+func (u *deployUsecase) DeployOne(ctx context.Context, req request.DeployOneRequest) error {
+	slog.Info("デプロイ開始", "src", req.Src)
+	if err := os.MkdirAll("./tmp", 0755); err != nil {
+		return err
+	}
+	srcConfig, err := config.GetSSHConfig(req.Src.ServerID)
+	if err != nil {
+		return err
+	}
+	// サーバーに入り、バックアップを作ります。
+	slog.Info("リモートでバックアップ作成開始", "domain", req.Src.Domain)
+	err = u.createBackup(req.Src, srcConfig)
+	if err != nil {
+		return err
+	}
+	slog.Info("リモートでバックアップ作成完了", "domain", req.Src.Domain)
+
+	slog.Info("バックアップ取得開始", "domain", req.Src.Domain)
+
+	if err := u.sshAdapter.DownloadFile(ctx,
+		srcConfig,
+		fmt.Sprintf("%s/%s.sql", req.Src.WordpressRootDirectory(), req.Src.Domain),
+		fmt.Sprintf("./tmp/%s.sql", req.Src.Domain),
+	); err != nil {
+		return err
+	}
+
+	if err := u.sshAdapter.DownloadFile(ctx,
+		srcConfig,
+		fmt.Sprintf("%s/%s.zip", req.Src.WordpressRootDirectory(), req.Src.Domain),
+		fmt.Sprintf("./tmp/%s.zip", req.Src.Domain),
+	); err != nil {
+		return err
+	}
+
+	slog.Info("バックアップ取得完了", "domain", req.Src.Domain)
+
+	dstConfig, err := config.GetSSHConfig(req.Dst.ServerID)
+	if err != nil {
+		return err
+	}
+
+	// zip アップロード
+	if err := u.sshAdapter.UploadFile(ctx,
+		dstConfig,
+		fmt.Sprintf("./tmp/%s.zip", req.Src.Domain),
+		fmt.Sprintf("/tmp/%s.zip", req.Src.Domain),
+	); err != nil {
+		return err
+	}
+
+	// sql アップロード
+	if err := u.sshAdapter.UploadFile(ctx,
+		dstConfig,
+		fmt.Sprintf("./tmp/%s.sql", req.Src.Domain),
+		fmt.Sprintf("/tmp/%s.sql", req.Src.Domain),
+	); err != nil {
+		return err
+	}
+
+	dst := req.Dst
+
+	// dstディレクトリをクリーンアップ
+	cleanupCmd := fmt.Sprintf("cd %s && find . -mindepth 1 -maxdepth 1 -exec rm -rf {} +", dst.WordpressRootDirectory())
+	if err := u.sshAdapter.Run(dstConfig, cleanupCmd); err != nil {
+		return err
+	}
+	slog.Info("dstディレクトリクリーンアップ完了", "domain", dst.Domain)
+
+	// /tmp からコピー
+	slog.Info("/tmpからコピー開始", "domain", dst.Domain)
+	copyCmd := fmt.Sprintf("cp /tmp/%s.zip %s/%s.zip && cp /tmp/%s.sql %s/%s.sql",
+		req.Src.Domain, dst.WordpressRootDirectory(), req.Src.Domain,
+		req.Src.Domain, dst.WordpressRootDirectory(), req.Src.Domain,
+	)
+	if err := u.sshAdapter.Run(dstConfig, copyCmd); err != nil {
+		return err
+	}
+	slog.Info("/tmpからコピー完了", "domain", dst.Domain)
+
+	slog.Info("展開 & インポート開始", "domain", dst.Domain)
+	err = u.restoreBackup(req.Src, dst, dstConfig)
+	if err != nil {
+		return err
+	}
+	slog.Info("展開 & DB復元完了", "domain", dst.Domain)
+
+	slog.Info("Rootの.htaccess書き込み開始", "domain", dst.Domain)
+	defaultHtaccess := `# BEGIN WordPress
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
+</IfModule>
+# END WordPress
+`
+	htaccessPath := fmt.Sprintf("%s/.htaccess", dst.WordpressRootDirectory())
+	if err := u.sshAdapter.WriteFile(dstConfig, []byte(defaultHtaccess), htaccessPath); err != nil {
+		return err
+	}
+	slog.Info("Rootの.htaccess書き込み完了", "domain", dst.Domain)
+
+	// PHPファイルを配布
+	slog.Info("PHPファイル配布開始", "domain", dst.Domain)
+	if dst.IsSubDomain() {
+		content, err := assets.Root.ReadFile("php/mamoru.php")
+		if err != nil {
+			return err
+		}
+
+		var remotePath string
+		remotePath = fmt.Sprintf("%s/mamoru.php", dst.MuPluginDirectory())
+
+		if err := u.sshAdapter.WriteFile(dstConfig, content, remotePath); err != nil {
+			return err
+		}
+
+		// .hash_dataファイルを作成してMuPluginDirectoryに書き込み
+		slog.Info(".hash_dataファイル作成開始", "domain", dst.Domain)
+
+		// .hash_dataファイルをリモートに書き込み (0644パーミッション)
+		hashFilePath := fmt.Sprintf("%s/.hash_data", dst.MuPluginDirectory())
+		if err := u.sshAdapter.WriteFileWithPerm(dstConfig, []byte(dst.GetHashData()), hashFilePath, "0644"); err != nil {
+			return err
+		}
+		slog.Info(".hash_dataファイル作成完了", "domain", dst.Domain)
+	} else {
+		if err := u.sshAdapter.Run(dstConfig, fmt.Sprintf("rm -f %s/mamoru.php %s/.hash_data",
+			dst.MuPluginDirectory(),
+			dst.MuPluginDirectory())); err != nil {
+			return err
+		}
+		slog.Info("mamoru.phpと.hash_dataの削除完了", "domain", dst.Domain)
+	}
+
+	slog.Info("rodut配布開始", "domain", dst.Domain)
+
+	err = u.rodut(dst, dstConfig)
+	if err != nil {
+		return err
+	}
+
+	slog.Info("rodut配布完了", "domain", dst.Domain)
+
+	slog.Info(".zipと.sqlの削除開始", "domain", dst.Domain)
+	if err := u.sshAdapter.Run(dstConfig, fmt.Sprintf("rm -f %s/%s.zip %s/%s.sql",
+		dst.WordpressRootDirectory(),
+		req.Src.Domain,
+		dst.WordpressRootDirectory(),
+		req.Src.Domain,
+	)); err != nil {
+		slog.Error(".ファイル削除失敗", "error", err.Error(), "domain", dst.Domain)
+		return err
+	}
+	slog.Info(".zipと.sqlの削除完了", "domain", dst.Domain)
+
+	_ = u.sshAdapter.Run(
+		dstConfig,
+		fmt.Sprintf("rm -f /tmp/%s.zip /tmp/%s.sql", req.Src.Domain, req.Src.Domain),
+	)
+	_ = os.Remove(fmt.Sprintf("./tmp/%s.sql", req.Src.Domain))
+	_ = os.Remove(fmt.Sprintf("./tmp/%s.zip", req.Src.Domain))
+
+	return nil
 }
 
 func (u *deployUsecase) createBackup(src entity.Deploy, srcConfig config.SSHConfig) error {

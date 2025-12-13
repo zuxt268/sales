@@ -94,6 +94,7 @@ func main() {
 	external := api.Group("/external", middleware2.JWTMiddleware())
 	{
 		external.POST("/deploy", handler.DeployWordpress)
+		external.POST("/deploy/one", handler.DeployWordpressOne)
 		external.POST("/assort", handler.AssortWordpress)
 	}
 

@@ -36,6 +36,7 @@ type ApiHandler interface {
 	UpdateTarget(c echo.Context) error
 	DeleteTarget(c echo.Context) error
 	DeployWordpress(c echo.Context) error
+	DeployWordpressOne(c echo.Context) error
 	AssortWordpress(c echo.Context) error
 	AnalyzeDomain(c echo.Context) error
 
@@ -353,6 +354,30 @@ func (h *apiHandler) DeployWordpress(c echo.Context) error {
 		h.deployUsecase.Deploy(context.Background(), req)
 	}()
 
+	return c.NoContent(http.StatusAccepted)
+}
+
+// DeployWordpressOne godoc
+// @Summary ワードプレスを一件デプロイします
+// @Description
+// @Tags Wordpress
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body request.DeployRequest true "デプロイ情報"
+// @Success 202
+// @Router /external/deploy/one [post]
+func (h *apiHandler) DeployWordpressOne(c echo.Context) error {
+	var req request.DeployOneRequest
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	if err := req.Validate(); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	if err := h.deployUsecase.DeployOne(c.Request().Context(), req); err != nil {
+		return handleError(c, err)
+	}
 	return c.NoContent(http.StatusAccepted)
 }
 
