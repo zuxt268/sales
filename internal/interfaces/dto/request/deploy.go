@@ -52,9 +52,7 @@ func validateDomain(domain, label string) (string, error) {
 	if !reDomain.MatchString(d) {
 		return "", fmt.Errorf("%sドメイン形式が不正です: %q", label, domain)
 	}
-	if _, ng := forbiddenDomains[d]; ng {
-		return "", fmt.Errorf("%s のディレクトリには展開できません。", d)
-	}
+
 	return d, nil
 }
 
@@ -90,6 +88,10 @@ func (r *DeployRequest) Validate() error {
 
 	for i, d := range r.Dst {
 		prefix := fmt.Sprintf("宛先[%d]", i+1)
+
+		if _, ng := forbiddenDomains[d.Domain]; ng {
+			return fmt.Errorf("%s のディレクトリには展開できません。", d)
+		}
 
 		dstDomain, err := validateDomain(d.Domain, prefix)
 		if err != nil {
