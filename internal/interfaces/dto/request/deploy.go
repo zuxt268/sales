@@ -142,6 +142,10 @@ func (r *DeployOneRequest) Validate() error {
 		return err
 	}
 
+	if _, ng := forbiddenDomains[r.Dst.Domain]; ng {
+		return fmt.Errorf("%s のディレクトリには展開できません。", r.Dst.Domain)
+	}
+
 	// src=dst 誤爆防止
 	if dstDomain == srcDomain && dstServer == srcServer {
 		return fmt.Errorf("デスティネーションとソースと同一です（domain/server）。")
