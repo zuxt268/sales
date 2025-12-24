@@ -155,17 +155,27 @@ func (u *growthUsecase) fetchOnePage(ctx context.Context, target *model.Target) 
 		// ドメイン保存（domains 側に UNIQUE 制約を貼っておいて、BulkInsert 内部で
 		// INSERT IGNORE / ON DUPLICATE KEY UPDATE を使う前提）
 		if len(resp.Response.Domains) > 0 {
-			domains := make([]*model.Domain, 0, len(resp.Response.Domains))
 			for _, d := range resp.Response.Domains {
-				domains = append(domains, &model.Domain{
+				exists, err := u.domainRepo.Exists(ctx, repository.DomainFilter{
+					Name: &d.Name,
+				})
+				if err != nil {
+					return err
+				}
+				if exists {
+					continue
+				}
+				if err := u.domainRepo.Save(ctx, &model.Domain{
 					Name:   d.Name,
 					Target: target.Name,
 					Status: model.StatusInitialize,
-				})
+				}); err != nil {
+					return err
+				}
 			}
-			if err := u.domainRepo.BulkInsert(ctx, domains); err != nil {
-				return fmt.Errorf("failed to insert domains (ip=%s, page=%d): %w", target.IP, page, err)
-			}
+			//if err := u.domainRepo.BulkInsert(ctx, domains); err != nil {
+			//	return fmt.Errorf("failed to insert domains (ip=%s, page=%d): %w", target.IP, page, err)
+			//}
 		}
 
 		// このタイミングでの DomainCount から「現在の maxPage」を計算（DB には保存しない）
