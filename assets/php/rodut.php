@@ -2,8 +2,9 @@
 /*
   Plugin Name: rodut
   Description: ホムスタプラグイン。
-  Version: 1.7.6
-  Author: zuxt268
+  Version: 1.9.2
+  Author: Yuki Ikezawa
+  Author URI: https://github.com/IkezawaYuki/IkezawaYuki
 */
 
 require_once(ABSPATH . 'wp-admin/includes/file.php');
@@ -105,32 +106,6 @@ function get_version(WP_REST_Request $request){
 function rodut_permission_check(WP_REST_Request $request) {
     $ip = get_client_ip($request);
 
-//    // === DoS / Rate Limit チェック ===
-//    $limit      = 300;  // 1分あたりの許可数
-//    $timeWindow = 60;   // 秒
-//    $key        = 'rodut_rate_' . md5($ip);
-//
-//    $requests = get_transient($key);
-//    if ($requests === false) {
-//        $requests = 0;
-//    }
-//    $requests++;
-//
-//    set_transient($key, $requests, $timeWindow);
-//
-//    if ($requests > $limit) {
-//        // Slack通知
-//        $webhook_url = get_config("webhook_url");
-//        $msg = "⚠️ Rate limit exceeded: IP=$ip Requests=$requests/{$timeWindow}s";
-//        send_slack_message($webhook_url, $msg);
-//
-//        return new WP_Error(
-//                'too_many_requests',
-//                'Rate limit exceeded',
-//                ['status' => 429]
-//        );
-//    }
-
     // === HMAC認証 ===
     if (!verify_hmac_signature($request)) {
         return new WP_Error('forbidden', 'Invalid signature', ['status' => 401]);
@@ -167,14 +142,30 @@ function create_post(WP_REST_Request $request) {
         $post_date = $params['post_date'];
     }
 
-    // 記事を投稿する
-    $post_id = wp_insert_post(array(
+    // カテゴリーの処理
+    $post_data = array(
             'post_title'   => $title,
             'post_content' => $content,
             'post_status'  => 'publish',
-            'post_author'  => $user->ID, // 投稿者ID。適切なユーザーIDに変更してください。
+            'post_author'  => $user->ID,
             'post_date'    => $post_date,
-    ));
+    );
+
+    if (isset($params['post_category']) && is_array($params['post_category']) && !empty($params['post_category'])) {
+        $category_ids = array();
+        foreach ($params['post_category'] as $category_name) {
+            $category = get_term_by('name', $category_name, 'category');
+            if ($category) {
+                $category_ids[] = $category->term_id;
+            }
+        }
+        if (!empty($category_ids)) {
+            $post_data['post_category'] = $category_ids;
+        }
+    }
+
+    // 記事を投稿する
+    $post_id = wp_insert_post($post_data);
 
     if (!empty($media_id)) {
         set_post_thumbnail($post_id, $media_id);
@@ -486,7 +477,12 @@ function rodut_add_user(WP_REST_Request $request): WP_REST_Response {
 
     // 権限を「管理者」に設定
     $user = new WP_User($user_id);
-    $user->set_role('administrator');
+
+    $role = "administrator";
+    if (isset($params['role']) && trim($params['role']) == "original") {
+        $role = "original";
+    }
+    $user->set_role($role);
 
     update_user_meta($user_id, 'first_name', $first_name);
     update_user_meta($user_id, 'last_name', $last_name);
@@ -507,7 +503,7 @@ function rodut_public_site(WP_REST_Request $request): WP_REST_Response {
         return new WP_REST_Response(array('error' => 'Invalid email'), 400);
     }
 
-    // 「ウェブサイトを公開しました」の投稿を検索（完全一致）
+    // 「ウェブサイトを公開しました」「ウェブサイトをリニューアルしました」の投稿を検索（完全一致）
     $posts = get_posts(array(
             'post_type' => 'post',
             'post_status' => 'publish',
@@ -518,6 +514,10 @@ function rodut_public_site(WP_REST_Request $request): WP_REST_Response {
     $target_post = null;
     foreach ($posts as $post) {
         if ($post->post_title === 'ウェブサイトを公開しました') {
+            $target_post = $post;
+            break;
+        }
+        if ($post->post_title === 'ウェブサイトをリニューアルしました') {
             $target_post = $post;
             break;
         }

@@ -503,23 +503,27 @@ RewriteRule . /index.php [L]
 
 func (u *deployUsecase) createBackup(src entity.Deploy, srcConfig config.SSHConfig) error {
 	backUpCmd := fmt.Sprintf(`
-	cd %s &&
-	bash -l -c "
-	rm -f %[2]s.sql &&
-	rm -f %[2]s.zip &&
-	wp db export %[2]s.sql &&
-	zip -rq %[2]s.zip . \
-		-x '*.git/*' \
-		-x 'wp-content/cache/*' \
-		-x 'wp-content/uploads/backups/*' \
-		-x 'wp-content/upgrade/*' \
-		-x 'wp-content/ai1wm-backups/*' \
-		-x ".htpasswd" ".htaccess" \
-		-x '*.zip' \
-		-x '*.tar.gz' \
-		-x '*.log' \
-		-x '*.sql'
-	"
+cd %s &&
+bash -lc '
+set -euo pipefail
+
+rm -f "%[2]s.sql" "%[2]s.zip"
+
+wp db export "%[2]s.sql"
+
+zip -rq "%[2]s.zip" . \
+  -x "*/.git/*" \
+  -x "wp-content/cache/*" \
+  -x "wp-content/uploads/backups/*" \
+  -x "wp-content/upgrade/*" \
+  -x "wp-content/ai1wm-backups/*" \
+  -x ".htpasswd" \
+  -x ".htaccess" \
+  -x "*.zip" \
+  -x "*.tar.gz" \
+  -x "*.log" \
+  -x "*.sql"
+'
 `, src.WordpressRootDirectory(), src.Domain)
 	if err := u.sshAdapter.Run(srcConfig, backUpCmd); err != nil {
 		return err
