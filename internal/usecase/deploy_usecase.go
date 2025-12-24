@@ -537,7 +537,11 @@ sed -i "s/define( 'DB_USER'.*/define( 'DB_USER', '%s' );/" wp-config.php &&
 sed -i "s/define( 'DB_PASSWORD'.*/define( 'DB_PASSWORD', '%s' );/" wp-config.php &&
 sed -i "s/define( 'DB_HOST'.*/define( 'DB_HOST', '%s' );/" wp-config.php &&
 php8.2 ~/wp-cli.phar db import %s.sql &&
-php8.2 ~/wp-cli.phar search-replace '%s' '%s' --skip-columns=guid
+php8.2 ~/wp-cli.phar search-replace 'https://%s' 'https://%s' --skip-columns=guid &&
+php8.2 ~/wp-cli.phar search-replace 'http://%s' 'http://%s' --skip-columns=guid &&
+php8.2 ~/wp-cli.phar search-replace '%s' '%s' --skip-columns=guid &&
+php8.2 ~/wp-cli.phar option update home 'https://%s' &&
+php8.2 ~/wp-cli.phar option update siteurl 'https://%s'
 `,
 		dst.WordpressRootDirectory(),
 		src.Domain,
@@ -546,7 +550,10 @@ php8.2 ~/wp-cli.phar search-replace '%s' '%s' --skip-columns=guid
 		dst.GetDbPassword(),
 		dst.GetDbHost(),
 		src.Domain,
-		src.Domain,
+		src.Domain, dst.Domain,
+		src.Domain, dst.Domain,
+		src.Domain, dst.Domain,
+		dst.Domain,
 		dst.Domain,
 	)
 
