@@ -528,20 +528,41 @@ func (u *deployUsecase) createBackup(src entity.Deploy, srcConfig config.SSHConf
 }
 
 func (u *deployUsecase) restoreBackup(src entity.Deploy, dst entity.Deploy, dstConfig config.SSHConfig) error {
-	// 展開 + DBインポート
 	deployCmd := fmt.Sprintf(`
 cd %s &&
 unzip -oq %s.zip &&
+
+# DB 接続先を差し替え
 sed -i "s/define( 'DB_NAME'.*/define( 'DB_NAME', '%s' );/" wp-config.php &&
 sed -i "s/define( 'DB_USER'.*/define( 'DB_USER', '%s' );/" wp-config.php &&
 sed -i "s/define( 'DB_PASSWORD'.*/define( 'DB_PASSWORD', '%s' );/" wp-config.php &&
 sed -i "s/define( 'DB_HOST'.*/define( 'DB_HOST', '%s' );/" wp-config.php &&
+
+# WP_HOME / WP_SITEURL が wp-config.php に固定されていると option update が効かないので除去
+php -r '
+$f="wp-config.php";
+$s=file_get_contents($f);
+$s=preg_replace("/^.*define\\(\\s*\\x27WP_HOME\\x27.*\\R?/m","",$s);
+$s=preg_replace("/^.*define\\(\\s*\\x27WP_SITEURL\\x27.*\\R?/m","",$s);
+file_put_contents($f,$s);
+' &&
+
+# DB インポート
 php8.2 ~/wp-cli.phar db import %s.sql &&
-php8.2 ~/wp-cli.phar search-replace 'https://%s' 'https://%s' --skip-columns=guid &&
-php8.2 ~/wp-cli.phar search-replace 'http://%s' 'http://%s' --skip-columns=guid &&
-php8.2 ~/wp-cli.phar search-replace '%s' '%s' --skip-columns=guid &&
+
+# 置換（全テーブル対象）
+php8.2 ~/wp-cli.phar search-replace 'https://%s' 'https://%s' --skip-columns=guid --all-tables-with-prefix &&
+php8.2 ~/wp-cli.phar search-replace 'http://%s' 'http://%s' --skip-columns=guid --all-tables-with-prefix &&
+php8.2 ~/wp-cli.phar search-replace '%s' '%s' --skip-columns=guid --all-tables-with-prefix &&
+
+# サイトURL確定
 php8.2 ~/wp-cli.phar option update home 'https://%s' &&
-php8.2 ~/wp-cli.phar option update siteurl 'https://%s'
+php8.2 ~/wp-cli.phar option update siteurl 'https://%s' &&
+
+# キャッシュ類を掃除（古いURLが残りやすい）
+php8.2 ~/wp-cli.phar cache flush || true &&
+php8.2 ~/wp-cli.phar transient delete --all || true &&
+php8.2 ~/wp-cli.phar rewrite flush --hard || true
 `,
 		dst.WordpressRootDirectory(),
 		src.Domain,
