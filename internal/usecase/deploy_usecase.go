@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"context"
 	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os"
+	"strings"
 	"sync"
 	"text/template"
 	"time"
@@ -22,6 +24,7 @@ import (
 type DeployUsecase interface {
 	Deploy(ctx context.Context, body request.DeployRequest)
 	DeployOne(ctx context.Context, body request.DeployOneRequest) error
+	FetchDomains(ctx context.Context) ([]string, error)
 }
 
 type deployUsecase struct {
@@ -37,6 +40,34 @@ func NewDeployUsecase(
 		sshAdapter:       sshAdapter,
 		siteSheetAdapter: siteSheetAdapter,
 	}
+}
+
+func (u *deployUsecase) FetchDomains(ctx context.Context) ([]string, error) {
+	slog.Info("Assort 処理開始")
+
+	var domains []string
+	serverIDs := strings.Split(config.Env.ServerIDs, ",")
+	for _, serverID := range serverIDs {
+		sshConf, err := config.GetSSHConfig(serverID)
+		if err != nil {
+			slog.Error("SSH設定取得失敗", "error", err.Error())
+			return nil, err
+		}
+
+		cmd := "walk fetchDomains"
+
+		stdout, err := u.sshAdapter.RunOutput(sshConf, cmd)
+		if err != nil {
+			return nil, err
+		}
+
+		var result []string
+		if err := json.Unmarshal([]byte(stdout), &result); err != nil {
+			return nil, err
+		}
+		domains = append(domains, result...)
+	}
+	return domains, nil
 }
 
 func (u *deployUsecase) Deploy(ctx context.Context, req request.DeployRequest) {

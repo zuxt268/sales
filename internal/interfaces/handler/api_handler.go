@@ -37,6 +37,7 @@ type ApiHandler interface {
 	DeleteTarget(c echo.Context) error
 	DeployWordpress(c echo.Context) error
 	DeployWordpressOne(c echo.Context) error
+	FetchHomstaDomains(c echo.Context) error
 	AssortWordpress(c echo.Context) error
 	AnalyzeDomain(c echo.Context) error
 
@@ -355,6 +356,23 @@ func (h *apiHandler) DeployWordpress(c echo.Context) error {
 	}()
 
 	return c.NoContent(http.StatusAccepted)
+}
+
+// FetchHomstaDomains godoc
+// @Summary ストラテジードライブサーバーにあるドメインフォルダ一覧を取得します。
+// @Description
+// @Tags Wordpress
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200
+// @Router /external/fetch/domains [post]
+func (h *apiHandler) FetchHomstaDomains(c echo.Context) error {
+	domains, err := h.deployUsecase.FetchDomains(context.Background())
+	if err != nil {
+		return handleError(c, err)
+	}
+	return c.JSON(http.StatusOK, domains)
 }
 
 // DeployWordpressOne godoc
