@@ -53,7 +53,7 @@ func GetSSHConfig(serverID string) (SSHConfig, error) {
 		User:    user,
 		Port:    port,
 		KeyPath: identity,
-		Timeout: 60 * time.Second,
+		Timeout: 60 * 10 * time.Second,
 	}, nil
 }
 

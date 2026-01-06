@@ -25,6 +25,7 @@ type DeployUsecase interface {
 	Deploy(ctx context.Context, body request.DeployRequest)
 	DeployOne(ctx context.Context, body request.DeployOneRequest) error
 	FetchDomains(ctx context.Context) ([]string, error)
+	FetchDomainDetails(ctx context.Context) error
 }
 
 type deployUsecase struct {
@@ -42,8 +43,74 @@ func NewDeployUsecase(
 	}
 }
 
+func (u *deployUsecase) FetchDomainDetails(ctx context.Context) error {
+	serverIDs := strings.Split(config.Env.ServerIDs, ",")
+
+	type result struct {
+		out string
+		err error
+	}
+
+	ch := make(chan result, len(serverIDs))
+	var wg sync.WaitGroup
+	for _, serverID := range serverIDs {
+		wg.Add(1)
+
+		go func() {
+			defer wg.Done()
+			sshConf, err := config.GetSSHConfig(serverID)
+			if err != nil {
+				slog.Error("SSH設定取得失敗", "serverID", serverID, "error", err.Error())
+				ch <- result{err: err}
+				return
+			}
+
+			cmd := "walk fetchDomainDetails"
+			stdout, err := u.sshAdapter.RunOutput(sshConf, cmd)
+			if err != nil {
+				ch <- result{err: err}
+				return
+			}
+			ch <- result{out: stdout}
+		}()
+	}
+
+	go func() {
+		wg.Wait()
+		close(ch)
+	}()
+
+	var results []entity.DomainDetails
+	var firstErr error
+
+	for r := range ch {
+		if r.err != nil {
+			if firstErr == nil {
+				firstErr = r.err
+			}
+			continue
+		}
+
+		var partial []entity.DomainDetails
+		if err := json.Unmarshal([]byte(r.out), &partial); err != nil {
+			if firstErr == nil {
+				firstErr = err
+			}
+			continue
+		}
+		results = append(results, partial...)
+	}
+	if firstErr != nil {
+		return firstErr
+	}
+
+	fmt.Println("=====")
+	fmt.Println(len(results))
+	fmt.Println("=====")
+	return nil
+}
+
 func (u *deployUsecase) FetchDomains(ctx context.Context) ([]string, error) {
-	slog.Info("Assort 処理開始")
 
 	var domains []string
 	serverIDs := strings.Split(config.Env.ServerIDs, ",")

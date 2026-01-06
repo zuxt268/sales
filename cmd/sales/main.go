@@ -97,6 +97,7 @@ func main() {
 		external.POST("/deploy/one", handler.DeployWordpressOne)
 		external.POST("/assort", handler.AssortWordpress)
 		external.POST("/fetch/domains", handler.FetchHomstaDomains)
+		external.POST("/fetch/domains/detail", handler.FetchHomstaDomainDetails)
 	}
 
 	webhook := api.Group("/webhook")

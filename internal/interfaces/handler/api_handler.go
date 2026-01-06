@@ -38,6 +38,7 @@ type ApiHandler interface {
 	DeployWordpress(c echo.Context) error
 	DeployWordpressOne(c echo.Context) error
 	FetchHomstaDomains(c echo.Context) error
+	FetchHomstaDomainDetails(c echo.Context) error
 	AssortWordpress(c echo.Context) error
 	AnalyzeDomain(c echo.Context) error
 
@@ -373,6 +374,25 @@ func (h *apiHandler) FetchHomstaDomains(c echo.Context) error {
 		return handleError(c, err)
 	}
 	return c.JSON(http.StatusOK, domains)
+}
+
+// FetchHomstaDomainDetails godoc
+// @Summary ストラテジードライブサーバーにあるドメインの詳細情報を取得します
+// @Description
+// @Tags Wordpress
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200
+// @Router /external/fetch/domains/detail [post]
+func (h *apiHandler) FetchHomstaDomainDetails(c echo.Context) error {
+	go func() {
+		err := h.deployUsecase.FetchDomainDetails(context.Background())
+		if err != nil {
+			fmt.Println("error fetching domain details", err.Error())
+		}
+	}()
+	return c.NoContent(http.StatusOK)
 }
 
 // DeployWordpressOne godoc
