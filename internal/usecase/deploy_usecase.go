@@ -129,7 +129,10 @@ func (u *deployUsecase) FetchDomainDetails(ctx context.Context) error {
 				DiscUsage:   d.DiscUsage,
 			}
 
-			return u.homstaRepo.Save(ctx, homsta)
+			err = u.homstaRepo.Save(ctx, homsta)
+			if err != nil {
+				return err
+			}
 		}
 		results = append(results, partial...)
 	}
