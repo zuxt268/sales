@@ -113,7 +113,7 @@ func (u *deployUsecase) FetchDomainDetails(ctx context.Context) error {
 				return err
 			}
 			if exists {
-				return nil
+				continue
 			}
 
 			dbUsage, dbName := getDb(d.DBUsage)

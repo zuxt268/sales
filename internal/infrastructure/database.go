@@ -30,7 +30,7 @@ func NewDatabase() *gorm.DB {
 	)
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
+		Logger: logger.Default.LogMode(logger.Error),
 	})
 	if err != nil {
 		slog.Error("Failed to connect to database", "error", err)
@@ -88,7 +88,7 @@ func NewTestContainerDBClient() (*gorm.DB, func()) {
 
 	// GORM DB接続
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
+		Logger: logger.Default.LogMode(logger.Error),
 	})
 	if err != nil {
 		_ = container.Terminate(ctx)
