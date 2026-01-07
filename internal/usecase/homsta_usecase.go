@@ -61,7 +61,7 @@ func (u *homstaUsecase) CreateHomsta(ctx context.Context, req request.Homsta) er
 
 func getDomain(path string) string {
 	paths := strings.Split(path, "/")
-	for i := len(paths); i > 0; i-- {
+	for i := len(paths) - 1; i > 0; i-- {
 		if paths[i] == "public_html" {
 			continue
 		}
