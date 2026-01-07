@@ -91,6 +91,10 @@ func main() {
 	api.PUT("/targets/:id", handler.UpdateTarget)
 	api.DELETE("/targets/:id", handler.DeleteTarget)
 
+	api.POST("/homstas", handler.CreateHomsta)
+	api.GET("/homstas", handler.GetHomstas)
+	api.GET("/homstas/:name", handler.GetHomsta)
+
 	external := api.Group("/external", middleware2.JWTMiddleware())
 	{
 		external.POST("/deploy", handler.DeployWordpress)

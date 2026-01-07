@@ -19,6 +19,8 @@ import (
 	"github.com/zuxt268/sales/internal/entity"
 	"github.com/zuxt268/sales/internal/interfaces/adapter"
 	"github.com/zuxt268/sales/internal/interfaces/dto/request"
+	"github.com/zuxt268/sales/internal/interfaces/repository"
+	"github.com/zuxt268/sales/internal/model"
 )
 
 type DeployUsecase interface {
@@ -31,15 +33,18 @@ type DeployUsecase interface {
 type deployUsecase struct {
 	sshAdapter       adapter.SSHAdapter
 	siteSheetAdapter adapter.SheetAdapter
+	homstaRepo       repository.HomstaRepository
 }
 
 func NewDeployUsecase(
 	sshAdapter adapter.SSHAdapter,
 	siteSheetAdapter adapter.SheetAdapter,
+	homstaRepo repository.HomstaRepository,
 ) DeployUsecase {
 	return &deployUsecase{
 		sshAdapter:       sshAdapter,
 		siteSheetAdapter: siteSheetAdapter,
+		homstaRepo:       homstaRepo,
 	}
 }
 
@@ -98,6 +103,34 @@ func (u *deployUsecase) FetchDomainDetails(ctx context.Context) error {
 			}
 			continue
 		}
+
+		for _, d := range partial {
+			exists, err := u.homstaRepo.Exists(ctx, repository.HomstaFilter{
+				Path: &d.Path,
+			})
+			if err != nil {
+				return err
+			}
+			if exists {
+				return nil
+			}
+
+			dbUsage, dbName := getDb(d.DBUsage)
+
+			homsta := &model.Homsta{
+				Domain:      getDomain(d.Path),
+				BlogName:    d.BlogName,
+				Path:        d.Path,
+				SiteURL:     d.SiteUrl,
+				Description: d.Description,
+				Users:       d.Users,
+				DBName:      dbName,
+				DBUsage:     dbUsage,
+				DiscUsage:   d.DiscUsage,
+			}
+
+			return u.homstaRepo.Save(ctx, homsta)
+		}
 		results = append(results, partial...)
 	}
 	if firstErr != nil {
@@ -107,6 +140,7 @@ func (u *deployUsecase) FetchDomainDetails(ctx context.Context) error {
 	fmt.Println("=====")
 	fmt.Println(len(results))
 	fmt.Println("=====")
+
 	return nil
 }
 

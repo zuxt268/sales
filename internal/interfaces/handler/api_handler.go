@@ -42,6 +42,10 @@ type ApiHandler interface {
 	AssortWordpress(c echo.Context) error
 	AnalyzeDomain(c echo.Context) error
 
+	CreateHomsta(c echo.Context) error
+	GetHomstas(c echo.Context) error
+	GetHomsta(c echo.Context) error
+
 	Fetch(c echo.Context) error
 	Polling(c echo.Context) error
 	Analyze(c echo.Context) error
@@ -56,6 +60,7 @@ type apiHandler struct {
 	deployUsecase usecase.DeployUsecase
 	sheetUsecase  usecase.SheetUsecase
 	growthUsecase usecase.GrowthUsecase
+	homstaUsecase usecase.HomstaUsecase
 	slackAdapter  adapter.SlackAdapter
 }
 
@@ -67,6 +72,7 @@ func NewApiHandler(
 	deployUsecase usecase.DeployUsecase,
 	sheetUsecase usecase.SheetUsecase,
 	growthUsecase usecase.GrowthUsecase,
+	homstaUsecase usecase.HomstaUsecase,
 	slackAdapter adapter.SlackAdapter,
 ) ApiHandler {
 	return &apiHandler{
@@ -77,6 +83,7 @@ func NewApiHandler(
 		deployUsecase: deployUsecase,
 		sheetUsecase:  sheetUsecase,
 		growthUsecase: growthUsecase,
+		homstaUsecase: homstaUsecase,
 		slackAdapter:  slackAdapter,
 	}
 }
@@ -598,6 +605,75 @@ func (h *apiHandler) Output(c echo.Context) error {
 		return handleError(c, err)
 	}
 	return c.NoContent(http.StatusAccepted)
+}
+
+// CreateHomsta godoc
+// @Summary Homstaを作成します
+// @Tags Homsta
+// @Accept json
+// @Produce json
+// @Param request body request.Homsta true "Homsta情報"
+// @Success 201
+// @Router /homstas [post]
+func (h *apiHandler) CreateHomsta(c echo.Context) error {
+	var req request.Homsta
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	if err := h.homstaUsecase.CreateHomsta(c.Request().Context(), req); err != nil {
+		return handleError(c, err)
+	}
+	return c.NoContent(http.StatusCreated)
+}
+
+// GetHomstas godoc
+// @Summary Homsta一覧を取得します
+// @Tags Homsta
+// @Accept json
+// @Produce json
+// @Param limit query int false "Limit"
+// @Param offset query int false "Offset"
+// @Success 200 {array} model.Homsta
+// @Router /homstas [get]
+func (h *apiHandler) GetHomstas(c echo.Context) error {
+	var limit, offset *int
+	if limitStr := c.QueryParam("limit"); limitStr != "" {
+		limitVal, err := strconv.Atoi(limitStr)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, "invalid limit parameter")
+		}
+		limit = &limitVal
+	}
+	if offsetStr := c.QueryParam("offset"); offsetStr != "" {
+		offsetVal, err := strconv.Atoi(offsetStr)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, "invalid offset parameter")
+		}
+		offset = &offsetVal
+	}
+
+	homstas, err := h.homstaUsecase.GetHomstas(c.Request().Context(), limit, offset)
+	if err != nil {
+		return handleError(c, err)
+	}
+	return c.JSON(http.StatusOK, homstas)
+}
+
+// GetHomsta godoc
+// @Summary Homstaを取得します
+// @Tags Homsta
+// @Accept json
+// @Produce json
+// @Param name path string true "Name"
+// @Success 200 {object} model.Homsta
+// @Router /homstas/{name} [get]
+func (h *apiHandler) GetHomsta(c echo.Context) error {
+	name := c.Param("name")
+	homsta, err := h.homstaUsecase.GetHomsta(c.Request().Context(), name)
+	if err != nil {
+		return handleError(c, err)
+	}
+	return c.JSON(http.StatusOK, homsta)
 }
 
 func handleError(c echo.Context, err error) error {

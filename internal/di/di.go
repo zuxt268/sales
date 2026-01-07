@@ -18,6 +18,7 @@ func Initialize(
 	pubSubClient infrastructure.PubSubClient,
 ) handler.ApiHandler {
 	domainRepo := repository.NewDomainRepository(db)
+	homstaRepo := repository.NewHomstaRepository(db)
 	viewDnsAdapter := adapter.NewViewDNSAdapter(config.Env.ViewDnsApiUrl)
 	baseRepo := repository.NewBaseRepository(db)
 	targetRepo := repository.NewTargetRepository(db)
@@ -28,10 +29,11 @@ func Initialize(
 	fetchUsecase := usecase.NewFetchUsecase(viewDnsAdapter, slackAdapter, pubSubAdapter, domainRepo, targetRepo)
 	domainUsecase := usecase.NewDomainUsecase(baseRepo, domainRepo)
 	targetUsecase := usecase.NewTargetUsecase(baseRepo, targetRepo)
+	homstaUsecase := usecase.NewHomstaUsecase(baseRepo, homstaRepo)
 	gptUsecase := usecase.NewGptUsecase(baseRepo, domainRepo, slackAdapter, gptRepo)
 	sshAdapter := adapter.NewSSHAdapter()
 	sheetAdapter := adapter.NewSheetAdapter(sheetClient, driveClient)
-	deployUsecase := usecase.NewDeployUsecase(sshAdapter, sheetAdapter)
+	deployUsecase := usecase.NewDeployUsecase(sshAdapter, sheetAdapter, homstaRepo)
 	sheetUsecase := usecase.NewSheetUsecase(baseRepo, domainRepo, sheetAdapter, sshAdapter)
 	growthUsecase := usecase.NewGrowthUsecase(
 		baseRepo,
@@ -51,6 +53,7 @@ func Initialize(
 		deployUsecase,
 		sheetUsecase,
 		growthUsecase,
+		homstaUsecase,
 		slackAdapter,
 	)
 }
