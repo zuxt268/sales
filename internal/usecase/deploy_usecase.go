@@ -131,7 +131,7 @@ func (u *deployUsecase) FetchDomainDetails(ctx context.Context) error {
 
 			err = u.homstaRepo.Save(ctx, homsta)
 			if err != nil {
-				return err
+				fmt.Println(err)
 			}
 		}
 		results = append(results, partial...)
