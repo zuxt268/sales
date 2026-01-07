@@ -1,10 +1,10 @@
 -- +migrate Up
 CREATE TABLE homstas (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    domain VARCHAR(255) NOT NULL UNIQUE COMMENT 'サイト名',
-    blog_name VARCHAR(255) NOT NULL COMMENT 'サイト名',
-    path VARCHAR(500) NOT NULL DEFAULT '' COMMENT 'パス',
-    site_url VARCHAR(500) NOT NULL DEFAULT '' COMMENT 'サイトURL',
+    domain VARCHAR(255) NOT NULL COMMENT 'サイト名',
+    blog_name TEXT NOT NULL COMMENT 'サイト名',
+    path VARCHAR(500) NOT NULL DEFAULT '' UNIQUE COMMENT 'パス',
+    site_url VARCHAR(1000) NOT NULL DEFAULT '' COMMENT 'サイトURL',
     description TEXT NOT NULL COMMENT '説明',
     db_name VARCHAR(255) NOT NULL DEFAULT '' COMMENT 'データベース名',
     users TEXT NOT NULL COMMENT 'ユーザー情報',
@@ -15,7 +15,6 @@ CREATE TABLE homstas (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
 
     -- インデックス
-    INDEX idx_homstas_name (domain),
     INDEX idx_homstas_path (path)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Homsta情報テーブル';
 

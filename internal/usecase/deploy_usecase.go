@@ -89,7 +89,6 @@ func (u *deployUsecase) FetchDomainDetails(ctx context.Context) error {
 	var firstErr error
 
 	for r := range ch {
-		fmt.Println("result", len(r.out), r.err)
 		if r.err != nil {
 			if firstErr == nil {
 				firstErr = r.err
@@ -104,6 +103,8 @@ func (u *deployUsecase) FetchDomainDetails(ctx context.Context) error {
 			}
 			continue
 		}
+
+		fmt.Println("partial", len(partial))
 
 		for _, d := range partial {
 			exists, err := u.homstaRepo.Exists(ctx, repository.HomstaFilter{
