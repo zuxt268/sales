@@ -89,6 +89,7 @@ func (u *deployUsecase) FetchDomainDetails(ctx context.Context) error {
 	var firstErr error
 
 	for r := range ch {
+		fmt.Println("result", len(r.out), r.err)
 		if r.err != nil {
 			if firstErr == nil {
 				firstErr = r.err
@@ -133,6 +134,7 @@ func (u *deployUsecase) FetchDomainDetails(ctx context.Context) error {
 			if err != nil {
 				fmt.Println(err)
 			}
+			fmt.Println("[ok]", homsta.Domain)
 		}
 		results = append(results, partial...)
 	}
