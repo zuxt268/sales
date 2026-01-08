@@ -183,8 +183,9 @@ func (a *gptAdapter) Analyze(ctx context.Context, d *model.Domain) error {
 }
 
 const promptAnalyzeIndustryTemplate = `"""%s"""
-以上の情報から、業種を答えてください。単語で答えてください。見つからない場合は、「なし」と表示してください。
-例）自動車整備業
+以上の情報から、業種を答えてください。単語で答えてください。一番近いものを選んでください。
+1つに定められない場合は、3つまで答えてください。その場合、カンマ区切りで答えてください。
+例）自動車整備業,広告業
 `
 
 func (a *gptAdapter) AnalyzeSiteIndustry(ctx context.Context, text string) (string, error) {

@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"net/url"
 	"path"
@@ -106,7 +105,6 @@ func getCompInfo(siteUrl string) (string, error) {
 		return "", err
 	}
 	u.Path = path.Join(u.Path, "service")
-	fmt.Println(u.String())
 
 	resp, err := http.Get(u.String())
 	if err != nil {
