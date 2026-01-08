@@ -53,6 +53,7 @@ func (u *homstaUsecase) CreateHomsta(ctx context.Context, req request.Homsta) er
 	}
 	if err == nil {
 		homsta.ID = exists.ID
+		homsta.Industry = exists.Industry
 	}
 	return u.homstaRepo.Save(ctx, homsta)
 }
