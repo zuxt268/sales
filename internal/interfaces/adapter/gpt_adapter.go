@@ -184,7 +184,7 @@ func (a *gptAdapter) Analyze(ctx context.Context, d *model.Domain) error {
 
 const promptAnalyzeIndustryTemplate = `"""%s"""
 以上の情報から、業種を答えてください。単語で答えてください。一番近いものを選んでください。
-1つに定められない場合は、3つまで答えてください。その場合、カンマ区切りで答えてください。
+できるだけ1個で答えてください。もし、1個に定められない場合は、3個まで答えてください。その場合、カンマ区切りで答えてください。
 例）自動車整備業,広告業
 `
 
