@@ -144,6 +144,7 @@ func (u *homstaUsecase) AnalyzeIndustry(ctx context.Context) error {
 		text, err := getCompInfo(domain.SiteURL)
 		if err != nil {
 			fmt.Println(domain.SiteURL, err)
+			continue
 		}
 		industry, err := u.gptAdapter.AnalyzeSiteIndustry(ctx, text)
 		if err != nil {
