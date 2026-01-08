@@ -134,7 +134,8 @@ func getCompInfo(siteUrl string) (string, error) {
 
 func (u *homstaUsecase) AnalyzeIndustry(ctx context.Context) error {
 	domains, err := u.homstaRepo.FindAll(ctx, repository.HomstaFilter{
-		Industry: util.Pointer(""),
+		Industry:       util.Pointer(""),
+		NotDomainEmpty: util.Pointer(true),
 	})
 	if err != nil {
 		return err
@@ -142,7 +143,7 @@ func (u *homstaUsecase) AnalyzeIndustry(ctx context.Context) error {
 	for _, domain := range domains {
 		text, err := getCompInfo(domain.SiteURL)
 		if err != nil {
-			return err
+			fmt.Println(domain.SiteURL, err)
 		}
 		industry, err := u.gptAdapter.AnalyzeSiteIndustry(ctx, text)
 		if err != nil {
