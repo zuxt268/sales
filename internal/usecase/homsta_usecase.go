@@ -2,8 +2,11 @@ package usecase
 
 import (
 	"context"
+	"errors"
+	"net/url"
 	"strings"
 
+	"github.com/zuxt268/sales/internal/entity"
 	"github.com/zuxt268/sales/internal/interfaces/dto/request"
 	"github.com/zuxt268/sales/internal/interfaces/repository"
 	"github.com/zuxt268/sales/internal/model"
@@ -32,20 +35,9 @@ func NewHomstaUsecase(
 
 func (u *homstaUsecase) CreateHomsta(ctx context.Context, req request.Homsta) error {
 
-	exists, err := u.homstaRepo.Exists(ctx, repository.HomstaFilter{
-		Path: &req.Path,
-	})
-	if err != nil {
-		return err
-	}
-	if exists {
-		return nil
-	}
-
 	dbUsage, dbName := getDb(req.DbUsage)
-
 	homsta := &model.Homsta{
-		Domain:      getDomain(req.Path),
+		Domain:      getDomain(req.SiteUrl),
 		BlogName:    req.BlogName,
 		Path:        req.Path,
 		SiteURL:     req.SiteUrl,
@@ -55,19 +47,22 @@ func (u *homstaUsecase) CreateHomsta(ctx context.Context, req request.Homsta) er
 		DBUsage:     dbUsage,
 		DiscUsage:   req.DiscUsage,
 	}
-
+	exists, err := u.homstaRepo.Get(ctx, repository.HomstaFilter{Path: &req.Path})
+	if err != nil && !errors.Is(err, entity.ErrNotFound) {
+		return err
+	}
+	if err == nil {
+		homsta.ID = exists.ID
+	}
 	return u.homstaRepo.Save(ctx, homsta)
 }
 
-func getDomain(path string) string {
-	paths := strings.Split(path, "/")
-	for i := len(paths) - 1; i > 0; i-- {
-		if paths[i] == "public_html" {
-			continue
-		}
-		return paths[i]
+func getDomain(siteUrl string) string {
+	urlStr, err := url.Parse(siteUrl)
+	if err != nil {
+		return ""
 	}
-	return ""
+	return urlStr.Host
 }
 
 func getDb(dbUsage string) (name, usage string) {
