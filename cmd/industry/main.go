@@ -2,24 +2,52 @@ package main
 
 import (
 	"fmt"
-	"io"
+	"log"
 	"net/http"
+	"net/url"
+	"path"
+	"strings"
+
+	"github.com/PuerkitoBio/goquery"
 )
 
 func main() {
-	fmt.Println("industry")
-
-	resp, err := http.Get("https://taido-fc.com")
+	txt, err := getCompInfo("https://21lab.biz/")
 	if err != nil {
-		fmt.Println("error:", err)
-		return
+		log.Fatal(err)
+	}
+	fmt.Println(txt)
+}
+
+func getCompInfo(siteUrl string) (string, error) {
+	u, err := url.Parse(siteUrl)
+	if err != nil {
+		return "", err
+	}
+	u.Path = path.Join(u.Path, "service")
+	fmt.Println(u.String())
+
+	resp, err := http.Get(u.String())
+	if err != nil {
+		return "", err
+	}
+	if resp.StatusCode == 404 {
+		resp.Body.Close()
+		resp, err = http.Get(u.String())
+		if err != nil {
+			return "", err
+		}
 	}
 	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
+
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
-		fmt.Println("error:", err)
-		return
+		return "", err
 	}
-	fmt.Println(resp.StatusCode)
-	fmt.Println(string(body))
+
+	body := doc.Find("body")
+	body.Find("script,style,link,noscript").Remove()
+
+	text := strings.Join(strings.Fields(body.Text()), " ")
+	return text, nil
 }

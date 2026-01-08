@@ -22,15 +22,15 @@ func Initialize(
 	viewDnsAdapter := adapter.NewViewDNSAdapter(config.Env.ViewDnsApiUrl)
 	baseRepo := repository.NewBaseRepository(db)
 	targetRepo := repository.NewTargetRepository(db)
-	gptRepo := adapter.NewGptAdapter()
+	gptAdapter := adapter.NewGptAdapter()
 	slackAdapter := adapter.NewSlackAdapter()
 	pubSubAdapter := adapter.NewPubSubAdapter(pubSubClient)
 
 	fetchUsecase := usecase.NewFetchUsecase(viewDnsAdapter, slackAdapter, pubSubAdapter, domainRepo, targetRepo)
 	domainUsecase := usecase.NewDomainUsecase(baseRepo, domainRepo)
 	targetUsecase := usecase.NewTargetUsecase(baseRepo, targetRepo)
-	homstaUsecase := usecase.NewHomstaUsecase(baseRepo, homstaRepo)
-	gptUsecase := usecase.NewGptUsecase(baseRepo, domainRepo, slackAdapter, gptRepo)
+	homstaUsecase := usecase.NewHomstaUsecase(baseRepo, homstaRepo, gptAdapter)
+	gptUsecase := usecase.NewGptUsecase(baseRepo, domainRepo, slackAdapter, gptAdapter)
 	sshAdapter := adapter.NewSSHAdapter()
 	sheetAdapter := adapter.NewSheetAdapter(sheetClient, driveClient)
 	deployUsecase := usecase.NewDeployUsecase(sshAdapter, sheetAdapter, homstaRepo)
@@ -42,7 +42,7 @@ func Initialize(
 		pubSubAdapter,
 		viewDnsAdapter,
 		sheetAdapter,
-		gptRepo,
+		gptAdapter,
 	)
 
 	return handler.NewApiHandler(

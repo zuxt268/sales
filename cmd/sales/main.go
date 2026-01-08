@@ -91,10 +91,6 @@ func main() {
 	api.PUT("/targets/:id", handler.UpdateTarget)
 	api.DELETE("/targets/:id", handler.DeleteTarget)
 
-	api.POST("/homstas", handler.CreateHomsta)
-	api.GET("/homstas", handler.GetHomstas)
-	api.GET("/homstas/:name", handler.GetHomsta)
-
 	external := api.Group("/external", middleware2.JWTMiddleware())
 	{
 		external.POST("/deploy", handler.DeployWordpress)
@@ -102,6 +98,7 @@ func main() {
 		external.POST("/assort", handler.AssortWordpress)
 		external.POST("/fetch/domains", handler.FetchHomstaDomains)
 		external.POST("/fetch/domains/detail", handler.FetchHomstaDomainDetails)
+		external.POST("/analyze/domains", handler.AnalyzeHomstaDomains)
 	}
 
 	webhook := api.Group("/webhook")

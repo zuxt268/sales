@@ -39,6 +39,7 @@ type ApiHandler interface {
 	DeployWordpressOne(c echo.Context) error
 	FetchHomstaDomains(c echo.Context) error
 	FetchHomstaDomainDetails(c echo.Context) error
+	AnalyzeHomstaDomains(c echo.Context) error
 	AssortWordpress(c echo.Context) error
 	AnalyzeDomain(c echo.Context) error
 
@@ -623,6 +624,22 @@ func (h *apiHandler) CreateHomsta(c echo.Context) error {
 	if err := h.homstaUsecase.CreateHomsta(c.Request().Context(), req); err != nil {
 		return handleError(c, err)
 	}
+	return c.NoContent(http.StatusCreated)
+}
+
+// AnalyzeHomstaDomains godoc
+// @Summary Homstaの業種を判別します
+// @Tags Homsta
+// @Accept json
+// @Produce json
+// @Success 201
+// @Router /external/analyze/domains [post]
+func (h *apiHandler) AnalyzeHomstaDomains(c echo.Context) error {
+	go func() {
+		if err := h.homstaUsecase.AnalyzeIndustry(c.Request().Context()); err != nil {
+			fmt.Println("[AnalyzeHomstaDomains]", err)
+		}
+	}()
 	return c.NoContent(http.StatusCreated)
 }
 

@@ -12,6 +12,7 @@ import (
 
 type GptAdapter interface {
 	Analyze(ctx context.Context, domain *model.Domain) error
+	AnalyzeSiteIndustry(ctx context.Context, text string) (string, error)
 }
 
 type gptAdapter struct {
@@ -179,4 +180,36 @@ func (a *gptAdapter) Analyze(ctx context.Context, d *model.Domain) error {
 		d.Prefecture = contents[3]
 	}
 	return nil
+}
+
+const promptAnalyzeIndustryTemplate = `"""%s"""
+以上の情報から、業種を答えてください。単語で答えてください。見つからない場合は、「なし」と表示してください。
+例）自動車整備業
+`
+
+func (a *gptAdapter) AnalyzeSiteIndustry(ctx context.Context, text string) (string, error) {
+	prompt := fmt.Sprintf(promptAnalyzeIndustryTemplate, text)
+	resp, err := a.client.CreateChatCompletion(
+		ctx,
+		openai.ChatCompletionRequest{
+			Model: "gpt-5-nano",
+			Messages: []openai.ChatCompletionMessage{
+				{
+					Role:    openai.ChatMessageRoleSystem,
+					Content: systemPrompt,
+				},
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: prompt,
+				},
+			},
+		},
+	)
+	if err != nil {
+		return "", fmt.Errorf("ChatCompletion error: %w", err)
+	}
+	if len(resp.Choices) == 0 {
+		return "", nil
+	}
+	return resp.Choices[0].Message.Content, nil
 }

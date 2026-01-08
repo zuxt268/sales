@@ -3,33 +3,43 @@ package usecase
 import (
 	"context"
 	"errors"
+	"fmt"
+	"net/http"
 	"net/url"
+	"path"
 	"strings"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/zuxt268/sales/internal/entity"
+	"github.com/zuxt268/sales/internal/interfaces/adapter"
 	"github.com/zuxt268/sales/internal/interfaces/dto/request"
 	"github.com/zuxt268/sales/internal/interfaces/repository"
 	"github.com/zuxt268/sales/internal/model"
+	"github.com/zuxt268/sales/internal/util"
 )
 
 type HomstaUsecase interface {
 	CreateHomsta(ctx context.Context, req request.Homsta) error
 	GetHomstas(ctx context.Context, limit, offset *int) ([]*model.Homsta, error)
 	GetHomsta(ctx context.Context, name string) (*model.Homsta, error)
+	AnalyzeIndustry(ctx context.Context) error
 }
 
 type homstaUsecase struct {
 	baseRepo   repository.BaseRepository
 	homstaRepo repository.HomstaRepository
+	gptAdapter adapter.GptAdapter
 }
 
 func NewHomstaUsecase(
 	baseRepo repository.BaseRepository,
 	homstaRepo repository.HomstaRepository,
+	gptAdapter adapter.GptAdapter,
 ) HomstaUsecase {
 	return &homstaUsecase{
 		baseRepo:   baseRepo,
 		homstaRepo: homstaRepo,
+		gptAdapter: gptAdapter,
 	}
 }
 
@@ -88,4 +98,61 @@ func (u *homstaUsecase) GetHomsta(ctx context.Context, name string) (*model.Homs
 		Name: &name,
 	}
 	return u.homstaRepo.Get(ctx, filter)
+}
+
+func getCompInfo(siteUrl string) (string, error) {
+	u, err := url.Parse(siteUrl)
+	if err != nil {
+		return "", err
+	}
+	u.Path = path.Join(u.Path, "service")
+	fmt.Println(u.String())
+
+	resp, err := http.Get(u.String())
+	if err != nil {
+		return "", err
+	}
+	if resp.StatusCode == 404 {
+		resp.Body.Close()
+		resp, err = http.Get(u.String())
+		if err != nil {
+			return "", err
+		}
+	}
+	defer resp.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	body := doc.Find("body")
+	body.Find("script,style,link,noscript").Remove()
+
+	text := strings.Join(strings.Fields(body.Text()), " ")
+	return text, nil
+}
+
+func (u *homstaUsecase) AnalyzeIndustry(ctx context.Context) error {
+	domains, err := u.homstaRepo.FindAll(ctx, repository.HomstaFilter{
+		Industry: util.Pointer(""),
+	})
+	if err != nil {
+		return err
+	}
+	for _, domain := range domains {
+		text, err := getCompInfo(domain.SiteURL)
+		if err != nil {
+			return err
+		}
+		industry, err := u.gptAdapter.AnalyzeSiteIndustry(ctx, text)
+		if err != nil {
+			return err
+		}
+		domain.Industry = industry
+		if err := u.homstaRepo.Save(ctx, domain); err != nil {
+			return err
+		}
+	}
+	return nil
 }
