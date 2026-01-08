@@ -636,7 +636,7 @@ func (h *apiHandler) CreateHomsta(c echo.Context) error {
 // @Router /external/analyze/domains [post]
 func (h *apiHandler) AnalyzeHomstaDomains(c echo.Context) error {
 	go func() {
-		if err := h.homstaUsecase.AnalyzeIndustry(c.Request().Context()); err != nil {
+		if err := h.homstaUsecase.AnalyzeIndustry(context.Background()); err != nil {
 			fmt.Println("[AnalyzeHomstaDomains]", err)
 		}
 	}()
