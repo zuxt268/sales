@@ -121,13 +121,14 @@ func (r *homstaRepository) getDb(ctx context.Context) *gorm.DB {
 }
 
 type HomstaFilter struct {
-	Name        *string
-	PartialName *string
-	Path        *string
-	DBName      *string
-	Industry    *string
-	Limit       *int
-	Offset      *int
+	Name           *string
+	PartialName    *string
+	Path           *string
+	DBName         *string
+	Industry       *string
+	Limit          *int
+	Offset         *int
+	NotDomainEmpty *bool
 }
 
 func (h *HomstaFilter) Apply(db *gorm.DB) *gorm.DB {
@@ -145,6 +146,9 @@ func (h *HomstaFilter) Apply(db *gorm.DB) *gorm.DB {
 	}
 	if h.Industry != nil {
 		db = db.Where("industry = ?", *h.Industry)
+	}
+	if h.NotDomainEmpty != nil && *h.NotDomainEmpty {
+		db = db.Where("domain != ''")
 	}
 	if h.Limit != nil {
 		db = db.Limit(*h.Limit)
