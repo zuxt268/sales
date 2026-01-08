@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"path"
@@ -151,6 +152,7 @@ func (u *homstaUsecase) AnalyzeIndustry(ctx context.Context) error {
 		if err := u.homstaRepo.Save(ctx, domain); err != nil {
 			return err
 		}
+		fmt.Println(domain.Domain, domain.Industry)
 	}
 	return nil
 }
