@@ -21,6 +21,7 @@ import (
 	"github.com/zuxt268/sales/internal/interfaces/dto/request"
 	"github.com/zuxt268/sales/internal/interfaces/repository"
 	"github.com/zuxt268/sales/internal/model"
+	"golang.org/x/exp/slices"
 )
 
 type DeployUsecase interface {
@@ -85,7 +86,7 @@ func (u *deployUsecase) FetchDomainDetails(ctx context.Context) error {
 		close(ch)
 	}()
 
-	var results []entity.DomainDetails
+	existsPaths := make([]string, 0, 4048)
 	var firstErr error
 
 	for r := range ch {
@@ -136,17 +137,30 @@ func (u *deployUsecase) FetchDomainDetails(ctx context.Context) error {
 				fmt.Println(err)
 			}
 			fmt.Println("[ok]", homsta.Domain)
+			existsPaths = append(existsPaths, homsta.Path)
 		}
-		results = append(results, partial...)
 	}
 	if firstErr != nil {
 		return firstErr
 	}
 
 	fmt.Println("=====")
-	fmt.Println(len(results))
+	fmt.Println(len(existsPaths))
 	fmt.Println("=====")
 
+	domains, err := u.homstaRepo.FindAll(ctx, repository.HomstaFilter{})
+	if err != nil {
+		return err
+	}
+	for _, d := range domains {
+		if !slices.Contains(existsPaths, d.Path) {
+			if err := u.homstaRepo.Delete(ctx, repository.HomstaFilter{
+				Path: &d.Path,
+			}); err != nil {
+				fmt.Println(err)
+			}
+		}
+	}
 	return nil
 }
 

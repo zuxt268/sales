@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/zuxt268/sales/internal/config"
 	"github.com/zuxt268/sales/internal/entity"
 	"github.com/zuxt268/sales/internal/interfaces/adapter"
 	"github.com/zuxt268/sales/internal/interfaces/dto/request"
@@ -23,23 +24,27 @@ type HomstaUsecase interface {
 	GetHomstas(ctx context.Context, limit, offset *int) ([]*model.Homsta, error)
 	GetHomsta(ctx context.Context, name string) (*model.Homsta, error)
 	AnalyzeIndustry(ctx context.Context) error
+	Output(ctx context.Context) error
 }
 
 type homstaUsecase struct {
-	baseRepo   repository.BaseRepository
-	homstaRepo repository.HomstaRepository
-	gptAdapter adapter.GptAdapter
+	baseRepo     repository.BaseRepository
+	homstaRepo   repository.HomstaRepository
+	gptAdapter   adapter.GptAdapter
+	sheetAdapter adapter.SheetAdapter
 }
 
 func NewHomstaUsecase(
 	baseRepo repository.BaseRepository,
 	homstaRepo repository.HomstaRepository,
 	gptAdapter adapter.GptAdapter,
+	sheetAdapter adapter.SheetAdapter,
 ) HomstaUsecase {
 	return &homstaUsecase{
-		baseRepo:   baseRepo,
-		homstaRepo: homstaRepo,
-		gptAdapter: gptAdapter,
+		baseRepo:     baseRepo,
+		homstaRepo:   homstaRepo,
+		gptAdapter:   gptAdapter,
+		sheetAdapter: sheetAdapter,
 	}
 }
 
@@ -118,6 +123,10 @@ func getCompInfo(siteUrl string) (string, error) {
 			return "", err
 		}
 	}
+	if resp.StatusCode != 200 {
+		resp.Body.Close()
+		return "", errors.New(resp.Status)
+	}
 	defer resp.Body.Close()
 
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
@@ -157,4 +166,43 @@ func (u *homstaUsecase) AnalyzeIndustry(ctx context.Context) error {
 		fmt.Println(domain.Domain, domain.Industry)
 	}
 	return nil
+}
+
+func (u *homstaUsecase) Output(ctx context.Context) error {
+	domains, err := u.homstaRepo.FindAll(ctx, repository.HomstaFilter{
+		NotDomainEmpty: util.Pointer(true),
+	})
+	if err != nil {
+		return err
+	}
+
+	rows := make([][]interface{}, 0, len(domains)+1)
+	rows = append(rows, []interface{}{
+		"ドメイン",
+		"サーバーディレクトリ",
+		"URL",
+		"サイト名",
+		"ディスクリプション",
+		"業種",
+		"データベース名",
+		"データベース使用量",
+		"ディスク使用量",
+		"ユーザー",
+	})
+	for _, d := range domains {
+		rows = append(rows, []interface{}{
+			d.Domain,
+			d.Path,
+			d.SiteURL,
+			d.BlogName,
+			d.Description,
+			d.Industry,
+			d.DBName,
+			d.DBUsage,
+			d.DiscUsage,
+			d.Users,
+		})
+	}
+
+	return u.sheetAdapter.Output(config.Env.SiteSheetID, "サイト一覧", rows)
 }

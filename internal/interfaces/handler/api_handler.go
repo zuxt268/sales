@@ -40,6 +40,7 @@ type ApiHandler interface {
 	FetchHomstaDomains(c echo.Context) error
 	FetchHomstaDomainDetails(c echo.Context) error
 	AnalyzeHomstaDomains(c echo.Context) error
+	OutputHomstaDomains(c echo.Context) error
 	AssortWordpress(c echo.Context) error
 	AnalyzeDomain(c echo.Context) error
 
@@ -640,6 +641,20 @@ func (h *apiHandler) AnalyzeHomstaDomains(c echo.Context) error {
 			fmt.Println("[AnalyzeHomstaDomains]", err)
 		}
 	}()
+	return c.NoContent(http.StatusCreated)
+}
+
+// OutputHomstaDomains godoc
+// @Summary Homstaの業種を判別します
+// @Tags Homsta
+// @Accept json
+// @Produce json
+// @Success 201
+// @Router /external/output/domains [post]
+func (h *apiHandler) OutputHomstaDomains(c echo.Context) error {
+	if err := h.homstaUsecase.Output(context.Background()); err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
 	return c.NoContent(http.StatusCreated)
 }
 
