@@ -29,10 +29,10 @@ func Initialize(
 	fetchUsecase := usecase.NewFetchUsecase(viewDnsAdapter, slackAdapter, pubSubAdapter, domainRepo, targetRepo)
 	domainUsecase := usecase.NewDomainUsecase(baseRepo, domainRepo)
 	targetUsecase := usecase.NewTargetUsecase(baseRepo, targetRepo)
-	homstaUsecase := usecase.NewHomstaUsecase(baseRepo, homstaRepo, gptAdapter)
 	gptUsecase := usecase.NewGptUsecase(baseRepo, domainRepo, slackAdapter, gptAdapter)
 	sshAdapter := adapter.NewSSHAdapter()
 	sheetAdapter := adapter.NewSheetAdapter(sheetClient, driveClient)
+	homstaUsecase := usecase.NewHomstaUsecase(baseRepo, homstaRepo, gptAdapter, sheetAdapter)
 	deployUsecase := usecase.NewDeployUsecase(sshAdapter, sheetAdapter, homstaRepo)
 	sheetUsecase := usecase.NewSheetUsecase(baseRepo, domainRepo, sheetAdapter, sshAdapter)
 	growthUsecase := usecase.NewGrowthUsecase(
