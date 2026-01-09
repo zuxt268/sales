@@ -104,22 +104,11 @@ func (u *deployUsecase) FetchDomainDetails(ctx context.Context) error {
 			}
 			continue
 		}
-
 		fmt.Println("partial", len(partial))
 
 		for _, d := range partial {
-			exists, err := u.homstaRepo.Exists(ctx, repository.HomstaFilter{
-				Path: &d.Path,
-			})
-			if err != nil {
-				return err
-			}
-			if exists {
-				continue
-			}
 
-			dbUsage, dbName := getDb(d.DBUsage)
-
+			dbName, dbUsage := getDb(d.DBUsage)
 			homsta := &model.Homsta{
 				Domain:      getDomain(d.Path),
 				BlogName:    d.BlogName,
@@ -132,12 +121,42 @@ func (u *deployUsecase) FetchDomainDetails(ctx context.Context) error {
 				DiscUsage:   d.DiscUsage,
 			}
 
+			exists, err := u.homstaRepo.FindAll(ctx, repository.HomstaFilter{
+				Path: &d.Path,
+			})
+			if err != nil {
+				return err
+			}
+			updated := false
+			if len(exists) != 0 {
+				exist := exists[0]
+
+				if exist.DBName == dbName &&
+					exist.DBUsage == dbUsage &&
+					exist.Path == d.Path &&
+					exist.Description == d.Description &&
+					exist.DiscUsage == d.DiscUsage &&
+					exist.Users == d.Users &&
+					exist.SiteURL == d.SiteUrl &&
+					exist.BlogName == d.BlogName {
+					continue
+				}
+
+				updated = true
+				homsta.Industry = exists[0].Industry
+			}
+
 			err = u.homstaRepo.Save(ctx, homsta)
 			if err != nil {
 				fmt.Println(err)
 			}
-			fmt.Println("[ok]", homsta.Domain)
 			existsPaths = append(existsPaths, homsta.Path)
+
+			if updated {
+				fmt.Println("updated", homsta.Path)
+			} else {
+				fmt.Println("created", homsta.Path)
+			}
 		}
 	}
 	if firstErr != nil {
