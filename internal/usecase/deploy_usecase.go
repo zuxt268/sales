@@ -110,7 +110,7 @@ func (u *deployUsecase) FetchDomainDetails(ctx context.Context) error {
 
 			dbName, dbUsage := getDb(d.DBUsage)
 			homsta := &model.Homsta{
-				Domain:      getDomain(d.Path),
+				Domain:      getDomain(d.SiteUrl),
 				BlogName:    d.BlogName,
 				Path:        d.Path,
 				SiteURL:     d.SiteUrl,
@@ -139,6 +139,7 @@ func (u *deployUsecase) FetchDomainDetails(ctx context.Context) error {
 					exist.Users == d.Users &&
 					exist.SiteURL == d.SiteUrl &&
 					exist.BlogName == d.BlogName {
+					fmt.Println("same")
 					continue
 				}
 				updated = true
