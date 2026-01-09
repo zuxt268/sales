@@ -144,6 +144,7 @@ func (u *deployUsecase) FetchDomainDetails(ctx context.Context) error {
 				updated = true
 				homsta.ID = exist.ID
 				homsta.Industry = exist.Industry
+				homsta.CreatedAt = exist.CreatedAt
 			}
 
 			err = u.homstaRepo.Save(ctx, homsta)
