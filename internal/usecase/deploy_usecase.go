@@ -141,9 +141,9 @@ func (u *deployUsecase) FetchDomainDetails(ctx context.Context) error {
 					exist.BlogName == d.BlogName {
 					continue
 				}
-
 				updated = true
-				homsta.Industry = exists[0].Industry
+				homsta.ID = exist.ID
+				homsta.Industry = exist.Industry
 			}
 
 			err = u.homstaRepo.Save(ctx, homsta)
