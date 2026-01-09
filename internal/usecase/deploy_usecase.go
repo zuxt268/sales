@@ -107,7 +107,6 @@ func (u *deployUsecase) FetchDomainDetails(ctx context.Context) error {
 		fmt.Println("partial", len(partial))
 
 		for _, d := range partial {
-
 			dbName, dbUsage := getDb(d.DBUsage)
 			homsta := &model.Homsta{
 				Domain:      getDomain(d.SiteUrl),
@@ -131,7 +130,8 @@ func (u *deployUsecase) FetchDomainDetails(ctx context.Context) error {
 			if len(exists) != 0 {
 				exist := exists[0]
 
-				if exist.DBName == dbName &&
+				if exist.Domain == homsta.Domain &&
+					exist.DBName == dbName &&
 					exist.DBUsage == dbUsage &&
 					exist.Path == d.Path &&
 					exist.Description == d.Description &&
