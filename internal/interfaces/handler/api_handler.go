@@ -652,7 +652,7 @@ func (h *apiHandler) AnalyzeHomstaDomains(c echo.Context) error {
 // @Success 201
 // @Router /external/output/domains [post]
 func (h *apiHandler) OutputHomstaDomains(c echo.Context) error {
-	if err := h.homstaUsecase.Output(context.Background()); err != nil {
+	if err := h.homstaUsecase.Output(c.Request().Context()); err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 	return c.NoContent(http.StatusCreated)
