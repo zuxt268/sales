@@ -119,7 +119,7 @@ func (u *deployUsecase) FetchDomainDetails(ctx context.Context) error {
 				DBUsage:     dbUsage,
 				DiscUsage:   d.DiscUsage,
 			}
-
+			existsPaths = append(existsPaths, homsta.Path)
 			exists, err := u.homstaRepo.FindAll(ctx, repository.HomstaFilter{
 				Path: &d.Path,
 			})
@@ -151,9 +151,8 @@ func (u *deployUsecase) FetchDomainDetails(ctx context.Context) error {
 			err = u.homstaRepo.Save(ctx, homsta)
 			if err != nil {
 				fmt.Println(err)
+				continue
 			}
-			existsPaths = append(existsPaths, homsta.Path)
-
 			if updated {
 				fmt.Println("updated", homsta.Path)
 			} else {
