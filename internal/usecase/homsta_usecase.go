@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"path"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -110,9 +109,8 @@ func getCompInfo(siteUrl string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	servicePath := path.Join(u.Path, "service")
 
-	resp, err := http.Get(servicePath)
+	resp, err := http.Get(u.String() + "/service")
 	if err != nil {
 		return "", err
 	}
