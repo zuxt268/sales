@@ -172,6 +172,7 @@ func (u *homstaUsecase) AnalyzeIndustry(ctx context.Context) error {
 func (u *homstaUsecase) Output(ctx context.Context) error {
 	domains, err := u.homstaRepo.FindAll(ctx, repository.HomstaFilter{
 		NotDomainEmpty: util.Pointer(true),
+		OrderBy:        []string{"industry"},
 	})
 	if err != nil {
 		return err

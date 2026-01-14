@@ -129,6 +129,7 @@ type HomstaFilter struct {
 	Limit          *int
 	Offset         *int
 	NotDomainEmpty *bool
+	OrderBy        []string
 }
 
 func (h *HomstaFilter) Apply(db *gorm.DB) *gorm.DB {
@@ -149,6 +150,9 @@ func (h *HomstaFilter) Apply(db *gorm.DB) *gorm.DB {
 	}
 	if h.NotDomainEmpty != nil && *h.NotDomainEmpty {
 		db = db.Where("domain != ''")
+	}
+	for _, order := range h.OrderBy {
+		db = db.Order(order)
 	}
 	if h.Limit != nil {
 		db = db.Limit(*h.Limit)
