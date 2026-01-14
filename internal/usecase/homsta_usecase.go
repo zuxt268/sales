@@ -110,9 +110,9 @@ func getCompInfo(siteUrl string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	u.Path = path.Join(u.Path, "service")
+	servicePath := path.Join(u.Path, "service")
 
-	resp, err := http.Get(u.String())
+	resp, err := http.Get(servicePath)
 	if err != nil {
 		return "", err
 	}
