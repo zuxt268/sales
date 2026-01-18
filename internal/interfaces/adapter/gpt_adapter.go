@@ -3,7 +3,9 @@ package adapter
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"strings"
+	"time"
 
 	"github.com/sashabaranov/go-openai"
 	"github.com/zuxt268/sales/internal/config"
@@ -21,7 +23,11 @@ type gptAdapter struct {
 
 func NewGptAdapter() GptAdapter {
 	apiKey := config.Env.OpenaiApiKey
-	client := openai.NewClient(apiKey)
+	cfg := openai.DefaultConfig(apiKey)
+	cfg.HTTPClient = &http.Client{
+		Timeout: 10 * time.Second,
+	}
+	client := openai.NewClientWithConfig(cfg)
 	return &gptAdapter{
 		client: client,
 	}
