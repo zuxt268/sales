@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/zuxt268/sales/internal/config"
@@ -110,20 +111,18 @@ func getCompInfo(siteUrl string) (string, error) {
 		return "", err
 	}
 
-	resp, err := http.Get(u.String() + "/service")
+	targetUrl := u.String()
+	if get(targetUrl + "/service") {
+		targetUrl = targetUrl + "/service"
+	} else if get(siteUrl) {
+		// nothing to do
+	} else {
+		return "", errors.New("site is unavailable")
+	}
+
+	resp, err := http.Get(targetUrl)
 	if err != nil {
 		return "", err
-	}
-	if resp.StatusCode == 404 {
-		resp.Body.Close()
-		resp, err = http.Get(u.String())
-		if err != nil {
-			return "", err
-		}
-	}
-	if resp.StatusCode != 200 {
-		resp.Body.Close()
-		return "", errors.New(resp.Status)
 	}
 	defer resp.Body.Close()
 
@@ -137,6 +136,25 @@ func getCompInfo(siteUrl string) (string, error) {
 
 	text := strings.Join(strings.Fields(body.Text()), " ")
 	return text, nil
+}
+
+func get(u string) bool {
+	req, err := http.NewRequest("GET", u, nil)
+	if err != nil {
+		return false
+	}
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return false
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		return false
+	}
+	return true
 }
 
 func (u *homstaUsecase) AnalyzeIndustry(ctx context.Context) error {
