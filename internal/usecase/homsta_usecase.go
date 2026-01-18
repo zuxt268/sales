@@ -147,6 +147,7 @@ func (u *homstaUsecase) AnalyzeIndustry(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	fmt.Println("対象ドメイン", len(domains))
 	for _, domain := range domains {
 		text, err := getCompInfo(domain.SiteURL)
 		if err != nil {
