@@ -156,7 +156,8 @@ func (u *homstaUsecase) AnalyzeIndustry(ctx context.Context) error {
 		text = fmt.Sprintf("サイト名: %s, ディスクリプション: %s", domain.BlogName, domain.Description) + text
 		industry, err := u.gptAdapter.AnalyzeSiteIndustry(ctx, text)
 		if err != nil {
-			return err
+			fmt.Println(domain.SiteURL, err)
+			continue
 		}
 		domain.Industry = industry
 		if err := u.homstaRepo.Save(ctx, domain); err != nil {
