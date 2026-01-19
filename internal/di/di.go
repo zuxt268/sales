@@ -32,8 +32,8 @@ func Initialize(
 	gptUsecase := usecase.NewGptUsecase(baseRepo, domainRepo, slackAdapter, gptAdapter)
 	sshAdapter := adapter.NewSSHAdapter()
 	sheetAdapter := adapter.NewSheetAdapter(sheetClient, driveClient)
-	homstaUsecase := usecase.NewHomstaUsecase(baseRepo, homstaRepo, gptAdapter, sheetAdapter)
-	deployUsecase := usecase.NewDeployUsecase(sshAdapter, sheetAdapter, homstaRepo)
+	homstaUsecase := usecase.NewHomstaUsecase(baseRepo, homstaRepo, sshAdapter, gptAdapter, sheetAdapter, slackAdapter)
+	deployUsecase := usecase.NewDeployUsecase(sshAdapter)
 	sheetUsecase := usecase.NewSheetUsecase(baseRepo, domainRepo, sheetAdapter, sshAdapter)
 	growthUsecase := usecase.NewGrowthUsecase(
 		baseRepo,

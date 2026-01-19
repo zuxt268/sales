@@ -4,11 +4,9 @@ import (
 	"bytes"
 	"context"
 	"crypto/sha256"
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os"
-	"strings"
 	"sync"
 	"text/template"
 	"time"
@@ -19,196 +17,23 @@ import (
 	"github.com/zuxt268/sales/internal/entity"
 	"github.com/zuxt268/sales/internal/interfaces/adapter"
 	"github.com/zuxt268/sales/internal/interfaces/dto/request"
-	"github.com/zuxt268/sales/internal/interfaces/repository"
-	"github.com/zuxt268/sales/internal/model"
-	"golang.org/x/exp/slices"
 )
 
 type DeployUsecase interface {
 	Deploy(ctx context.Context, body request.DeployRequest)
 	DeployOne(ctx context.Context, body request.DeployOneRequest) error
-	FetchDomains(ctx context.Context) ([]string, error)
-	FetchDomainDetails(ctx context.Context) error
 }
 
 type deployUsecase struct {
-	sshAdapter       adapter.SSHAdapter
-	siteSheetAdapter adapter.SheetAdapter
-	homstaRepo       repository.HomstaRepository
+	sshAdapter adapter.SSHAdapter
 }
 
 func NewDeployUsecase(
 	sshAdapter adapter.SSHAdapter,
-	siteSheetAdapter adapter.SheetAdapter,
-	homstaRepo repository.HomstaRepository,
 ) DeployUsecase {
 	return &deployUsecase{
-		sshAdapter:       sshAdapter,
-		siteSheetAdapter: siteSheetAdapter,
-		homstaRepo:       homstaRepo,
+		sshAdapter: sshAdapter,
 	}
-}
-
-func (u *deployUsecase) FetchDomainDetails(ctx context.Context) error {
-	serverIDs := strings.Split(config.Env.ServerIDs, ",")
-
-	type result struct {
-		out string
-		err error
-	}
-
-	ch := make(chan result, len(serverIDs))
-	var wg sync.WaitGroup
-	for _, serverID := range serverIDs {
-		wg.Add(1)
-
-		go func() {
-			defer wg.Done()
-			sshConf, err := config.GetSSHConfig(serverID)
-			if err != nil {
-				slog.Error("SSH設定取得失敗", "serverID", serverID, "error", err.Error())
-				ch <- result{err: err}
-				return
-			}
-
-			cmd := "walk fetchDomainDetails"
-			stdout, err := u.sshAdapter.RunOutput(sshConf, cmd)
-			if err != nil {
-				ch <- result{err: err}
-				return
-			}
-			ch <- result{out: stdout}
-		}()
-	}
-
-	go func() {
-		wg.Wait()
-		close(ch)
-	}()
-
-	existsPaths := make([]string, 0, 4048)
-	var firstErr error
-
-	for r := range ch {
-		if r.err != nil {
-			if firstErr == nil {
-				firstErr = r.err
-			}
-			continue
-		}
-
-		var partial []entity.DomainDetails
-		if err := json.Unmarshal([]byte(r.out), &partial); err != nil {
-			if firstErr == nil {
-				firstErr = err
-			}
-			continue
-		}
-		fmt.Println("partial", len(partial))
-
-		for _, d := range partial {
-			dbName, dbUsage := getDb(d.DBUsage)
-			homsta := &model.Homsta{
-				Domain:      getDomain(d.SiteUrl),
-				BlogName:    d.BlogName,
-				Path:        d.Path,
-				SiteURL:     d.SiteUrl,
-				Description: d.Description,
-				Users:       d.Users,
-				DBName:      dbName,
-				DBUsage:     dbUsage,
-				DiscUsage:   d.DiscUsage,
-			}
-			existsPaths = append(existsPaths, homsta.Path)
-			exists, err := u.homstaRepo.FindAll(ctx, repository.HomstaFilter{
-				Path: &d.Path,
-			})
-			if err != nil {
-				return err
-			}
-			updated := false
-			if len(exists) != 0 {
-				exist := exists[0]
-
-				if exist.Domain == homsta.Domain &&
-					exist.DBName == dbName &&
-					exist.DBUsage == dbUsage &&
-					exist.Path == d.Path &&
-					exist.Description == d.Description &&
-					exist.DiscUsage == d.DiscUsage &&
-					exist.Users == d.Users &&
-					exist.SiteURL == d.SiteUrl &&
-					exist.BlogName == d.BlogName {
-					fmt.Println("same")
-					continue
-				}
-				updated = true
-				homsta.ID = exist.ID
-				homsta.Industry = exist.Industry
-				homsta.CreatedAt = exist.CreatedAt
-			}
-
-			err = u.homstaRepo.Save(ctx, homsta)
-			if err != nil {
-				fmt.Println(err)
-				continue
-			}
-			if updated {
-				fmt.Println("updated", homsta.Path)
-			} else {
-				fmt.Println("created", homsta.Path)
-			}
-		}
-	}
-	if firstErr != nil {
-		return firstErr
-	}
-
-	fmt.Println("=====")
-	fmt.Println(len(existsPaths))
-	fmt.Println("=====")
-
-	domains, err := u.homstaRepo.FindAll(ctx, repository.HomstaFilter{})
-	if err != nil {
-		return err
-	}
-	for _, d := range domains {
-		if !slices.Contains(existsPaths, d.Path) {
-			if err := u.homstaRepo.Delete(ctx, repository.HomstaFilter{
-				Path: &d.Path,
-			}); err != nil {
-				fmt.Println(err)
-			}
-		}
-	}
-	return nil
-}
-
-func (u *deployUsecase) FetchDomains(ctx context.Context) ([]string, error) {
-
-	var domains []string
-	serverIDs := strings.Split(config.Env.ServerIDs, ",")
-	for _, serverID := range serverIDs {
-		sshConf, err := config.GetSSHConfig(serverID)
-		if err != nil {
-			slog.Error("SSH設定取得失敗", "error", err.Error())
-			return nil, err
-		}
-
-		cmd := "walk fetchDomains"
-
-		stdout, err := u.sshAdapter.RunOutput(sshConf, cmd)
-		if err != nil {
-			return nil, err
-		}
-
-		var result []string
-		if err := json.Unmarshal([]byte(stdout), &result); err != nil {
-			return nil, err
-		}
-		domains = append(domains, result...)
-	}
-	return domains, nil
 }
 
 func (u *deployUsecase) Deploy(ctx context.Context, req request.DeployRequest) {

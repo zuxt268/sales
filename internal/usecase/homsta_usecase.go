@@ -2,11 +2,14 @@ package usecase
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
@@ -17,6 +20,7 @@ import (
 	"github.com/zuxt268/sales/internal/interfaces/repository"
 	"github.com/zuxt268/sales/internal/model"
 	"github.com/zuxt268/sales/internal/util"
+	"golang.org/x/exp/slog"
 )
 
 type HomstaUsecase interface {
@@ -25,26 +29,34 @@ type HomstaUsecase interface {
 	GetHomsta(ctx context.Context, name string) (*model.Homsta, error)
 	AnalyzeIndustry(ctx context.Context) error
 	Output(ctx context.Context) error
+	FetchDomainDetails(ctx context.Context) error
+	FetchDomains(ctx context.Context) ([]string, error)
 }
 
 type homstaUsecase struct {
 	baseRepo     repository.BaseRepository
 	homstaRepo   repository.HomstaRepository
+	sshAdapter   adapter.SSHAdapter
 	gptAdapter   adapter.GptAdapter
 	sheetAdapter adapter.SheetAdapter
+	slackAdapter adapter.SlackAdapter
 }
 
 func NewHomstaUsecase(
 	baseRepo repository.BaseRepository,
 	homstaRepo repository.HomstaRepository,
+	sshAdapter adapter.SSHAdapter,
 	gptAdapter adapter.GptAdapter,
 	sheetAdapter adapter.SheetAdapter,
+	slackAdapter adapter.SlackAdapter,
 ) HomstaUsecase {
 	return &homstaUsecase{
 		baseRepo:     baseRepo,
 		homstaRepo:   homstaRepo,
+		sshAdapter:   sshAdapter,
 		gptAdapter:   gptAdapter,
 		sheetAdapter: sheetAdapter,
+		slackAdapter: slackAdapter,
 	}
 }
 
@@ -224,5 +236,166 @@ func (u *homstaUsecase) Output(ctx context.Context) error {
 		})
 	}
 
-	return u.sheetAdapter.Output(config.Env.SiteSheetID, "サイト一覧", rows)
+	if err := u.sheetAdapter.Output(config.Env.SiteSheetID, "サイト一覧", rows); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (u *homstaUsecase) FetchDomainDetails(ctx context.Context) error {
+	serverIDs := strings.Split(config.Env.ServerIDs, ",")
+
+	type result struct {
+		out string
+		err error
+	}
+
+	ch := make(chan result, len(serverIDs))
+	var wg sync.WaitGroup
+	for _, serverID := range serverIDs {
+		wg.Add(1)
+
+		go func() {
+			defer wg.Done()
+			sshConf, err := config.GetSSHConfig(serverID)
+			if err != nil {
+				slog.Error("SSH設定取得失敗", "serverID", serverID, "error", err.Error())
+				ch <- result{err: err}
+				return
+			}
+
+			cmd := "walk fetchDomainDetails"
+			stdout, err := u.sshAdapter.RunOutput(sshConf, cmd)
+			if err != nil {
+				ch <- result{err: err}
+				return
+			}
+			ch <- result{out: stdout}
+		}()
+	}
+
+	go func() {
+		wg.Wait()
+		close(ch)
+	}()
+
+	existsPaths := make([]string, 0, 4048)
+	var firstErr error
+
+	for r := range ch {
+		if r.err != nil {
+			if firstErr == nil {
+				firstErr = r.err
+			}
+			continue
+		}
+
+		var partial []entity.DomainDetails
+		if err := json.Unmarshal([]byte(r.out), &partial); err != nil {
+			if firstErr == nil {
+				firstErr = err
+			}
+			continue
+		}
+		fmt.Println("partial", len(partial))
+
+		for _, d := range partial {
+			dbName, dbUsage := getDb(d.DBUsage)
+			homsta := &model.Homsta{
+				Domain:      getDomain(d.SiteUrl),
+				BlogName:    d.BlogName,
+				Path:        d.Path,
+				SiteURL:     d.SiteUrl,
+				Description: d.Description,
+				Users:       d.Users,
+				DBName:      dbName,
+				DBUsage:     dbUsage,
+				DiscUsage:   d.DiscUsage,
+			}
+			existsPaths = append(existsPaths, homsta.Path)
+			exists, err := u.homstaRepo.FindAll(ctx, repository.HomstaFilter{
+				Path: &d.Path,
+			})
+			if err != nil {
+				return err
+			}
+			updated := false
+			if len(exists) != 0 {
+				exist := exists[0]
+
+				if exist.Domain == homsta.Domain &&
+					exist.DBName == dbName &&
+					exist.DBUsage == dbUsage &&
+					exist.Path == d.Path &&
+					exist.Description == d.Description &&
+					exist.DiscUsage == d.DiscUsage &&
+					exist.Users == d.Users &&
+					exist.SiteURL == d.SiteUrl &&
+					exist.BlogName == d.BlogName {
+					continue
+				}
+				updated = true
+				homsta.ID = exist.ID
+				homsta.Industry = exist.Industry
+				homsta.CreatedAt = exist.CreatedAt
+			}
+
+			err = u.homstaRepo.Save(ctx, homsta)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+			if updated {
+				fmt.Println("updated", homsta.Path)
+			} else {
+				fmt.Println("created", homsta.Path)
+			}
+		}
+	}
+	if firstErr != nil {
+		return firstErr
+	}
+
+	domains, err := u.homstaRepo.FindAll(ctx, repository.HomstaFilter{})
+	if err != nil {
+		return err
+	}
+	for _, d := range domains {
+		if !slices.Contains(existsPaths, d.Path) {
+			if err := u.homstaRepo.Delete(ctx, repository.HomstaFilter{
+				Path: &d.Path,
+			}); err != nil {
+				fmt.Println(err)
+			}
+		}
+	}
+
+	return nil
+}
+
+func (u *homstaUsecase) FetchDomains(ctx context.Context) ([]string, error) {
+
+	var domains []string
+	serverIDs := strings.Split(config.Env.ServerIDs, ",")
+	for _, serverID := range serverIDs {
+		sshConf, err := config.GetSSHConfig(serverID)
+		if err != nil {
+			slog.Error("SSH設定取得失敗", "error", err.Error())
+			return nil, err
+		}
+
+		cmd := "walk fetchDomains"
+
+		stdout, err := u.sshAdapter.RunOutput(sshConf, cmd)
+		if err != nil {
+			return nil, err
+		}
+
+		var result []string
+		if err := json.Unmarshal([]byte(stdout), &result); err != nil {
+			return nil, err
+		}
+		domains = append(domains, result...)
+	}
+	return domains, nil
 }

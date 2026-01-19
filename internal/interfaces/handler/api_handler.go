@@ -378,7 +378,7 @@ func (h *apiHandler) DeployWordpress(c echo.Context) error {
 // @Success 200
 // @Router /external/fetch/domains [post]
 func (h *apiHandler) FetchHomstaDomains(c echo.Context) error {
-	domains, err := h.deployUsecase.FetchDomains(context.Background())
+	domains, err := h.homstaUsecase.FetchDomains(context.Background())
 	if err != nil {
 		return handleError(c, err)
 	}
@@ -396,9 +396,9 @@ func (h *apiHandler) FetchHomstaDomains(c echo.Context) error {
 // @Router /external/fetch/domains/detail [post]
 func (h *apiHandler) FetchHomstaDomainDetails(c echo.Context) error {
 	go func() {
-		err := h.deployUsecase.FetchDomainDetails(context.Background())
+		err := h.homstaUsecase.FetchDomainDetails(context.Background())
 		if err != nil {
-			fmt.Println("error fetching domain details", err.Error())
+			_ = h.slackAdapter.Send(context.Background(), fmt.Sprintf("```%s```", err.Error()))
 		}
 	}()
 	return c.NoContent(http.StatusOK)
@@ -638,7 +638,7 @@ func (h *apiHandler) CreateHomsta(c echo.Context) error {
 func (h *apiHandler) AnalyzeHomstaDomains(c echo.Context) error {
 	go func() {
 		if err := h.homstaUsecase.AnalyzeIndustry(context.Background()); err != nil {
-			fmt.Println("[AnalyzeHomstaDomains]", err)
+			_ = h.slackAdapter.Send(context.Background(), fmt.Sprintf("```%s```", err.Error()))
 		}
 	}()
 	return c.NoContent(http.StatusCreated)
