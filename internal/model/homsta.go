@@ -1,6 +1,8 @@
 package model
 
 import (
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -22,4 +24,26 @@ type Homsta struct {
 
 func (Homsta) TableName() string {
 	return "homstas"
+}
+
+func (h Homsta) GetDbUsage() int {
+	rate := 0
+	if strings.HasSuffix(h.DBUsage, "GB") {
+		rate = 1000
+	}
+	numStr := strings.ReplaceAll(h.DBUsage, "GB", "")
+	numStr = strings.ReplaceAll(numStr, "MB", "")
+	num, _ := strconv.Atoi(numStr)
+	return num * rate
+}
+
+func (h Homsta) GetDiscUsage() int {
+	rate := 0
+	if strings.HasSuffix(h.DiscUsage, "G") {
+		rate = 1000
+	}
+	numStr := strings.ReplaceAll(h.DBUsage, "G", "")
+	numStr = strings.ReplaceAll(numStr, "M", "")
+	num, _ := strconv.Atoi(numStr)
+	return num * rate
 }

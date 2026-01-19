@@ -205,8 +205,8 @@ func (u *homstaUsecase) Output(ctx context.Context) error {
 		"ディスクリプション",
 		"業種",
 		"データベース名",
-		"データベース使用量",
-		"ディスク使用量",
+		"データベース使用量(MB)",
+		"ディスク使用量(MB)",
 		"ユーザー",
 	})
 	for _, d := range domains {
@@ -218,8 +218,8 @@ func (u *homstaUsecase) Output(ctx context.Context) error {
 			d.Description,
 			d.Industry,
 			d.DBName,
-			d.DBUsage,
-			d.DiscUsage,
+			d.GetDbUsage(),
+			d.GetDiscUsage(),
 			d.Users,
 		})
 	}
