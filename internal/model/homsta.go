@@ -27,7 +27,7 @@ func (Homsta) TableName() string {
 }
 
 func (h Homsta) GetDbUsage() int {
-	rate := 0
+	rate := 1
 	if strings.HasSuffix(h.DBUsage, "GB") {
 		rate = 1000
 	}
@@ -38,11 +38,11 @@ func (h Homsta) GetDbUsage() int {
 }
 
 func (h Homsta) GetDiscUsage() int {
-	rate := 0
+	rate := 1
 	if strings.HasSuffix(h.DiscUsage, "G") {
 		rate = 1000
 	}
-	numStr := strings.ReplaceAll(h.DBUsage, "G", "")
+	numStr := strings.ReplaceAll(h.DiscUsage, "G", "")
 	numStr = strings.ReplaceAll(numStr, "M", "")
 	num, _ := strconv.Atoi(numStr)
 	return num * rate
