@@ -99,7 +99,7 @@ function get_config($key) {
 
 function get_version(WP_REST_Request $request){
     return new WP_REST_Response(array(
-            'version' => "v1.7.6"
+            'version' => "1.9.2"
     ), 200);
 }
 
@@ -373,18 +373,6 @@ function rodut_enqueue_slick_carousel() {
 }
 
 function rodut_ping(WP_REST_Request $request) {
-    $params = $request->get_json_params();
-
-    if (!isset($params['email'])) {
-        return new WP_REST_Response(array('error' => 'Invalid email'), 400);
-    }
-
-    $email = sanitize_email($params['email']);
-    $user = get_user_by('email', $email);
-    if (!$user) {
-        return new WP_REST_Response(array('error' => 'Invalid email'), 400);
-    }
-
     return new WP_REST_Response("ok", 200);
 }
 
@@ -740,6 +728,7 @@ add_action('rest_api_init', function() {
             'methods' => 'GET',
             'callback' => 'get_version',
             'show_in_index' => false,
+            'permission_callback' => '__return_true',
     ));
 
     // healthcheck
@@ -747,6 +736,7 @@ add_action('rest_api_init', function() {
             'methods' => 'POST',
             'callback' => 'rodut_ping',
             'show_in_index' => false,
+            'permission_callback' => '__return_true',
     ));
 
     // サーバーの容量取得のエンドポイント
@@ -754,6 +744,7 @@ add_action('rest_api_init', function() {
             'methods' => 'GET',
             'callback' => 'get_usage',
             'show_in_index' => false,
+            'permission_callback' => '__return_true',
     ));
 
     // サイトのタイトル取得、A-Rootにて使用する
@@ -761,6 +752,7 @@ add_action('rest_api_init', function() {
             'methods' => 'GET',
             'callback' => 'get_title',
             'show_in_index' => false,
+            'permission_callback' => '__return_true',
     ));
 
     // 記事投稿のエンドポイント

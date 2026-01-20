@@ -38,12 +38,13 @@ func (h Homsta) GetDbUsage() int {
 }
 
 func (h Homsta) GetDiscUsage() int {
-	rate := 1
-	if strings.HasSuffix(h.DiscUsage, "G") {
-		rate = 1000
-	}
 	numStr := strings.ReplaceAll(h.DiscUsage, "G", "")
 	numStr = strings.ReplaceAll(numStr, "M", "")
+	if strings.HasSuffix(h.DiscUsage, "G") {
+		v, _ := strconv.ParseFloat("1.3", 64)
+		v *= 1000
+		return int(v)
+	}
 	num, _ := strconv.Atoi(numStr)
-	return num * rate
+	return num
 }
