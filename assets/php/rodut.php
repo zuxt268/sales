@@ -2,12 +2,12 @@
 /*
   Plugin Name: rodut
   Description: ホムスタプラグイン。
-  Version: 1.9.2
+  Version: 1.9.3
   Author: Yuki Ikezawa
   Author URI: https://github.com/IkezawaYuki/IkezawaYuki
 */
 
-require_once(ABSPATH . 'wp-admin/includes/file.php');
+require_once(ABSPATH . '``wp-admin/includes/file.php');
 require_once(ABSPATH . 'wp-admin/includes/image.php');
 require_once(ABSPATH . 'wp-admin/includes/media.php');
 
