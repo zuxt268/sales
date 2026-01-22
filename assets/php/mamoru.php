@@ -2,8 +2,8 @@
 /**
  * Plugin Name: mamoru
  * Description: 仮ドメイントークン認証
- * Version: 0.10.0
- * Author: zuxt268
+ * Version: 0.9.1
+ * Author URI: https://github.com/zuxt268
  */
 
 // 直接アクセスを防ぐ
@@ -142,5 +142,27 @@ function token_auth_check_all_pages(): void
     // トークンが見つからない場合
     wp_die('トークンが見つかりません。');
 }
+/**
+ * 条件に応じてアクションを登録する
+ *
+ * @return void
+ */
+function conditional_add_actions(): void
+{
+    $temp_domains = [
+        'hp-standard.net',
+        'hp-standard.com',
+        'hp-standard.info',
+        'sv511.com',
+        'sv533.com',
+        'hp-standard.xyz'
+    ];
 
-add_action('template_redirect', 'token_auth_check_all_pages');
+    // ドメインが条件に一致する場合のみトークン認証を有効化
+    if (in_array(get_parent_domain(), $temp_domains)) {
+        add_action('template_redirect', 'token_auth_check_all_pages');
+    }
+}
+
+// プラグイン初期化
+add_action('plugins_loaded', 'conditional_add_actions');
