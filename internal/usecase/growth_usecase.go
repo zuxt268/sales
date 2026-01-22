@@ -23,6 +23,7 @@ type GrowthUsecase interface {
 	Polling(ctx context.Context) error
 	Analyze(ctx context.Context, domainMessage *external.DomainMessage) error
 	Output(ctx context.Context) error
+	FetchWix(ctx context.Context) error
 }
 
 type growthUsecase struct {
@@ -81,54 +82,57 @@ func sortTargetsByLastFetched(targets []*model.Target) {
 }
 
 func (u *growthUsecase) Fetch(ctx context.Context) error {
-	// 1. ターゲット全取得（ソートは Filter でもいいし、Go 側でもよい）
-	targets, err := u.targetRepo.FindAll(ctx, repository.TargetFilter{
-		// OrderLastFetchedAsc は無くてもOK。Go側で sort.Slice しているので。
-	})
-	if err != nil {
-		return err
-	}
 
-	var nonWixTargets, wixTargets []*model.Target
-	for _, t := range targets {
-		if t.Name == "WIX" {
-			wixTargets = append(wixTargets, t)
-		} else {
-			nonWixTargets = append(nonWixTargets, t)
-		}
-	}
+	return u.FetchWix(ctx)
 
-	// 2. 最近叩いていないものから優先（LastFetchedAt が NULL のものを先）
-	sortTargetsByLastFetched(nonWixTargets)
-	sortTargetsByLastFetched(wixTargets)
-
-	// 3. レート制限に合わせて「非WIX枠」「WIX枠」を決める
-	nonWixQuota := int(float64(totalCallsPerRun) * nonWixRatio)
-	wixQuota := totalCallsPerRun - nonWixQuota
-
-	// 4. 非WIXから優先して 1IP = 最大1ページずつ進める
-	for _, t := range nonWixTargets {
-		if nonWixQuota <= 0 {
-			break
-		}
-		if err := u.fetchOnePage(ctx, t); err != nil {
-			return err
-		}
-		nonWixQuota--
-	}
-
-	// 5. 余った枠で WIX も 1IP = 最大1ページずつ進める
-	for _, t := range wixTargets {
-		if wixQuota <= 0 {
-			break
-		}
-		if err := u.fetchOnePage(ctx, t); err != nil {
-			return err
-		}
-		wixQuota--
-	}
-
-	return nil
+	//// 1. ターゲット全取得（ソートは Filter でもいいし、Go 側でもよい）
+	//targets, err := u.targetRepo.FindAll(ctx, repository.TargetFilter{
+	//	// OrderLastFetchedAsc は無くてもOK。Go側で sort.Slice しているので。
+	//})
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//var nonWixTargets, wixTargets []*model.Target
+	//for _, t := range targets {
+	//	if t.Name == "WIX" {
+	//		wixTargets = append(wixTargets, t)
+	//	} else {
+	//		nonWixTargets = append(nonWixTargets, t)
+	//	}
+	//}
+	//
+	//// 2. 最近叩いていないものから優先（LastFetchedAt が NULL のものを先）
+	//sortTargetsByLastFetched(nonWixTargets)
+	//sortTargetsByLastFetched(wixTargets)
+	//
+	//// 3. レート制限に合わせて「非WIX枠」「WIX枠」を決める
+	//nonWixQuota := int(float64(totalCallsPerRun) * nonWixRatio)
+	//wixQuota := totalCallsPerRun - nonWixQuota
+	//
+	//// 4. 非WIXから優先して 1IP = 最大1ページずつ進める
+	//for _, t := range nonWixTargets {
+	//	if nonWixQuota <= 0 {
+	//		break
+	//	}
+	//	if err := u.fetchOnePage(ctx, t); err != nil {
+	//		return err
+	//	}
+	//	nonWixQuota--
+	//}
+	//
+	//// 5. 余った枠で WIX も 1IP = 最大1ページずつ進める
+	//for _, t := range wixTargets {
+	//	if wixQuota <= 0 {
+	//		break
+	//	}
+	//	if err := u.fetchOnePage(ctx, t); err != nil {
+	//		return err
+	//	}
+	//	wixQuota--
+	//}
+	//
+	//return nil
 }
 
 // 1つの target(IP) について、現在のページを1つだけ進める
@@ -173,9 +177,6 @@ func (u *growthUsecase) fetchOnePage(ctx context.Context, target *model.Target) 
 					return err
 				}
 			}
-			//if err := u.domainRepo.BulkInsert(ctx, domains); err != nil {
-			//	return fmt.Errorf("failed to insert domains (ip=%s, page=%d): %w", target.IP, page, err)
-			//}
 		}
 
 		// このタイミングでの DomainCount から「現在の maxPage」を計算（DB には保存しない）
@@ -220,7 +221,6 @@ func (u *growthUsecase) fetchOnePage(ctx context.Context, target *model.Target) 
 		}
 
 		target.LastFetchedAt = &now
-
 		if err := u.targetRepo.Save(ctx, target); err != nil {
 			return fmt.Errorf("save target (ip=%s): %w", target.IP, err)
 		}
@@ -333,6 +333,33 @@ func (u *growthUsecase) Output(ctx context.Context) error {
 
 	if updateErr := u.domainRepo.BulkUpdateStatus(ctx, model.StatusPendingOutput, model.StatusDone); updateErr != nil {
 		return fmt.Errorf("failed to bulk update domain status: %w", updateErr)
+	}
+	return nil
+}
+
+func (u *growthUsecase) FetchWix(ctx context.Context) error {
+	// 1. ターゲット全取得（ソートは Filter でもいいし、Go 側でもよい）
+	targets, err := u.targetRepo.FindAll(ctx, repository.TargetFilter{
+		Name: util.Pointer("WIX"),
+	})
+	if err != nil {
+		return err
+	}
+
+	sortTargetsByLastFetched(targets)
+
+	wixQuota := 500
+	if len(targets) == 0 {
+		return nil
+	}
+
+	for wixQuota >= 0 {
+		for _, t := range targets {
+			if err := u.fetchOnePage(ctx, t); err != nil {
+				return err
+			}
+			wixQuota = wixQuota - 1
+		}
 	}
 	return nil
 }
