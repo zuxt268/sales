@@ -83,6 +83,58 @@ services:
       - sales-network
     restart: unless-stopped
 
+  wix:
+    image: golang:1.25-alpine
+    container_name: sales-wix
+    working_dir: /app
+    env_file:
+      - .env
+    environment:
+      DB_USER: ${DB_USER:-root}
+      DB_PASSWORD: ${DB_PASSWORD:-root}
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-sales_db}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    volumes:
+      - .:/app
+      - go_mod_cache:/go/pkg/mod
+    command: go run cmd/wix/main.go
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - sales-network
+
+  crawl:
+    image: golang:1.25-alpine
+    container_name: sales-crawl
+    working_dir: /app
+    env_file:
+      - .env
+    environment:
+      DB_USER: ${DB_USER:-root}
+      DB_PASSWORD: ${DB_PASSWORD:-root}
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-sales_db}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    volumes:
+      - .:/app
+      - go_mod_cache:/go/pkg/mod
+    command: go run cmd/crawl/main.go
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - sales-network
+
 
 volumes:
   mysql_dev_data:

@@ -81,6 +81,54 @@ services:
       - sales-network
     restart: unless-stopped
 
+  wix:
+    build:
+      context: .
+    container_name: sales-wix
+    env_file:
+      - .env
+    environment:
+      DB_USER: ${DB_USER:-root}
+      DB_PASSWORD: ${DB_PASSWORD:-root}
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-sales}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      VIEW_DNS_API_URL: ${VIEW_DNS_API_URL}
+      API_KEY: ${API_KEY}
+    command: go run cmd/wix/main.go
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - sales-network
+
+  crawl:
+    build:
+      context: .
+    container_name: sales-crawl
+    env_file:
+      - .env
+    environment:
+      DB_USER: ${DB_USER:-root}
+      DB_PASSWORD: ${DB_PASSWORD:-root}
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-sales}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    command: go run cmd/crawl/main.go
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - sales-network
+
 
 volumes:
   mysql_data:

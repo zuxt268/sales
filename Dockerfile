@@ -25,6 +25,8 @@ RUN swag init -g cmd/sales/main.go -o docs
 # Build the application
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o sales cmd/sales/main.go
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o token cmd/token/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o wix cmd/wix/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o crawl cmd/crawl/main.go
 
 # Runtime stage
 FROM alpine:latest
@@ -41,6 +43,8 @@ RUN addgroup -g 1000 appuser && \
 # Copy binaries from builder
 COPY --from=builder /app/sales .
 COPY --from=builder /app/token .
+COPY --from=builder /app/wix .
+COPY --from=builder /app/crawl .
 COPY --from=builder /go/bin/sql-migrate .
 
 # Copy migrations and dbconfig

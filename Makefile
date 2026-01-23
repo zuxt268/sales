@@ -1,4 +1,4 @@
-.PHONY: swag prod dev prod-build dev-build prod-down dev-down prod-logs dev-logs migrate-prod migrate-dev
+.PHONY: swag prod dev prod-build dev-build prod-down dev-down prod-logs dev-logs migrate-prod migrate-dev wix wix-logs crawl crawl-logs prod-wix prod-wix-logs prod-crawl prod-crawl-logs
 
 
 swag:
@@ -56,3 +56,26 @@ ifndef password
 endif
 	docker compose exec app ./token $(password)
 
+wix:
+	docker compose -f docker-compose.dev.yml up wix
+
+wix-logs:
+	docker compose -f docker-compose.dev.yml logs -f wix
+
+crawl:
+	docker compose -f docker-compose.dev.yml up crawl
+
+crawl-logs:
+	docker compose -f docker-compose.dev.yml logs -f crawl
+
+prod-wix:
+	docker compose -f docker-compose.prod.yml up wix
+
+prod-wix-logs:
+	docker compose -f docker-compose.prod.yml logs -f wix
+
+prod-crawl:
+	docker compose -f docker-compose.prod.yml up crawl
+
+prod-crawl-logs:
+	docker compose -f docker-compose.prod.yml logs -f crawl
