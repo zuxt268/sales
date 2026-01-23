@@ -97,7 +97,7 @@ services:
       REDIS_PORT: 6379
       VIEW_DNS_API_URL: ${VIEW_DNS_API_URL}
       API_KEY: ${API_KEY}
-    command: go run cmd/wix/main.go
+    command: ["./wix"]
     depends_on:
       db:
         condition: service_healthy
@@ -120,7 +120,7 @@ services:
       DB_NAME: ${DB_NAME:-sales}
       REDIS_HOST: redis
       REDIS_PORT: 6379
-    command: go run cmd/crawl/main.go
+    command: ["./crawl"]
     depends_on:
       db:
         condition: service_healthy
