@@ -20,7 +20,6 @@ func main() {
 	viewDnsAdapter := adapter.NewViewDNSAdapter(config.Env.ViewDnsApiUrl)
 	//targets := []string{"185.230.63.186", "185.230.63.171", "185.230.63.107"}
 	targets := []string{"162.43.119.81", "23.236.62.147", "34.149.87.45"}
-	//targets := []string{"185.230.63.186"}
 
 	page := 1
 	for _, target := range targets {
@@ -40,9 +39,6 @@ func main() {
 				total = num
 			}
 			fetch += len(resp.Response.Domains)
-			if page == 3 {
-				break
-			}
 
 			// データをインサートする
 			wixes := make([]*model.Wix, 0, len(resp.Response.Domains))
