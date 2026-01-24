@@ -15,6 +15,7 @@ type WixRepository interface {
 	BulkInsert(ctx context.Context, wixes []*model.Wix) error
 	FindAll(ctx context.Context, f WixFilter) ([]*model.Wix, error)
 	Count(ctx context.Context, f WixFilter) (int64, error)
+	DeleteByName(ctx context.Context, name string) error
 }
 
 type wixRepository struct {
@@ -64,6 +65,14 @@ func (r *wixRepository) Count(ctx context.Context, f WixFilter) (int64, error) {
 		return 0, fmt.Errorf("failed to count wixes: %w", err)
 	}
 	return count, nil
+}
+
+func (r *wixRepository) DeleteByName(ctx context.Context, name string) error {
+	err := r.getDb(ctx).Where("name = ?", name).Delete(&model.Wix{}).Error
+	if err != nil {
+		return fmt.Errorf("failed to delete wix: %w", err)
+	}
+	return nil
 }
 
 func (r *wixRepository) getDb(ctx context.Context) *gorm.DB {

@@ -21,24 +21,20 @@ func main() {
 
 	ctx := context.Background()
 
-	limit := 1000
-	offset := 0
-	var fetch int64 = 0
-	total, err := wixRepo.Count(ctx, repository.WixFilter{})
-	if err != nil {
-		panic(err)
-	}
-	for fetch < total {
+	for {
 		wixes, err := wixRepo.FindAll(ctx, repository.WixFilter{
 			OwnerID: util.Pointer(""),
-			Limit:   &limit,
-			Offset:  &offset,
+			Limit:   util.Pointer(1000),
 		})
 		if err != nil {
 			panic(err)
 		}
+		if len(wixes) == 0 {
+			break
+		}
+
 		var wg sync.WaitGroup
-		sem := make(chan struct{}, 10) // 同時実行数を10に制限
+		sem := make(chan struct{}, 20)
 
 		for _, wix := range wixes {
 			wg.Add(1)
@@ -48,11 +44,13 @@ func main() {
 				defer func() { <-sem }()
 
 				ownerID := page(w.Name)
-				if ownerID != "" {
-					w.OwnerID = ownerID
-					wixRepo.UpdateByName(ctx, w)
-					fmt.Printf("Updated wix %s\n", w.Name)
+				if ownerID == "" {
+					_ = wixRepo.DeleteByName(ctx, w.Name)
+					return
 				}
+				w.OwnerID = ownerID
+				_ = wixRepo.UpdateByName(ctx, w)
+				fmt.Printf("日本のWixサイト: %s\n", w.Name)
 			}(wix)
 		}
 		wg.Wait()
