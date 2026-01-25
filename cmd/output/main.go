@@ -31,13 +31,7 @@ func main() {
 
 	fmt.Println(len(data))
 
-	test := [][]interface{}{
-		{
-			"test", "test",
-		},
-	}
-
-	csvReader, err := util.ConvertToCSVReader(test)
+	csvReader, err := util.ConvertToCSVReader(data)
 	if err != nil {
 		panic(err)
 	}
