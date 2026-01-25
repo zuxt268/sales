@@ -154,6 +154,8 @@ services:
       GOOGLE_SERVICE_ACCOUNT_PATH: /home/appuser/credentials/service_account.json
       SHEET_ID: ${SHEET_ID}
     command: ["./output"]
+    volumes:
+      - ./credentials:/home/appuser/credentials:ro
     depends_on:
       db:
         condition: service_healthy
