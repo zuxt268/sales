@@ -27,6 +27,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o sales cmd/sales/m
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o token cmd/token/main.go
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o wix cmd/wix/main.go
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o crawl cmd/crawl/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o output cmd/output/main.go
 
 # Runtime stage
 FROM alpine:latest
@@ -45,6 +46,7 @@ COPY --from=builder /app/sales .
 COPY --from=builder /app/token .
 COPY --from=builder /app/wix .
 COPY --from=builder /app/crawl .
+COPY --from=builder /app/output .
 COPY --from=builder /go/bin/sql-migrate .
 
 # Copy migrations and dbconfig
