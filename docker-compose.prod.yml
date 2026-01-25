@@ -155,7 +155,7 @@ services:
       SHEET_ID: ${SHEET_ID}
     command: ["./output"]
     volumes:
-      - ./credentials:/home/appuser/credentials:ro
+      - ./credentials:/app/credentials:ro
     depends_on:
       db:
         condition: service_healthy
