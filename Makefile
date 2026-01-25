@@ -1,4 +1,4 @@
-.PHONY: swag prod dev prod-build dev-build prod-down dev-down prod-logs dev-logs migrate-prod migrate-dev wix wix-logs crawl crawl-logs prod-wix prod-wix-logs prod-crawl prod-crawl-logs
+.PHONY: swag prod dev prod-build dev-build prod-down dev-down prod-logs dev-logs migrate-prod migrate-dev wix wix-logs crawl crawl-logs prod-wix prod-wix-logs prod-crawl prod-crawl-logs prod-output prod-output-logs
 
 
 swag:
@@ -79,3 +79,9 @@ prod-crawl:
 
 prod-crawl-logs:
 	docker compose -f docker-compose.prod.yml logs -f crawl
+
+prod-output:
+	docker compose -f docker-compose.prod.yml up output
+
+prod-output-logs:
+	docker compose -f docker-compose.prod.yml logs -f output

@@ -83,10 +83,11 @@ func (r *wixRepository) getDb(ctx context.Context) *gorm.DB {
 }
 
 type WixFilter struct {
-	Name    *string
-	OwnerID *string
-	Limit   *int
-	Offset  *int
+	Name       *string
+	OwnerID    *string
+	HasOwnerID *bool
+	Limit      *int
+	Offset     *int
 }
 
 func (f *WixFilter) Apply(db *gorm.DB) *gorm.DB {
@@ -95,6 +96,9 @@ func (f *WixFilter) Apply(db *gorm.DB) *gorm.DB {
 	}
 	if f.OwnerID != nil {
 		db = db.Where("owner_id = ?", *f.OwnerID)
+	}
+	if f.HasOwnerID != nil && *f.HasOwnerID {
+		db = db.Where("owner_id != ''")
 	}
 	if f.Limit != nil {
 		db = db.Limit(*f.Limit)
