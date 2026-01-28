@@ -423,7 +423,7 @@ func (h *apiHandler) Homsta(c echo.Context) error {
 		if err := h.homstaUsecase.AnalyzeIndustry(context.Background()); err != nil {
 			_ = h.slackAdapter.Send(context.Background(), fmt.Sprintf("```%s```", err.Error()))
 		}
-		if err := h.homstaUsecase.Output(c.Request().Context()); err != nil {
+		if err := h.homstaUsecase.Output(context.Background()); err != nil {
 			_ = h.slackAdapter.Send(context.Background(), fmt.Sprintf("```%s```", err.Error()))
 		}
 	}()
