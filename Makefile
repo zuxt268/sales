@@ -68,20 +68,20 @@ crawl:
 crawl-logs:
 	docker compose -f docker-compose.dev.yml logs -f crawl
 
-prod-wix:
-	docker compose -f docker-compose.prod.yml up wix
+wix:
+	docker compose -f docker-compose.batch.yml up wix
 
-prod-wix-logs:
-	docker compose -f docker-compose.prod.yml logs -f wix
+wix-logs:
+	docker compose -f docker-compose.batch.yml logs -f wix
 
-prod-crawl:
-	docker compose -f docker-compose.prod.yml up crawl
+crawl:
+	docker compose -f docker-compose.batch.yml up crawl
 
-prod-crawl-logs:
-	docker compose -f docker-compose.prod.yml logs -f crawl
+crawl-logs:
+	docker compose -f docker-compose.batch.yml logs -f crawl
 
-prod-output:
-	docker compose -f docker-compose.prod.yml up output
+output:
+	docker compose -f docker-compose.batch.yml up output
 
-prod-output-logs:
-	docker compose -f docker-compose.prod.yml logs -f output
+output-logs:
+	docker compose -f docker-compose.batch.yml logs -f output

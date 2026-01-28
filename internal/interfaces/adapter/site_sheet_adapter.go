@@ -51,6 +51,12 @@ func (s *sheetAdapter) Output(sheetID, sheetName string, rows [][]interface{}) e
 	if err != nil {
 		return fmt.Errorf("failed to write to sheet %s: %w", sheetName, err)
 	}
+
+	err = s.googleSheetsClient.ResetFilter(sheetID, sheetName)
+	if err != nil {
+		return fmt.Errorf("failed to reset filter: %w", err)
+	}
+
 	return nil
 }
 

@@ -22,6 +22,7 @@ type GoogleSheetsClient interface {
 	ClearRange(spreadsheetID, clearRange string) error
 	ReadRange(spreadsheetID, readRange string) ([][]interface{}, error)
 	GetSpreadsheet(spreadsheetID string) (*sheets.Spreadsheet, error)
+	ResetFilter(spreadsheetID, sheetTitle string) error
 }
 
 // NewGoogleSheetsClient サービスアカウントを使用してGoogle Sheets APIクライアントを初期化
@@ -520,6 +521,72 @@ func (c *googleSheetsClient) GetOrCreateSheet(spreadsheetID, sheetTitle string) 
 
 	// その他のエラー
 	return nil, false, err
+}
+
+// ResetFilter シートのBasicFilterをリセット（フィルター条件をクリアして再設定）
+func (c *googleSheetsClient) ResetFilter(spreadsheetID, sheetTitle string) error {
+	sheet, err := c.FindSheet(spreadsheetID, sheetTitle)
+	if err != nil {
+		return fmt.Errorf("unable to find sheet: %w", err)
+	}
+
+	sheetID := sheet.Properties.SheetId
+
+	requests := []*sheets.Request{
+		{
+			ClearBasicFilter: &sheets.ClearBasicFilterRequest{
+				SheetId: sheetID,
+			},
+		},
+	}
+
+	// グリッドのデータ範囲を取得
+	var endRowIndex, endColumnIndex int64
+	if len(sheet.Data) > 0 && sheet.Data[0].RowData != nil {
+		endRowIndex = int64(len(sheet.Data[0].RowData))
+		if endRowIndex > 0 && sheet.Data[0].RowData[0].Values != nil {
+			endColumnIndex = int64(len(sheet.Data[0].RowData[0].Values))
+		}
+	}
+
+	// グリッドプロパティから範囲を取得（Dataがない場合のフォールバック）
+	if endRowIndex == 0 || endColumnIndex == 0 {
+		if sheet.Properties.GridProperties != nil {
+			endRowIndex = int64(sheet.Properties.GridProperties.RowCount)
+			endColumnIndex = int64(sheet.Properties.GridProperties.ColumnCount)
+		}
+	}
+
+	if endRowIndex > 0 && endColumnIndex > 0 {
+		requests = append(requests, &sheets.Request{
+			SetBasicFilter: &sheets.SetBasicFilterRequest{
+				Filter: &sheets.BasicFilter{
+					Range: &sheets.GridRange{
+						SheetId:          sheetID,
+						StartRowIndex:    0,
+						StartColumnIndex: 0,
+						EndRowIndex:      endRowIndex,
+						EndColumnIndex:   endColumnIndex,
+					},
+				},
+			},
+		})
+	}
+
+	_, err = c.service.Spreadsheets.BatchUpdate(spreadsheetID, &sheets.BatchUpdateSpreadsheetRequest{
+		Requests: requests,
+	}).Do()
+	if err != nil {
+		return fmt.Errorf("unable to reset filter: %w", err)
+	}
+
+	slog.Info("Reset filter on sheet",
+		"spreadsheet_id", spreadsheetID,
+		"sheet_title", sheetTitle,
+		"sheet_id", sheetID,
+	)
+
+	return nil
 }
 
 // WriteToSheetOrCreate シートがなければ作成してからデータを書き込み

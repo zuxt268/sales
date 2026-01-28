@@ -9,6 +9,7 @@ import (
 type Homsta struct {
 	ID          int        `gorm:"column:id;primaryKey;autoIncrement"`
 	Domain      string     `gorm:"column:domain"`
+	Server      string     `gorm:"column:server"`
 	BlogName    string     `gorm:"column:blog_name"`
 	Path        string     `gorm:"column:path"`
 	SiteURL     string     `gorm:"column:site_url"`
@@ -17,6 +18,7 @@ type Homsta struct {
 	Users       string     `gorm:"column:users"`
 	DBUsage     string     `gorm:"column:db_usage"`
 	DiscUsage   string     `gorm:"column:disc_usage"`
+	MailUsage   string     `gorm:"column:mail_usage"`
 	Industry    string     `gorm:"column:industry"`
 	UpdatedAt   *time.Time `gorm:"column:updated_at;autoUpdateTime"`
 	CreatedAt   *time.Time `gorm:"column:created_at;autoCreateTime"`
@@ -39,5 +41,10 @@ func (h Homsta) GetDbUsage() int {
 
 func (h Homsta) GetDiscUsage() int {
 	num, _ := strconv.Atoi(h.DiscUsage)
+	return num
+}
+
+func (h Homsta) GetMailUsage() int {
+	num, _ := strconv.Atoi(h.MailUsage)
 	return num
 }

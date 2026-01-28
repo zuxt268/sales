@@ -21,3 +21,7 @@ func Test_getDiscInfo(t *testing.T) {
 	}
 	fmt.Println(homsta.GetDiscUsage())
 }
+
+func Test_Homsta(t *testing.T) {
+	fmt.Println(getServer("/home/xb439432/hp"))
+}

@@ -93,6 +93,14 @@ func getDomain(siteUrl string) string {
 	return urlStr.Host
 }
 
+func getServer(path string) string {
+	dir := strings.Split(path, "/")
+	if len(dir) < 3 {
+		return ""
+	}
+	return dir[2]
+}
+
 func getDb(dbUsage string) (name, usage string) {
 	dbInfo := strings.Split(dbUsage, ":")
 	if len(dbInfo) != 2 {
@@ -211,7 +219,8 @@ func (u *homstaUsecase) Output(ctx context.Context) error {
 	rows := make([][]interface{}, 0, len(domains)+1)
 	rows = append(rows, []interface{}{
 		"ドメイン",
-		"サーバーディレクトリ",
+		"サーバー",
+		"ディレクトリ",
 		"URL",
 		"サイト名",
 		"ディスクリプション",
@@ -219,11 +228,13 @@ func (u *homstaUsecase) Output(ctx context.Context) error {
 		"データベース名",
 		"データベース使用量(MB)",
 		"ディスク使用量(MB)",
+		"内）メール使用量（MB）",
 		"ユーザー",
 	})
 	for _, d := range domains {
 		rows = append(rows, []interface{}{
 			d.Domain,
+			d.Server,
 			d.Path,
 			d.SiteURL,
 			d.BlogName,
@@ -232,6 +243,7 @@ func (u *homstaUsecase) Output(ctx context.Context) error {
 			d.DBName,
 			d.GetDbUsage(),
 			d.GetDiscUsage(),
+			d.GetMailUsage(),
 			d.Users,
 		})
 	}
@@ -289,7 +301,6 @@ func (u *homstaUsecase) FetchDomainDetails(ctx context.Context) error {
 			}
 			continue
 		}
-
 		var partial []entity.DomainDetails
 		if err := json.Unmarshal([]byte(r.out), &partial); err != nil {
 			if firstErr == nil {
@@ -298,11 +309,11 @@ func (u *homstaUsecase) FetchDomainDetails(ctx context.Context) error {
 			continue
 		}
 		fmt.Println("partial", len(partial))
-
 		for _, d := range partial {
 			dbName, dbUsage := getDb(d.DBUsage)
 			homsta := &model.Homsta{
 				Domain:      getDomain(d.SiteUrl),
+				Server:      getServer(d.Path),
 				BlogName:    d.BlogName,
 				Path:        d.Path,
 				SiteURL:     d.SiteUrl,
@@ -311,6 +322,7 @@ func (u *homstaUsecase) FetchDomainDetails(ctx context.Context) error {
 				DBName:      dbName,
 				DBUsage:     dbUsage,
 				DiscUsage:   d.DiscUsage,
+				MailUsage:   d.MailUsage,
 			}
 			existsPaths = append(existsPaths, homsta.Path)
 			exists, err := u.homstaRepo.FindAll(ctx, repository.HomstaFilter{
@@ -331,7 +343,9 @@ func (u *homstaUsecase) FetchDomainDetails(ctx context.Context) error {
 					exist.DiscUsage == d.DiscUsage &&
 					exist.Users == d.Users &&
 					exist.SiteURL == d.SiteUrl &&
-					exist.BlogName == d.BlogName {
+					exist.BlogName == d.BlogName &&
+					exist.Server == d.Server &&
+					exist.MailUsage == d.MailUsage {
 					continue
 				}
 				updated = true
