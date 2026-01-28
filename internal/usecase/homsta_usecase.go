@@ -204,6 +204,8 @@ func (u *homstaUsecase) AnalyzeIndustry(ctx context.Context) error {
 		}
 		fmt.Println(domain.Domain, domain.Industry)
 	}
+
+	fmt.Println("done")
 	return nil
 }
 
@@ -251,6 +253,8 @@ func (u *homstaUsecase) Output(ctx context.Context) error {
 	if err := u.sheetAdapter.Output(config.Env.SiteSheetID, "サイト一覧", rows); err != nil {
 		return err
 	}
+	
+	fmt.Println("done")
 	return nil
 }
 
@@ -384,6 +388,7 @@ func (u *homstaUsecase) FetchDomainDetails(ctx context.Context) error {
 		}
 	}
 
+	fmt.Println("done")
 	return nil
 }
 
