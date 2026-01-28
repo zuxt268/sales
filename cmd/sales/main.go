@@ -102,9 +102,7 @@ func main() {
 		external.POST("/output/domains", handler.OutputHomstaDomains)
 	}
 
-	api.POST("/fetch/domains/detail", handler.FetchHomstaDomainDetails)
-	api.POST("/analyze/domains", handler.AnalyzeHomstaDomains)
-	api.POST("/output/domains", handler.OutputHomstaDomains)
+	api.POST("/homsta", handler.Homsta)
 
 	webhook := api.Group("/webhook")
 	{

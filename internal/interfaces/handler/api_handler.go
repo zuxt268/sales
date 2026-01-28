@@ -39,6 +39,7 @@ type ApiHandler interface {
 	DeployWordpressOne(c echo.Context) error
 	FetchHomstaDomains(c echo.Context) error
 	FetchHomstaDomainDetails(c echo.Context) error
+	Homsta(c echo.Context) error
 	AnalyzeHomstaDomains(c echo.Context) error
 	OutputHomstaDomains(c echo.Context) error
 	AssortWordpress(c echo.Context) error
@@ -396,8 +397,33 @@ func (h *apiHandler) FetchHomstaDomains(c echo.Context) error {
 // @Router /external/fetch/domains/detail [post]
 func (h *apiHandler) FetchHomstaDomainDetails(c echo.Context) error {
 	go func() {
-		err := h.homstaUsecase.FetchDomainDetails(context.Background())
-		if err != nil {
+		if err := h.homstaUsecase.FetchDomainDetails(context.Background()); err != nil {
+			_ = h.slackAdapter.Send(context.Background(), fmt.Sprintf("```%s```", err.Error()))
+			return
+		}
+	}()
+	return c.NoContent(http.StatusOK)
+}
+
+// Homsta godoc
+// @Summary ストラテジードライブサーバーにあるWordPressの情報を整理します
+// @Description
+// @Tags Wordpress
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200
+// @Router /homsta [post]
+func (h *apiHandler) Homsta(c echo.Context) error {
+	go func() {
+		if err := h.homstaUsecase.FetchDomainDetails(context.Background()); err != nil {
+			_ = h.slackAdapter.Send(context.Background(), fmt.Sprintf("```%s```", err.Error()))
+			return
+		}
+		if err := h.homstaUsecase.AnalyzeIndustry(context.Background()); err != nil {
+			_ = h.slackAdapter.Send(context.Background(), fmt.Sprintf("```%s```", err.Error()))
+		}
+		if err := h.homstaUsecase.Output(c.Request().Context()); err != nil {
 			_ = h.slackAdapter.Send(context.Background(), fmt.Sprintf("```%s```", err.Error()))
 		}
 	}()
