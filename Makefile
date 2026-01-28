@@ -1,4 +1,4 @@
-.PHONY: swag prod dev prod-build dev-build prod-down dev-down prod-logs dev-logs migrate-prod migrate-dev wix wix-logs crawl crawl-logs prod-wix prod-wix-logs prod-crawl prod-crawl-logs prod-output prod-output-logs
+.PHONY: swag prod dev prod-build dev-build prod-down dev-down prod-logs dev-logs migrate-prod migrate-dev wix wix-logs crawl crawl-logs output output-logs
 
 
 swag:

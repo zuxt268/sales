@@ -98,7 +98,7 @@ func (f *WixFilter) Apply(db *gorm.DB) *gorm.DB {
 		db = db.Where("owner_id = ?", *f.OwnerID)
 	}
 	if f.HasOwnerID != nil && *f.HasOwnerID {
-		db = db.Where("owner_id != ''")
+		db = db.Where("owner_id != '' and owner_id != '-'")
 	}
 	if f.Limit != nil {
 		db = db.Limit(*f.Limit)
