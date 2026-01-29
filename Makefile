@@ -24,6 +24,9 @@ prod-build:
 dev-build:
 	docker compose -f docker-compose.dev.yml build --no-cache
 
+batch-build:
+	docker compose -f docker-compose.batch.yml build --no-cache
+
 prod-down:
 	docker compose -f docker-compose.prod.yml down
 
