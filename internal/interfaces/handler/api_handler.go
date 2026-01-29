@@ -411,7 +411,6 @@ func (h *apiHandler) FetchHomstaDomainDetails(c echo.Context) error {
 // @Tags Wordpress
 // @Accept json
 // @Produce json
-// @Security BearerAuth
 // @Success 200
 // @Router /homsta [post]
 func (h *apiHandler) Homsta(c echo.Context) error {

@@ -240,6 +240,25 @@ const docTemplate = `{
                 }
             }
         },
+        "/external/analyze/domains": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Homsta"
+                ],
+                "summary": "Homstaの業種を判別します",
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    }
+                }
+            }
+        },
         "/external/assort": {
             "post": {
                 "security": [
@@ -299,6 +318,108 @@ const docTemplate = `{
                 }
             }
         },
+        "/external/deploy/one": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Wordpress"
+                ],
+                "summary": "ワードプレスを一件デプロイします",
+                "parameters": [
+                    {
+                        "description": "デプロイ情報",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DeployRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted"
+                    }
+                }
+            }
+        },
+        "/external/fetch/domains": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Wordpress"
+                ],
+                "summary": "ストラテジードライブサーバーにあるドメインフォルダ一覧を取得します。",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/external/fetch/domains/detail": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Wordpress"
+                ],
+                "summary": "ストラテジードライブサーバーにあるドメインの詳細情報を取得します",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/external/output/domains": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Homsta"
+                ],
+                "summary": "Homstaの業種を判別します",
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    }
+                }
+            }
+        },
         "/fetch": {
             "post": {
                 "description": "Fetch domain information from target",
@@ -315,6 +436,195 @@ const docTemplate = `{
                 "responses": {
                     "202": {
                         "description": "Accepted"
+                    }
+                }
+            }
+        },
+        "/growth/analyze": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ドメイン"
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/growth/fetch": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ドメイン"
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/growth/output": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ドメイン"
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/growth/polling": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ドメイン"
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/homsta": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Wordpress"
+                ],
+                "summary": "ストラテジードライブサーバーにあるWordPressの情報を整理します",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/homstas": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Homsta"
+                ],
+                "summary": "Homsta一覧を取得します",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.Homsta"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Homsta"
+                ],
+                "summary": "Homstaを作成します",
+                "parameters": [
+                    {
+                        "description": "Homsta情報",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.Homsta"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    }
+                }
+            }
+        },
+        "/homstas/{name}": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Homsta"
+                ],
+                "summary": "Homstaを取得します",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.Homsta"
+                        }
                     }
                 }
             }
@@ -515,6 +825,56 @@ const docTemplate = `{
                 }
             }
         },
+        "model.Homsta": {
+            "type": "object",
+            "properties": {
+                "blogName": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "dbname": {
+                    "type": "string"
+                },
+                "dbusage": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "discUsage": {
+                    "type": "string"
+                },
+                "domain": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "industry": {
+                    "type": "string"
+                },
+                "mailUsage": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "server": {
+                    "type": "string"
+                },
+                "siteURL": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "users": {
+                    "type": "string"
+                }
+            }
+        },
         "model.Status": {
             "type": "string",
             "enum": [
@@ -544,10 +904,19 @@ const docTemplate = `{
                 "created_at": {
                     "type": "string"
                 },
+                "currentPage": {
+                    "type": "integer"
+                },
                 "id": {
                     "type": "integer"
                 },
                 "ip": {
+                    "type": "string"
+                },
+                "lastFetchedAt": {
+                    "type": "string"
+                },
+                "lastFullScanAt": {
                     "type": "string"
                 },
                 "name": {
@@ -565,11 +934,13 @@ const docTemplate = `{
             "type": "string",
             "enum": [
                 "init",
-                "fetched"
+                "fetched",
+                "disabled"
             ],
             "x-enum-varnames": [
                 "TargetStatusInit",
-                "TargetStatusFetched"
+                "TargetStatusFetched",
+                "TargetStatusDisabled"
             ]
         },
         "model.UpdateTargetRequest": {
@@ -594,6 +965,32 @@ const docTemplate = `{
                 },
                 "src": {
                     "$ref": "#/definitions/entity.Deploy"
+                }
+            }
+        },
+        "request.Homsta": {
+            "type": "object",
+            "properties": {
+                "blogName": {
+                    "type": "string"
+                },
+                "dbUsage": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "discUsage": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "siteUrl": {
+                    "type": "string"
+                },
+                "users": {
+                    "type": "string"
                 }
             }
         },
