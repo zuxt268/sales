@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -253,7 +252,7 @@ func (u *homstaUsecase) Output(ctx context.Context) error {
 	if err := u.sheetAdapter.Output(config.Env.SiteSheetID, "サイト一覧", rows); err != nil {
 		return err
 	}
-	
+
 	fmt.Println("done")
 	return nil
 }
@@ -268,11 +267,14 @@ func (u *homstaUsecase) FetchDomainDetails(ctx context.Context) error {
 
 	ch := make(chan result, len(serverIDs))
 	var wg sync.WaitGroup
+
 	for _, serverID := range serverIDs {
+		serverID := serverID
 		wg.Add(1)
 
-		go func() {
+		go func(serverID string) {
 			defer wg.Done()
+
 			sshConf, err := config.GetSSHConfig(serverID)
 			if err != nil {
 				slog.Error("SSH設定取得失敗", "serverID", serverID, "error", err.Error())
@@ -287,7 +289,7 @@ func (u *homstaUsecase) FetchDomainDetails(ctx context.Context) error {
 				return
 			}
 			ch <- result{out: stdout}
-		}()
+		}(serverID)
 	}
 
 	go func() {
@@ -295,7 +297,8 @@ func (u *homstaUsecase) FetchDomainDetails(ctx context.Context) error {
 		close(ch)
 	}()
 
-	existsPaths := make([]string, 0, 4048)
+	// set: 存在したPath一覧（削除判定に使う）
+	existsPathSet := make(map[string]struct{}, 4096)
 	var firstErr error
 
 	for r := range ch {
@@ -305,6 +308,7 @@ func (u *homstaUsecase) FetchDomainDetails(ctx context.Context) error {
 			}
 			continue
 		}
+
 		var partial []entity.DomainDetails
 		if err := json.Unmarshal([]byte(r.out), &partial); err != nil {
 			if firstErr == nil {
@@ -312,7 +316,7 @@ func (u *homstaUsecase) FetchDomainDetails(ctx context.Context) error {
 			}
 			continue
 		}
-		fmt.Println("partial", len(partial))
+
 		for _, d := range partial {
 			dbName, dbUsage := getDb(d.DBUsage)
 			homsta := &model.Homsta{
@@ -328,48 +332,52 @@ func (u *homstaUsecase) FetchDomainDetails(ctx context.Context) error {
 				DiscUsage:   d.DiscUsage,
 				MailUsage:   d.MailUsage,
 			}
-			existsPaths = append(existsPaths, homsta.Path)
+
+			existsPathSet[homsta.Path] = struct{}{}
+
 			exists, err := u.homstaRepo.FindAll(ctx, repository.HomstaFilter{
 				Path: &d.Path,
 			})
 			if err != nil {
-				return err
+				if firstErr == nil {
+					firstErr = err
+				}
+				continue
 			}
-			updated := false
+
 			if len(exists) != 0 {
 				exist := exists[0]
 
+				// 全項目一致なら何もしない
 				if exist.Domain == homsta.Domain &&
-					exist.DBName == dbName &&
-					exist.DBUsage == dbUsage &&
-					exist.Path == d.Path &&
-					exist.Description == d.Description &&
-					exist.DiscUsage == d.DiscUsage &&
-					exist.Users == d.Users &&
-					exist.SiteURL == d.SiteUrl &&
-					exist.BlogName == d.BlogName &&
-					exist.Server == d.Server &&
-					exist.MailUsage == d.MailUsage {
+					exist.DBName == homsta.DBName &&
+					exist.DBUsage == homsta.DBUsage &&
+					exist.Path == homsta.Path &&
+					exist.Description == homsta.Description &&
+					exist.DiscUsage == homsta.DiscUsage &&
+					exist.Users == homsta.Users &&
+					exist.SiteURL == homsta.SiteURL &&
+					exist.BlogName == homsta.BlogName &&
+					exist.Server == homsta.Server &&
+					exist.MailUsage == homsta.MailUsage {
 					continue
 				}
-				updated = true
+
+				// 更新
 				homsta.ID = exist.ID
 				homsta.Industry = exist.Industry
 				homsta.CreatedAt = exist.CreatedAt
 			}
 
-			err = u.homstaRepo.Save(ctx, homsta)
-			if err != nil {
-				fmt.Println(err)
+			if err := u.homstaRepo.Save(ctx, homsta); err != nil {
+				if firstErr == nil {
+					firstErr = err
+				}
 				continue
-			}
-			if updated {
-				fmt.Println("updated", homsta.Path)
-			} else {
-				fmt.Println("created", homsta.Path)
 			}
 		}
 	}
+
 	if firstErr != nil {
 		return firstErr
 	}
@@ -378,17 +386,20 @@ func (u *homstaUsecase) FetchDomainDetails(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
 	for _, d := range domains {
-		if !slices.Contains(existsPaths, d.Path) {
+		if _, ok := existsPathSet[d.Path]; !ok {
 			if err := u.homstaRepo.Delete(ctx, repository.HomstaFilter{
 				Path: &d.Path,
 			}); err != nil {
-				fmt.Println(err)
+				// 削除エラーは握りつぶすならログに
+				slog.Error("delete failed", "path", d.Path, "error", err.Error())
+				continue
 			}
 		}
 	}
 
-	fmt.Println("done")
+	slog.Info("[done]")
 	return nil
 }
 
