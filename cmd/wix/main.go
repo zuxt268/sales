@@ -18,7 +18,7 @@ func main() {
 	db := infrastructure.NewDatabase()
 	wixRepo := repository.NewWixRepository(db)
 	viewDnsAdapter := adapter.NewViewDNSAdapter(config.Env.ViewDnsApiUrl)
-	targets := []string{"185.230.63.171", "185.230.63.107"}
+	targets := []string{"185.230.63.107", "185.230.63.171"}
 	//targets := []string{"162.43.119.81", "23.236.62.147", "34.149.87.45"}
 
 	for _, target := range targets {
@@ -32,7 +32,9 @@ func main() {
 				Page:   page,
 			})
 			if err != nil {
-				panic(err)
+				fmt.Println(err)
+				page++
+				continue
 			}
 			num, _ := strconv.Atoi(resp.Response.DomainCount)
 			if total != num {
