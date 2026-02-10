@@ -222,7 +222,7 @@ RewriteRule . /index.php [L]
 
 			// PHPファイルを配布
 			slog.Info("PHPファイル配布開始", "domain", dst.Domain)
-			if dst.IsSubDomain() {
+			if entity.IsTempDomains(dst.Domain) {
 				content, err := assets.Root.ReadFile("php/mamoru.php")
 				if err != nil {
 					slog.Error("mamoru.php読み込み失敗", "error", err.Error(), "domain", dst.Domain)
@@ -436,7 +436,7 @@ RewriteRule . /index.php [L]
 
 	// PHPファイルを配布
 	slog.Info("PHPファイル配布開始", "domain", dst.Domain)
-	if dst.IsSubDomain() {
+	if entity.IsTempDomains(dst.Domain) {
 		content, err := assets.Root.ReadFile("php/mamoru.php")
 		if err != nil {
 			return err
