@@ -78,7 +78,7 @@ func (d *Deploy) GetDbName() string {
 		}
 	}
 
-	if d.IsSubDomain() {
+	if IsTempDomains(d.Domain) {
 		return fmt.Sprintf("%s_%spre", d.ServerID, result)
 	}
 
@@ -101,11 +101,6 @@ func (d *Deploy) GetDbHost() string {
 		return config.Env.DatabaseHost1
 	}
 	return config.Env.DatabaseHost2
-}
-
-func (d *Deploy) IsSubDomain() bool {
-	term := strings.Split(d.Domain, ".")
-	return len(term) > 2
 }
 
 func (d *Deploy) GetHashData() string {
