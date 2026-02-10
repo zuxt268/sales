@@ -25,9 +25,6 @@ func main() {
 		total := math.MaxInt
 		fetch := 0
 		page := 1
-		if target == "185.230.63.171" {
-			page = 387
-		}
 
 		for total > fetch {
 			resp, err := viewDnsAdapter.GetReverseIP(context.Background(), &external.ReverseIpRequest{

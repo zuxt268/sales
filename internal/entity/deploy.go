@@ -13,9 +13,21 @@ type Deploy struct {
 	ServerID string `json:"server_id"`
 }
 
+func IsTempDomains(domain string) bool {
+	term := strings.Split(domain, ".")
+	parent := strings.Join(term[1:], ".")
+	switch parent {
+	case "sv870.com", "sv533.com", "sv511.com",
+		"hp-standard.net", "hp-standard.info", "hp-standard.xyz", "hp-standard.biz", "hp-standard.com":
+		return true
+	default:
+		return false
+	}
+}
+
 func (d *Deploy) WordpressRootDirectory() string {
-	term := strings.Split(d.Domain, ".")
-	if len(term) > 2 {
+	if IsTempDomains(d.Domain) {
+		term := strings.Split(d.Domain, ".")
 		term = term[1:]
 		return fmt.Sprintf("/home/%s/%s/public_html/%s",
 			d.ServerID,
@@ -27,8 +39,8 @@ func (d *Deploy) WordpressRootDirectory() string {
 }
 
 func (d *Deploy) SecretConfigPath() string {
-	term := strings.Split(d.Domain, ".")
-	if len(term) > 2 {
+	if IsTempDomains(d.Domain) {
+		term := strings.Split(d.Domain, ".")
 		term = term[1:]
 		return fmt.Sprintf("/home/%s/%s/public_html/%s/wp-content/secret-config.php",
 			d.ServerID,
@@ -40,8 +52,8 @@ func (d *Deploy) SecretConfigPath() string {
 }
 
 func (d *Deploy) MuPluginDirectory() string {
-	term := strings.Split(d.Domain, ".")
-	if len(term) > 2 {
+	if IsTempDomains(d.Domain) {
+		term := strings.Split(d.Domain, ".")
 		term = term[1:]
 		return fmt.Sprintf("/home/%s/%s/public_html/%s/wp-content/mu-plugins",
 			d.ServerID,
