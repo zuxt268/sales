@@ -2,7 +2,7 @@
 /*
   Plugin Name: rodut
   Description: ホムスタプラグイン。
-  Version: 1.9.3
+  Version: 1.10.1
   Author: Yuki Ikezawa
   Author URI: https://github.com/IkezawaYuki/IkezawaYuki
 */
@@ -18,44 +18,35 @@ function verify_hmac_signature($request): bool
         error_log("api_key not configured");
         return false;
     }
-
     $signature = get_request_header('X-Signature');
     $timestamp = get_request_header('X-Timestamp');
-
     if (empty($signature) || empty($timestamp)) return false;
     if (abs(time() - intval($timestamp)) > 300) return false; // ±5分
-
     // Content-Type で分岐
     $content_type = $_SERVER['CONTENT_TYPE'] ?? $_SERVER['HTTP_CONTENT_TYPE'] ?? '';
-
     if (stripos($content_type, 'multipart/form-data') !== false) {
         // --- upload-media 等: multipart ---
         // 署名対象は「timestamp.email.filename」
         $email = isset($_POST['email']) ? (string)$_POST['email'] : '';
         $filename = isset($_FILES['file']['name']) ? (string)$_FILES['file']['name'] : '';
-
         // 必須チェック（必要に応じて）
         if ($email === '' || $filename === '') return false;
-
         $data = $timestamp . '.' . $email . '.' . $filename;
     } else {
         // --- JSON エンドポイント ---
         $rawBody = $request->get_body();
         $data = $timestamp . '.' . $rawBody;
     }
-
     $expected_signature = hash_hmac('sha256', $data, $api_key);
     return hash_equals($expected_signature, $signature);
 }
 
 function get_request_header($name) {
     $nameUpper = strtoupper(str_replace('-', '_', $name));
-
     // 1. $_SERVER 経由
     if (isset($_SERVER['HTTP_' . $nameUpper])) {
         return $_SERVER['HTTP_' . $nameUpper];
     }
-
     // 2. getallheaders() がある場合
     if (function_exists('getallheaders')) {
         $headers = getallheaders();
@@ -65,7 +56,6 @@ function get_request_header($name) {
             }
         }
     }
-
     // 3. apache_request_headers() がある場合
     if (function_exists('apache_request_headers')) {
         $headers = apache_request_headers();
@@ -75,9 +65,177 @@ function get_request_header($name) {
             }
         }
     }
-
     return '';
 }
+
+/**
+ * -------------------------
+ * Utility: media URL 判定
+ * -------------------------
+ */
+function mc_is_media_url($url) {
+    if (!$url) return false;
+    $path = strtolower(parse_url($url, PHP_URL_PATH) ?? '');
+    if ($path === '') return false;
+    $exts = [
+            'jpg','jpeg','png','gif','webp','svg','avif',
+            'mp4','webm','mov','m4v','ogg','ogv'
+    ];
+    foreach ($exts as $ext) {
+        if (str_ends_with($path, '.' . $ext)) return true;
+    }
+    return false;
+}
+
+function mc_add_url(&$set, $url) {
+    if (!$url) return;
+    $url = trim(html_entity_decode($url, ENT_QUOTES));
+    if ($url === '') return;
+    if (str_starts_with($url, '//')) {
+        $url = 'https:' . $url;
+    } elseif (str_starts_with($url, '/')) {
+        $url = home_url($url);
+    }
+    // 自ドメインのみ許可（←追加）
+    $host = parse_url($url, PHP_URL_HOST);
+    if ($host !== parse_url(home_url(), PHP_URL_HOST)) {
+        return;
+    }
+    $set[$url] = true;
+}
+
+/**
+ * -------------------------
+ * HTML → プレーンテキスト変換
+ * -------------------------
+ */
+function mc_html_to_text($html) {
+    if (!$html) return '';
+    $html = apply_filters('the_content', $html);
+    // videoタグ全体削除（←追加）
+    $html = preg_replace('/<video\b[^>]*>.*?<\/video>/is', '', $html);
+    // script/styleも削除（安全）
+    $html = preg_replace('/<(script|style)\b[^>]*>.*?<\/\1>/is', '', $html);
+    // <br> → 改行
+    $html = preg_replace('/<br\s*\/?>/i', "\n", $html);
+    // </p> → 2改行
+    $html = preg_replace('/<\/p>/i', "\n\n", $html);
+    $text = wp_strip_all_tags($html);
+    $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    $text = preg_replace("/\n{3,}/", "\n\n", $text);
+    return trim($text);
+}
+
+/**
+ * -------------------------
+ * HTMLからメディア抽出
+ * -------------------------
+ */
+function mc_extract_media_urls_from_html($html) {
+    $urls_set = [];
+    if (!$html) return [];
+    if (preg_match_all('/wp-(?:image|video)-([0-9]+)/', $html, $m)) {
+        foreach ($m[1] as $id) {
+            $url = wp_get_attachment_url((int)$id);
+            mc_add_url($urls_set, $url);
+        }
+    }
+    if (preg_match_all('/<(img|video|source)[^>]+src=["\']([^"\']+)["\']/i', $html, $m)) {
+        foreach ($m[2] as $url) mc_add_url($urls_set, $url);
+    }
+    if (preg_match_all('/<a[^>]+href=["\']([^"\']+)["\']/i', $html, $m)) {
+        foreach ($m[1] as $url) {
+            if (mc_is_media_url($url)) mc_add_url($urls_set, $url);
+        }
+    }
+    return array_keys($urls_set);
+}
+
+/**
+ * -------------------------
+ * Gutenbergブロック抽出
+ * -------------------------
+ */
+function mc_extract_media_urls_from_blocks($blocks) {
+    $urls_set = [];
+    if (!is_array($blocks)) return [];
+    $walk = function($blk) use (&$walk, &$urls_set) {
+        if (!is_array($blk)) return;
+        $name = $blk['blockName'] ?? '';
+        if ($name === 'core/image') {
+            $id = (int)($blk['attrs']['id'] ?? 0);
+            if ($id) mc_add_url($urls_set, wp_get_attachment_url($id));
+            $url = $blk['attrs']['url'] ?? null;
+            if ($url) mc_add_url($urls_set, $url);
+        }
+        if ($name === 'core/video') {
+            $id = (int)($blk['attrs']['id'] ?? 0);
+            if ($id) mc_add_url($urls_set, wp_get_attachment_url($id));
+            $src = $blk['attrs']['src'] ?? null;
+            if ($src) mc_add_url($urls_set, $src);
+        }
+        if ($name === 'core/embed') {
+            $url = $blk['attrs']['url'] ?? null;
+            if ($url) mc_add_url($urls_set, $url);
+        }
+        $innerHTML = $blk['innerHTML'] ?? '';
+        if ($innerHTML) {
+            foreach (mc_extract_media_urls_from_html($innerHTML) as $u) {
+                mc_add_url($urls_set, $u);
+            }
+        }
+        if (!empty($blk['innerBlocks'])) {
+            foreach ($blk['innerBlocks'] as $child) $walk($child);
+        }
+    };
+    foreach ($blocks as $b) $walk($b);
+    return array_keys($urls_set);
+}
+
+/**
+ * -------------------------
+ * 最新N件取得
+ * -------------------------
+ */
+function mc_get_latest_posts_with_media($limit = 30) {
+    $posts = get_posts([
+            'post_type'   => 'post',
+            'post_status' => 'publish',
+            'numberposts' => (int)$limit,
+            'orderby'     => 'date',
+            'order'       => 'DESC',
+    ]);
+    $results = [];
+    foreach ($posts as $post) {
+        $media_set = [];
+        $blocks = parse_blocks($post->post_content);
+        foreach (mc_extract_media_urls_from_blocks($blocks) as $u) {
+            mc_add_url($media_set, $u);
+        }
+        foreach (mc_extract_media_urls_from_html($post->post_content) as $u) {
+            mc_add_url($media_set, $u);
+        }
+        $thumb_id = get_post_thumbnail_id($post->ID);
+        if ($thumb_id) {
+            mc_add_url($media_set, wp_get_attachment_url($thumb_id));
+        }
+        $content = mc_html_to_text($post->post_content);
+        $results[] = [
+                'post_id'   => (int)$post->ID,   // ← 追加
+                'content'   => $content,
+                'media_urls'=> array_values(array_keys($media_set)),
+        ];
+    }
+    return $results;
+}
+
+function get_post_list($request) {
+    $limit = (int)($request->get_param('limit') ?? 30);
+    if ($limit <= 0) $limit = 30;
+    if ($limit > 100) $limit = 100; // safety
+    return mc_get_latest_posts_with_media($limit);
+}
+
 
 
 function get_config($key) {
@@ -751,6 +909,13 @@ add_action('rest_api_init', function() {
     register_rest_route('rodut/v1', '/title', array(
             'methods' => 'GET',
             'callback' => 'get_title',
+            'show_in_index' => false,
+            'permission_callback' => '__return_true',
+    ));
+
+    register_rest_route('rodut/v1', '/posts', array(
+            'methods' => 'GET',
+            'callback' => 'get_post_list',
             'show_in_index' => false,
             'permission_callback' => '__return_true',
     ));
