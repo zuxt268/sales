@@ -2,7 +2,7 @@
 /*
   Plugin Name: rodut
   Description: ホムスタプラグイン。
-  Version: 1.10.1
+  Version: 1.10.2
   Author: Yuki Ikezawa
   Author URI: https://github.com/IkezawaYuki/IkezawaYuki
 */
@@ -198,6 +198,7 @@ function mc_extract_media_urls_from_blocks($blocks) {
  * -------------------------
  */
 function mc_get_latest_posts_with_media($limit = 30) {
+
     $posts = get_posts([
             'post_type'   => 'post',
             'post_status' => 'publish',
@@ -205,27 +206,37 @@ function mc_get_latest_posts_with_media($limit = 30) {
             'orderby'     => 'date',
             'order'       => 'DESC',
     ]);
+
     $results = [];
+
     foreach ($posts as $post) {
+
         $media_set = [];
+
         $blocks = parse_blocks($post->post_content);
         foreach (mc_extract_media_urls_from_blocks($blocks) as $u) {
             mc_add_url($media_set, $u);
         }
+
         foreach (mc_extract_media_urls_from_html($post->post_content) as $u) {
             mc_add_url($media_set, $u);
         }
+
         $thumb_id = get_post_thumbnail_id($post->ID);
         if ($thumb_id) {
             mc_add_url($media_set, wp_get_attachment_url($thumb_id));
         }
+
         $content = mc_html_to_text($post->post_content);
+
         $results[] = [
-                'post_id'   => (int)$post->ID,   // ← 追加
-                'content'   => $content,
-                'media_urls'=> array_values(array_keys($media_set)),
+                'post_id'     => (int)$post->ID,
+                'published_at'=> get_post_time('c', true, $post), // ISO8601形式（推奨）
+                'content'     => $content,
+                'media_urls'  => array_values(array_keys($media_set)),
         ];
     }
+
     return $results;
 }
 
