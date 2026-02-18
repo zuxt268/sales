@@ -2,7 +2,7 @@
 /*
   Plugin Name: rodut
   Description: ホムスタプラグイン。
-  Version: 1.10.2
+  Version: 1.10.1
   Author: Yuki Ikezawa
   Author URI: https://github.com/IkezawaYuki/IkezawaYuki
 */
@@ -230,10 +230,11 @@ function mc_get_latest_posts_with_media($limit = 30) {
         $content = mc_html_to_text($post->post_content);
 
         $results[] = [
-                'post_id'     => (int)$post->ID,
-                'published_at'=> get_post_time('c', true, $post), // ISO8601形式（推奨）
-                'content'     => $content,
-                'media_urls'  => array_values(array_keys($media_set)),
+                'post_id'      => (int)$post->ID,
+                'post_url'     => get_permalink($post->ID),           // ← 追加
+                'published_at' => get_post_time('c', true, $post),    // UTC
+                'content'      => $content,
+                'media_urls'   => array_values(array_keys($media_set)),
         ];
     }
 
