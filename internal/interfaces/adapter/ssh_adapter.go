@@ -159,7 +159,7 @@ func (a *sshAdapter) UploadFile(ctx context.Context, cfg config.SSHConfig, local
 	defer file.Close()
 
 	fmt.Printf("⬆️ Uploading %s → %s:%s\n", localPath, cfg.Host, remotePath)
-	err = client.CopyFile(ctx, file, remotePath, "0644")
+	err = client.CopyFromFile(ctx, *file, remotePath, "0644")
 	if err != nil {
 		return fmt.Errorf("scp upload: %w", err)
 	}
