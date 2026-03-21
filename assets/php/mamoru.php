@@ -155,7 +155,8 @@ function conditional_add_actions(): void
         'hp-standard.info',
         'sv511.com',
         'sv533.com',
-        'hp-standard.xyz'
+        'hp-standard.xyz',
+        'hp-standard.biz'
     ];
 
     // ドメインが条件に一致する場合のみトークン認証を有効化
