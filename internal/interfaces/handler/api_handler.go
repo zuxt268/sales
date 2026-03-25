@@ -232,9 +232,7 @@ func (h *apiHandler) FetchDomains(c echo.Context) error {
 // @Success 202
 // @Router /polling [post]
 func (h *apiHandler) PollingDomains(c echo.Context) error {
-	go func() {
-		h.fetchUsecase.Polling(context.Background())
-	}()
+	go h.fetchUsecase.Polling(context.Background())
 	return c.NoContent(http.StatusAccepted)
 }
 

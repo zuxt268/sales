@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 	"strconv"
@@ -289,6 +290,9 @@ func (u *growthUsecase) Analyze(ctx context.Context, domainMessage *external.Dom
 	return u.baseRepo.WithTransaction(ctx, func(ctx context.Context) error {
 		domain, err := u.domainRepo.GetForUpdate(ctx, repository.DomainFilter{ID: &domainMessage.DomainId})
 		if err != nil {
+			if errors.Is(err, entity.ErrNotFound) {
+				return nil
+			}
 			return err
 		}
 		if domain.Status != model.StatusCrawlCompInfo {
